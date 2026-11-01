@@ -36,17 +36,22 @@ For every identified feature, we can record its purpose, interface, database dep
 
 ### Future Disposition
 
-| **Historical status** | **Future disposition** |
+After completing the historical inventory, each feature may be assigned one of the following dispositions.
+
+| **Disposition** | **Meaning** |
 |---|---|
-| Implemented | Retain |
-| Partial | Redesign |
-| Broken | Combine with another feature |
-| Proposed | Defer |
-| Unknown | Retire |
+| Retain | Carry the feature forward substantially as designed |
+| Redesign | Preserve the underlying purpose but change its implementation or interface |
+| Combine | Merge overlapping functionality into a more coherent feature |
+| Defer | Consider for development after the MVP |
+| Retire | Do not carry the feature into the new application |
+| Undecided | Requires further evaluation |
 
-A feature's implementation status describes what existed.
+Implementation status and future disposition are independent classifications.
 
-Its disposition describes what we intend to do with it.
+For example, a fully implemented historical feature might be retired, while a feature that was only proposed might become an MVP requirement.
+
+Future dispositions should generally remain **Undecided** until the comprehensive review provides sufficient evidence.
 
 <br>
 
