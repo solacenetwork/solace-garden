@@ -2,31 +2,53 @@
 
 This is a historical audit, not a design exercise.
 
-We have several potential sources: 
+### Historical Sources
 
-- the archived PHP application
-- MariaDB schema and data
-- separate Garden JavaScript implementation
-- paper notebooks 
-- previous conversations.
+The comprehensive review will examine the following sources:
 
-The review should inventory each feature and establish its actual status.
+| Source | Description | Review Status |
+|---|---|---|
+| Original PHP Garden application | Historical PHP implementation and user interfaces | Pending |
+| MariaDB database and PlantDB | Original database schemas, relationships, and available historical data | Pending |
+| JavaScript Garden application | Separate historical implementation | Pending |
+| Paper notebooks | Handwritten feature ideas, sketches, and planning notes | Pending |
+| Previous SOLACE conversations | Historical discussions, proposed features, and design decisions | In progress |
 
----
+Features will be classified according to the evidence available from each source.
 
-| **Classification** |	**Meaning** |
-| ----------- | ----------- |
-| Implemented |	Exists in code and appears functional |
-| Partial |	Some implementation exists, but functionality is incomplete |
-| Broken |	Implemented, but not working correctly |
-| Proposed |	Documented or discussed, but never implemented |
-| Unknown |	Needs further inspection or testing |
+Where implementation cannot be verified, the feature will remain classified as **Unknown** or **Proposed**, rather than being assumed to exist.
 
-For every identified feature, we can record its purpose, interface, database dependencies, implementation location, limitations, and original design reasoning.
+<br>
 
-That will help us avoid accidentally discarding useful work—or carrying forward features just because they existed.
+### Implementation Status
 
----
+| **Classification** | **Meaning** |
+|---|---|
+| Implemented | Exists in code and appears functional |
+| Partial | Some implementation exists, but functionality is incomplete |
+| Broken | Implemented, but not working correctly |
+| Proposed | Documented or discussed, but never implemented |
+| Unknown | Needs further inspection or testing |
+
+For every identified feature, we can record its purpose, interface, database dependencies, implementation location, limitations, and original design reasoning. That will help us avoid accidentally discarding useful work—or carrying forward features just because they existed.
+
+<br>
+
+### Future Disposition
+
+| **Historical status** | **Future disposition** |
+|---|---|
+| Implemented | Retain |
+| Partial | Redesign |
+| Broken | Combine with another feature |
+| Proposed | Defer |
+| Unknown | Retire |
+
+A feature's implementation status describes what existed.
+
+Its disposition describes what we intend to do with it.
+
+<br>
 
 ### Historical Feature: Online/Offline Status Indicator
 
