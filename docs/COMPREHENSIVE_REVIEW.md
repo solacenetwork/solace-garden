@@ -872,9 +872,159 @@ This should be documented without assuming that the new application must combine
 
 ---
 
+## 18A. Follow-Up Functional Audit: Personal Data and Utilities
+
+This section records a subsequent **static source-code inspection** of the PHP archive and JavaScript snapshots. It extends, rather than replaces, the earlier preliminary classifications. No successful end-to-end browser testing has been reported.
+
+### 18A.1 PHP To-Do, To-Get, and Notes storage
+
+- The configurable List Manager in `app/garden/list/assets/list.js` reads and writes records through browser `localStorage`. The same code supports different list configurations and JSON backup/restore operations.
+- `app/garden/list/getlist.php` and `savelist.php` separately contain MariaDB JSON-column retrieval and update logic for `todo`, `toget`, and `notes`.
+- No calls to these PHP endpoints were found in the examined `list.js`. Their mere coexistence does not establish synchronization between browser data and MariaDB.
+- The PHP retrieval endpoint constructs SQL using supplied list type and member ID; the save endpoint parameterizes the values but incorporates the selected column name into SQL. This is a historical implementation/security observation, not a request to repair the archive.
+
+**Classification:** Partial overall; concrete local-list CRUD and file import/export logic exists. **Future disposition:** Undecided.
+
+### 18A.2 JavaScript Lists across snapshots
+
+- The v1/v4 list implementation uses direct `localStorage` operations for creating, reading, changing, and deleting list data.
+- v2 divides list functionality across additional JavaScript files and includes an explicitly named item-edit function.
+- The list implementations contain actual CRUD logic, but complete browser workflows have not been acceptance-tested.
+- Some source comments anticipate moving storage behind an SAE service rather than writing directly to `localStorage`.
+
+**Classification:** Partial pending runtime verification. **Future disposition:** Undecided.
+
+### 18A.3 Journal storage and the IndexedDB experiment
+
+- The PHP Journal includes a rich-text entry form, example archives, search UI, and a separate image-upload handler. Its examined form handler echoes submitted content rather than inserting a Journal record; the search query is commented out and example results remain.
+- JavaScript Journal files use **JsStore/IndexedDB** with a `MyJournal` database and `Entries` table, but the examined database routines are partly demonstrations.
+- The examined insertion routine uses a sample entry, initialization can invoke insertion again, reading targets a fixed record, and an update routine references `Product` rather than `Entries`. These are evidence of an incomplete data experiment, not a verified production Journal lifecycle.
+- The v3 Journal implementation is under `app/garden/core/journal/`, rather than the `lib/journal/` path used in other snapshots. A changed location is not evidence that the feature was removed.
+- The PHP `journal/imgUploader.php` contains upload-handling logic using a session member ID; authorization checks and association with saved entries require further investigation.
+
+**Classification:** Partial/prototype. **Future disposition:** Undecided.
+
+### 18A.4 Calendar
+
+- PHP `app/garden/calendar/index.html` uses FullCalendar and displays date-click alerts. No completed event-save or database retrieval workflow was demonstrated in this page.
+- JavaScript navigation and a `garden_calendar.json` sample show continuing interest in Calendar, but do not establish persistent event management.
+
+**Classification:** Partial demonstration in PHP; JavaScript functionality remains Unknown/Partial. **Future disposition:** Undecided.
+
+### 18A.5 Maps and drawing
+
+- PHP `app/garden/maps.php` opens the `draw/` interface.
+- `app/garden/draw/index.html` uses a Fabric.js canvas with shape and color tools. `saveCanvas()` exports a PNG image to the browser's download mechanism; this is a genuine coded output path, not a verified record-save operation.
+- No completed editable-map persistence or map-to-garden association has been established.
+- JavaScript Map libraries show template-oriented experiments (container, raised-bed, in-ground, hydroponic, custom), alongside unfinished-action handlers.
+
+**Classification:** Partial. **Future disposition:** Undecided.
+
+### 18A.6 Photo Gallery and images
+
+- PHP `app/garden/gallery.php` explicitly describes a first-version idea: images attached to gardens and organized by year. It describes independently organized, tagged “freeform” galleries as a possible later direction.
+- `gallery-images.php` uses fixed demonstration images. The gallery code contains a TODO for database-driven information.
+- A separate Journal image uploader should not be counted as a completed Garden Gallery upload pipeline.
+- JavaScript gallery routes or sample references are not proof of upload, association, or retrieval.
+
+**Classification:** Partial/demonstration. **Future disposition:** Undecided.
+
+### 18A.7 Search, settings, backups, and other utilities
+
+| Utility | Further source finding | Historical status |
+|---|---|---|
+| Garden Search | PHP search interface and result page contain example text and pagination; working stored-record search not established | Partial |
+| Settings | PHP menu contains controls for user, backup reminders, network mode, public feed, and public Journal; persistence and effect of each control not verified | Partial |
+| Garden Backup | PHP button downloads a bundled sample JSON, not a generated current-user backup | Partial |
+| Garden Restore | PHP import button displays an explicit not-implemented alert | Partial |
+| List Backup/Restore | Local list JavaScript includes JSON export/import handling using `localStorage` | Partial; actual workflow untested |
+| Help/About | Dedicated pages and navigation exist; these are informational pages, not evidence of other functional workflows | Present in source |
+| Sharing | JavaScript UI/route evidence exists; completed user workflow not established | Unknown |
+| Authentication/member identity | PHP session references coexist with a hardcoded development MID; member-to-record authorization remains to be traced | Partial |
+
+### 18A.8 Revised historical storage map
+
+| Storage mechanism | Observed historical usage | What has **not** been established |
+|---|---|---|
+| MariaDB | SOLACE member/application schemas, list JSON endpoints, Journal table | Complete Garden record CRUD or working list synchronization |
+| `localStorage` | Lists, wizard progress, personalization, application settings/state | Robust multi-device sync or recovery |
+| IndexedDB / JsStore | Journal database experiment | Full UI-to-database Journal workflow |
+| JSON assets | Example gardens, containers, lists, calendars, plant data, sample backups | Automatically synchronized user records |
+| Service worker / cache | Selected interface assets | Full offline Garden record lifecycle |
+| Downloaded files | List backups and PNG map export paths | A unified Garden backup and restore system |
+
+**Finding:** Several storage strategies were explored independently. No verified end-to-end synchronization architecture has been established from the examined code.
+
+---
+
+## 18B. Historical SOLACE App Engine (SAE): Context and Project Boundary
+
+**Evidence type:** Primarily developer recollection and design explanation, supplemented by SAE-related files in the supplied JavaScript archive. The class-style example below was shared as an illustration; its source file has **not** been supplied or independently inspected.
+
+### 18B.1 Original SAE purpose
+
+SAE was envisioned as a **general-purpose SOLACE application runtime and template display system**, not as a Garden-specific library.
+
+The intended shared capabilities were:
+
+- Reusable layouts, templates, and UI components
+- Application rendering and navigation
+- Storage access via an application-facing API, potentially choosing between storage backends
+- Internet/online connectivity awareness
+- A common platform for independently developed SOLACE applications
+
+The first two intended official applications were **SOLACE Menu** and **Garden**. Additional placeholder/demo applications were intended as developer references to show how third parties could build their own SOLACE applications.
+
+### 18B.2 Application handoff
+
+The intended workflow was for SAE/SOLACE Menu to launch an application and hand over UI control; closing the application would return control to SAE. The Menu itself could also be treated as an app using the underlying runtime.
+
+This describes the **intended developer and user experience**, not a verified completed application lifecycle.
+
+### 18B.3 Illustrative historical API concept
+
+The developer described a class-style experiment resembling:
+
+```javascript
+const newApp = newSolace();
+newApp.title = "My New App";
+newApp.mode = "foobar";
+newApp.storage = "indexed";
+newApp.template = "sidebar";
+newApp.render();
+```
+
+The exact class implementation has not been reviewed. Do not treat this snippet as an established API contract.
+
+### 18B.4 Development context
+
+The early SAE and Garden JavaScript experiments were written in **vanilla JavaScript**, before the developer adopted frameworks such as Preact and tools such as Vite. They were deliberately used to learn browser and DOM behavior, rendering, routing, event handling, and browser storage directly. Learning the underlying JavaScript/DOM model before relying on frameworks was an explicit goal.
+
+The developer was also learning GitHub workflows at the time. Over approximately two years, these projects served both as SOLACE product prototypes and as hands-on educational/architectural experiments.
+
+Because code was written experimentally rather than against a finalized specification, competing or incomplete approaches in the archive should not automatically be interpreted as rejected product requirements or failed finalized designs.
+
+### 18B.5 Transition to the later PHP approach
+
+By the later PHP Garden iteration, the developer had **largely set SAE aside**, focusing instead on PHP and database interactions. That transition explains some architectural differences among the historical sources; it does not establish that the idea of shared services was judged invalid.
+
+### 18B.6 Shared SOLACE services: current discussion, not a historical implementation claim
+
+The current architectural discussion considers a **SOLACE Server** that holds account and identity information and exposes common authenticated APIs used by Garden and other applications. Potentially shared concerns include identity, authorization, access to remote services, data transport, and synchronization facilities.
+
+Under that possible separation, Garden would still own the meaning and structure of garden-specific data, while shared SOLACE facilities would avoid duplication of account and integration machinery across apps.
+
+This **common service API** idea is distinct from requiring applications to run inside the original SAE display/runtime system. Its transport, API contracts, data ownership, sync behavior, and deployment have not been specified or approved here.
+
+**Boundary decision:** SAE and the proposed shared-services platform should be evaluated as broader SOLACE infrastructure subjects, not treated as mandatory Garden v1 components merely because Garden was used to prototype them.
+
+**Historical implementation status:** Partial/experimental. **Future disposition:** Undecided.
+
+---
+
 ## 19. Remaining Audit Work
 
-### 19.1 Complete PHP Garden functional review
+### 19.1 Complete PHP Garden functional review (remaining verification)
 
 - Garden search
 - Detailed Journal workflows
@@ -886,7 +1036,7 @@ This should be documented without assuming that the new application must combine
 - Authentication and member association
 - Data import/export and backup utilities
 
-### 19.2 Complete JavaScript functional review
+### 19.2 Complete JavaScript functional review (remaining verification)
 
 - Trace major buttons and routes into their implementations
 - Compare the actual functions across all four versions
@@ -929,7 +1079,7 @@ Once all historical sources have been examined:
 
 **Current status: In progress.**
 
-The PHP and JavaScript applications have received initial source-code inspections, navigation comparisons, and a focused examination of garden creation and related data structures.
+The PHP and JavaScript applications have received navigation comparisons, focused garden-management inspections, and follow-up static-code examinations of lists, Journal, Calendar, Maps, Gallery, storage mechanisms, and utilities. SAE's original intent has also been clarified through developer recollection. Some cross-version integration questions and runtime testing remain open.
 
 This document does not yet represent a complete functional audit.
 
