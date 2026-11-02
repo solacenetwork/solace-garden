@@ -1020,6 +1020,155 @@ This **common service API** idea is distinct from requiring applications to run 
 
 **Historical implementation status:** Partial/experimental. **Future disposition:** Undecided.
 
+## 18C. Historical Notebook Findings — November 2026 Review
+
+This section records Garden-related concepts recovered from handwritten SOLACE development notebooks dating back to approximately 2016, together with clarifications and extensions discussed during the November 2026 review.
+
+**Evidence distinction:** Original notebook concepts, developer recollections, surviving source-code evidence, and newly proposed enhancements must remain distinguishable. Exact notebook dates and page references will be added as material becomes available in [solace-dev-notes](https://github.com/solacenetwork/solace-dev-notes).
+
+Unless otherwise stated, future feature dispositions remain **Undecided**.
+
+### 18C.1 Garden Activity Feeds and RSS
+
+**Historical concept:** Garden activity could be published or consumed through feeds organized by gardener and by individual garden.
+
+Two broad feed categories were envisioned:
+
+**Human-readable Journal feeds**
+- Journal entries containing prose, photographs, observations, and gardening progress.
+- A gardener-level feed combining journal activity across multiple gardens.
+- Optional public publishing so other gardeners could subscribe and follow the gardener's progress.
+- Private by default unless the gardener enables sharing.
+
+**Structured garden data feeds**
+- Individual feeds associated with gardens such as containers, raised beds, or in-ground gardens.
+- Timestamped sensor readings, pest observations, and other operational data.
+- Potential aggregation across multiple gardens.
+- Machine-readable information that other software could consume.
+
+Individual garden data feeds were not necessarily required to remain private. Their intended audiences were primarily software and data consumers, but sharing could also support scientific research.
+
+Regional and national aggregation was envisioned as a potential contribution to SOLACE Network's scientific research mission, including future AI-assisted analysis of accumulated environmental observations.
+
+**Historical code connection:** The PHP Journal includes an RSS feed-generation experiment, but a complete Garden feed publication system has not been verified.
+
+**Implementation status:** Proposed, with partial historical RSS experimentation.
+
+### 18C.2 Garden Sensor Data and Logs
+
+**Historical concept:** Gardens could record environmental and operational information from sensors.
+
+Examples discussed include water-related measurements, sunlight measurements, and other timestamped observations.
+
+The intent extended beyond displaying readings. Collected data could be consumed by other applications and potentially contributed to larger scientific datasets.
+
+Sensor data collection, storage, feed formats, and aggregation were not verified as completed functionality in the examined Garden applications.
+
+**Implementation status:** Proposed.
+
+### 18C.3 Public Gardener Profiles
+
+**Newly discussed enhancement:** Gardeners who choose to share their work could maintain an optional public-facing profile.
+
+Possible profile information includes:
+
+- Display name and optional biography.
+- Links to personal websites.
+- Links to YouTube channels and social media profiles.
+- Links to publicly shared gardening activities and Journal feeds.
+- Information about the gardener's publicly shared gardens.
+
+The public profile should be distinguished from the underlying SOLACE account and identity records.
+
+**Implementation status:** Proposed during the 2026 review; historical implementation not verified.
+
+### 18C.4 External Media in Journal Entries
+
+**Newly discussed enhancement:** Garden Journal entries could include references to externally hosted media, including embedded YouTube videos.
+
+The objective is to support richer gardening documentation without requiring SOLACE Garden to provide its own video hosting infrastructure.
+
+Media could be displayed within Journal entries where embedding is permitted, while feed consumers could use the original URL where embedded playback is unsupported.
+
+**Implementation status:** Proposed during the 2026 review; historical implementation not verified.
+
+### 18C.5 Garden Calendar Events and Reminders
+
+**Clarified historical intention:** The Calendar was envisioned as a functional, gardening-specific scheduling system rather than a demonstration calendar interface.
+
+Intended capabilities included:
+
+- Creating and managing gardening events.
+- Scheduling gardening activities.
+- Reminders associated with upcoming activities.
+- Maintaining a garden-focused calendar distinct from a general-purpose personal or family calendar.
+
+**Newly discussed interoperability option:** Garden calendar information could potentially be exported or published through the iCalendar (`.ics`) format for use with external calendar applications such as Nextcloud.
+
+Downloading an `.ics` file and publishing a subscribable calendar feed are separate possible capabilities; neither implementation has been selected.
+
+**Historical code connection:** The PHP Calendar uses FullCalendar but does not demonstrate completed event management or persistence.
+
+**Implementation status:** Partial UI prototype; events and reminders not verified.
+
+### 18C.6 Local Farmers' Markets
+
+**Historical notebook finding:** Local farmers' markets were identified as a Garden-related feature concept.
+
+The intended functionality, data model, and relationship to other Garden capabilities remain to be recovered from the notebooks.
+
+**Implementation status:** Proposed / insufficient detail.
+
+**Future disposition:** Undecided.
+
+### 18C.7 PlantDB — Historical Integration and Contribution Workflow
+
+The notebooks describe a broader PlantDB concept than the administrative screens found in the PHP implementation.
+
+The intended workflow included:
+
+1. A centrally maintained PlantDB containing an initial reference dataset.
+2. Published JSON data consumed by Garden and potentially other applications.
+3. Local plant records created by individual gardeners.
+4. Optional submission of local additions to the central collection.
+5. A moderation queue for proposed additions.
+6. Moderator review before promotion into the authoritative dataset.
+7. Republication of approved plant data to consumers.
+
+This explains why direct administrative editing in the PHP prototype should not be interpreted as the complete intended architecture.
+
+**Project boundary:** PlantDB now has its own repository at [solace-plantdb](https://github.com/solacenetwork/solace-plantdb). Its detailed architecture and moderation design belong there.
+
+Garden's historical involvement included consuming published plant reference data and potentially supporting locally created plant records and voluntary contributions.
+
+**Implementation status:** Partial historical administrative functionality; complete contribution and moderation workflow not verified.
+
+**Future disposition:** Separate PlantDB project confirmed. Garden v1 access to PlantDB confirmed; integration mechanism undecided.
+
+### 18C.8 Gardening as Community Outreach
+
+**Historical context:** Gardening was part of the broader SOLACE vision from an early stage, informed by the developer's personal gardening experience beginning in 2007.
+
+Early notebook concepts included **Education, Gardening, and Cooking** as subjects for local classes and community engagement.
+
+An introductory gardening class could provide immediate practical value while introducing participants to SOLACE through instructional materials and shared interests.
+
+This establishes that Garden had a potential community-outreach role in addition to its software functionality.
+
+Detailed outreach and marketing strategy belongs in broader SOLACE Network documentation rather than Garden's technical specification.
+
+### 18C.9 Historical Source Preservation
+
+The original handwritten notes are being preserved in a separate repository:
+
+[solace-dev-notes](https://github.com/solacenetwork/solace-dev-notes)
+
+The archive is intended to retain notebook images, approximate dates, page ordering, and historical source material.
+
+As notebook images become available, the findings in this section should be supplemented with source references and corrected where the original documents provide greater precision.
+
+The notes may also contain SOLACE OS, SAE, identity, networking, and messaging concepts that belong in separate project-level historical reviews rather than this Garden-specific inventory.
+
 ---
 
 ## 19. Remaining Audit Work
