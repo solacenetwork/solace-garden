@@ -1171,6 +1171,101 @@ The notes may also contain SOLACE OS, SAE, identity, networking, and messaging c
 
 ---
 
+## 18D. Photographed Garden Notebook Audit — First-Pass Findings
+
+**Sources:** Twenty-one photographs across five notebook folders in [solace-dev-notes/notebooks](https://github.com/solacenetwork/solace-dev-notes/tree/main/notebooks), supplied together as `images.zip` for visual inspection. The photographed pages contain Garden-specific notes and interface sketches alongside some broader SOLACE context.
+
+**Evidence standard:** This is a first-pass topical inspection of handwritten notes, **not** a verbatim transcription or runtime verification. The `20261102_...` image filenames represent the **photograph dates**, not the dates when notes were written. Historical dates, uncertain handwriting, and original page ordering should be checked and recorded more precisely when possible.
+
+### 18D.1 Structured harvest records
+
+A photographed notebook page (`notebook-05/20261102_152015.jpg`) describes a **Harvest** record with fields for:
+
+- Photo
+- Weight
+- Length
+- Notes
+- Harvest date
+- Plant name
+- Plant ID
+
+The sketch indicates that harvests could be structured records tied to specific plants, rather than existing only as free-form journal text. The source does **not** establish a completed harvest editor, persistence, or measurement conventions.
+
+**Implementation status:** Proposed in notebook; code-level implementation not verified. **Future disposition:** Undecided.
+
+### 18D.2 Container and container-group details
+
+The page `notebook-02/20261102_150958.jpg` adds detail to the previously documented container/group concept. It sketches container selections and group-level or container-level information, including dimensions and soil-related attributes.
+
+This supplements Section 6.5; it does not prove that the PHP or JavaScript applications supported editing or persisting these fields.
+
+**Implementation status:** Proposed data/UI design; historical sample data exists, operational workflow unverified. **Future disposition:** Undecided.
+
+### 18D.3 Garden creation and core record model
+
+The `notebook-02/20261102_151059.jpg` page depicts a staged **Add New Garden** flow involving naming, type/options, color/icon choices, maps, and related selections. This helps explain the development of the multi-step Garden wizard already identified in JavaScript.
+
+The `notebook-05/20261102_152015.jpg` page and other Garden sketches include record-level concepts such as identifiers, dates, plants, tags, pictures, notes, lists, favorites, status, and related data.
+
+These field sketches should be compared with the `garden_full.json` sample and any real database schema **without assuming identical definitions or that every sketched field was implemented**.
+
+**Implementation status:** Historical data-model and interface proposals, with partial wizard code and sample JSON in the JavaScript archive. **Future disposition:** Undecided.
+
+### 18D.4 Editable Garden map intentions
+
+Map sketches, including `notebook-05/20261102_151959.jpg` and `notebook-05/20261102_152015.jpg`, indicate interest in editable layouts with shape controls, dimensions, names, and visibility/show-hide options.
+
+This extends the intent described in Section 11 and 18A.5. The PHP drawing prototype has a PNG-export path; that must not be mistaken for durable, editable Garden-map record storage.
+
+**Implementation status:** Proposed editor capabilities, with partial drawing/export prototype. **Future disposition:** Undecided.
+
+### 18D.5 Gallery and image-handling intentions
+
+Several sketches reference Garden pictures, maps, galleries, image associations, and browser-local or JSON-related storage. These reinforce that Gallery was meant to interact with Garden records rather than function only as a standalone collection of sample photographs.
+
+Exact metadata fields and a complete image upload/association workflow remain unverified in code.
+
+**Implementation status:** Historical proposal and partial demonstration interface. **Future disposition:** Undecided.
+
+### 18D.6 Sharing and community fields
+
+Notebook data-model sketches refer to sharing and community-oriented concepts including comments, ratings, and favorites. It is not yet clear which entities these attributes would apply to, nor whether they were implemented in any Garden version.
+
+Treat these as **tentative historical feature concepts**, not as confirmed working social functionality or approved MVP requirements.
+
+**Implementation status:** Proposed / uncertain details. **Future disposition:** Undecided.
+
+### 18D.7 Historical UI evolution
+
+Photographed pages contain Garden navigation and workflow alternatives, including lists, action controls, application handoff, New Garden/New Map entry points, and map/gallery-related screens. Relevant pages include:
+
+- `notebook-03/20261102_151443.jpg`
+- `notebook-04/20261102_151841.jpg`
+- `notebook-04/20261102_151915.jpg`
+- `notebook-04/20261102_151926.jpg`
+- `notebook-05/20261102_151938.jpg`
+
+The notebooks can support a later side-by-side comparison of early sketches, JavaScript interfaces, and the later PHP interface. Many differences appear to involve presentation and workflow rather than entirely new core feature categories; that is a preliminary interpretation, not a completed UI comparison.
+
+### 18D.8 Architecture references and project boundaries
+
+The photographs also include diagrams of IndexedDB/JsStore, JSON export, local application state, Garden/PlantDB relationships, and broader SOLACE/SAE infrastructure (notably in notebooks 01–03). These provide historical context but do not demonstrate successful synchronization or a fully realized shared runtime.
+
+Detailed PlantDB records belong in [solace-plantdb](https://github.com/solacenetwork/solace-plantdb); broader SOLACE infrastructure belongs to a separate historical review. This Garden audit records only the relevant dependencies and intentions.
+
+### 18D.9 Outstanding notebook verification
+
+- Confirm historical dates from notebook covers or dated pages; do not use camera filename timestamps as source dates.
+- Add exact notebook page references where possible.
+- Resolve uncertain handwritten terms against the original photographs, not by guessing.
+- Check the structured Harvest model and community-related fields against archived code.
+- Compare representative UI sketches with the different JavaScript interfaces and the PHP UI.
+- Preserve the original photographs as primary sources; treat this section as an interpretive index.
+
+**First-pass conclusion:** The photographed material largely corroborates the established Garden feature inventory. Its strongest additional value is in original data-model detail, interface intentions, structured harvesting, and distinctions between personal Garden information and shared SOLACE infrastructure.
+
+---
+
 ## 19. Remaining Audit Work
 
 ### 19.1 Complete PHP Garden functional review (remaining verification)
@@ -1196,7 +1291,7 @@ The notes may also contain SOLACE OS, SAE, identity, networking, and messaging c
 - Identify duplicated and superseded implementations
 - Document differences between feature mockups and operational functionality
 
-### 19.3 Review offline paper notebooks
+### 19.3 Review offline paper notebooks (first-pass photo review completed)
 
 - Record handwritten feature concepts
 - Preserve sketches and interface ideas
@@ -1228,7 +1323,7 @@ Once all historical sources have been examined:
 
 **Current status: In progress.**
 
-The PHP and JavaScript applications have received navigation comparisons, focused garden-management inspections, and follow-up static-code examinations of lists, Journal, Calendar, Maps, Gallery, storage mechanisms, and utilities. SAE's original intent has also been clarified through developer recollection. Some cross-version integration questions and runtime testing remain open.
+The PHP and JavaScript applications have received navigation comparisons, focused garden-management inspections, and follow-up static-code examinations of lists, Journal, Calendar, Maps, Gallery, storage mechanisms, and utilities. SAE's original intent has been clarified through developer recollection. A first-pass visual review of 21 photographed notebook pages has added historical data-model and interface findings (Section 18D). Cross-version integration questions, exact notebook dating, and runtime testing remain open.
 
 This document does not yet represent a complete functional audit.
 
