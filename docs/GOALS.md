@@ -45,7 +45,15 @@ Users should be able to:
 
 Journal entries, harvest records, completed tasks, and other historical activity should **not** be copied into a new garden when applying a template.
 
-**Deferred detail:** Exactly which configuration fields are retained in templates, and how template editing and deletion work, will be defined in `TECH_SPEC.md`.
+**V1 template scope:** Save as Template creates a **new named template**, not an overwrite. A template carries reusable configuration (such as description, location, garden type, and layout) but **never plant groups**, growing indicators, history, Journal entries, harvests, dates, or status. A new garden begins with its own identity and Planned status. Editing/overwriting existing templates is deferred; historical template versions and restoration are future possibilities. Detailed deletion and reference policies belong in `TECH_SPEC.md`.
+
+### 2.2a Locations and Garden Types
+
+- Every garden belongs to exactly one physical **Location** and has exactly one **Garden Type**. Locations are reusable across independent garden projects and years.
+- Seed the initial Location named **Default**; automatically select it for the first garden. Gardeners can create additional named locations in v1. Renaming the built-in Default location is deferred.
+- Allow an optional manually entered USDA hardiness zone on each location, with a link to the official USDA zone lookup. No location permission or automatic geolocation is required in v1.
+- Seed Garden Types: **In-Ground, Raised Bed, Container, Greenhouse, Hydroponic, Other**. Custom type creation/editing is deferred.
+- A Garden Type cannot be deleted while referenced by **any** garden, including completed, closed, or archived gardens. Reassignment must happen before deletion.
 
 ### 2.3 Plant Research (PlantDB)
 
@@ -69,9 +77,11 @@ Interactive scaled maps, drag-and-drop placement, and calculations of available 
 Garden v1 tracks **independent plant-group entries**, rather than requiring a separate record for every individual plant.
 
 - A gardener can add the same plant (for example, “Roma Tomatoes”) more than once when creating or editing a garden. Each entry is a distinct group, even when the entries reference the same PlantDB plant record.
-- Each group maintains its own values, including quantity, planting date, and growing indicators, so staggered or succession plantings can be tracked separately.
+- Each group maintains its own values, including **plant count**, optional planting date, and growing indicators, so staggered or succession plantings can be tracked separately. Quantity in v1 means number of plants, not rows, area, or seeds.
 - Growing indicators are a **standard predefined list in v1**, shared across plant groups and controlled manually by the gardener using independent checkboxes.
 - Multiple indicators can be active at the same time; they are not exclusive stages of a required linear progression.
+- Each of the ten indicators supports **independent optional start and end dates**. Each date field has a **Today** shortcut, which fills only that field using the user's local date. A phase end date cannot be earlier than its start date; overlaps across different phases are allowed.
+- Checking an indicator does not automatically fill dates, and entering dates does not automatically activate/advance indicators. Phase-to-phase suggestions or date copying are deferred (possibly v3).
 - Indicators do not advance automatically based on dates or PlantDB reference information. Marking a plant group **Finished** does not change the overall garden lifecycle status (see [Current and Previous Gardens](#29-current-and-previous-gardens)).
 
 **Initial v1 growing indicators (adjustable as requirements evolve):**
@@ -124,12 +134,14 @@ Garden v1 will use **one local media collection** with context-specific views:
 
 - Import photographs from device files, photo pickers, or available camera interfaces.
 - Create optimized, resized copies for Garden (roughly 1600–2400 pixels on the longest edge is a candidate range); **do not alter originals** in the user's device photo library.
-- Store photo data and metadata locally, with a bounded photo-storage budget and clear warnings/handling when capacity is approached. Exact limits depend on device/browser testing.
-- Allow Gallery photographs to exist **without a garden association**, including general gardening photos used in Journal entries. Photos may optionally be associated with a garden; show the main gallery grouped by year, garden-specific galleries within each garden, and representative thumbnails in garden summaries.
+- Store only **optimized display images and thumbnails**, never full-resolution originals, and leave the device originals untouched. Provide a **gardener-configurable total media-storage budget in v1**, with usage warnings and appropriate failure handling; default/range require testing.
+- Allow Gallery photographs to exist **without a garden association**, including general gardening photos used in Journal entries. A single photo may be linked to **multiple gardens** without duplicating image data; show the main Gallery grouped by capture year, garden-specific views, and representative thumbnails in garden summaries.
+- Every photo supports **optional title, description, and tags**. Derive Gallery year from original photo timestamp (prefer capture EXIF, fall back to source-file modification time, then import date); allow manual date correction.
+- Removing a photo from a garden only unlinks that association. On confirmed permanent deletion from Gallery, remove image blobs but **preserve media metadata and references as a tombstone**; linked views use a bundled placeholder instead of broken images.
 - Allow Journal entries to reuse photographs from the shared collection without unnecessary duplicate image storage.
 - Include associated photos in complete ZIP backup and restore.
 
-The initial Gallery does not require separate free-form albums, advanced tagging, or a full media-management suite. Uppy is a candidate for file picking, import queues, and progress; IndexedDB/Dexie are candidate local storage tools. Network resumable uploads and server archival are **not v1 requirements**.
+The initial Gallery does not require separate free-form albums or a full media-management suite. **FilePond** is the preferred import/resize candidate, **lightGallery** the viewing candidate, and **Dexie** the selected local database; library integrations still require proof-of-concept testing. Future versions may provide missing-image identification and re-upload-based restoration, potentially assisted by image fingerprints, with user confirmation. Network uploads and server archival are **not v1 requirements**.
 
 ### 2.9 Current and Previous Gardens
 
@@ -172,13 +184,15 @@ Garden v1 will provide **one application-wide search with filters** for locally 
 Garden v1 will record **individual harvest events associated with plant-group entries**, not with individual plants.
 
 - A gardener may add multiple dated harvest records to a plant group during its growing cycle.
-- Each harvest record contains a **date**, **quantity**, and **unit of measurement**, and belongs to one specific plant-group entry.
+- Each harvest has a **required date** and belongs to one specific plant group. It records an optional **whole-number item count**, optional **weight**, or both; **at least one** of count/weight is required. Weight has an explicit unit; volume is not supported in v1.
 - Plant groups that reference the same PlantDB variety still have separate harvest histories and totals.
-- Show a chronological record of harvests for a plant group and automatically calculate its total harvested quantity **for compatible units**.
+- Show a chronological record of harvests for a plant group and calculate separate totals for **item counts** and **compatible weights**. Do not infer missing weights from item counts.
 - Harvest records remain part of their garden's historical data, including after the garden is completed, closed, or archived; existing read-only rules apply.
 - This approach preserves the information needed for later comparisons and analytics without adding per-plant tracking to the MVP.
 
-**Technical-spec detail:** available units, unit conversions (if any), quantity precision, entry editing/deletion, and how totals spanning incompatible units are displayed belong in `TECH_SPEC.md`. Do not sum different units without a defined conversion rule.
+**Gardener-wide Settings:** Measurement system is **Imperial by default**, with **Metric** as an option. Imperial offers ounces/pounds; Metric offers grams/kilograms. Each harvest retains its actual unit regardless of later settings changes; compatible weights may be converted for display/totals. Exact formatting and precision belong in `TECH_SPEC.md`.
+
+**V2:** Add optional **volume** harvest measurement (cups, quarts, gallons, liters, and agricultural units such as bushels/pecks). Volume and weight are different dimensions; no crop-independent conversion between them.
 
 **Post-MVP potential:** comparisons of yield across plant groups, gardens, or growing cycles; harvest trends and other analysis built from dated records. These are not v1 requirements.
 
@@ -209,12 +223,14 @@ The exact menu contents and responsive interactions belong in the technical spec
 ### 2.14 Portable Backup and Restore
 
 - Export all locally managed Garden data and associated media as a **portable, versioned ZIP package**.
-- Restore from a ZIP package with validation and appropriate safeguards against accidental replacement or data loss.
+- Restore from a ZIP package with validation and appropriate safeguards against accidental replacement or data loss. **V1 restore replaces rather than merges** local data, only after explicit confirmation.
+- Import into a **separate staging IndexedDB database**, validate it fully, then switch the application's active-database pointer; leave the previous database available temporarily for rollback after the restored app starts successfully.
+- Before staging, perform a **browser-storage preflight** using available-quota estimates and the uncompressed size statistics recorded in the backup manifest, plus a safety allowance. Reject known-insufficient restores; estimates cannot guarantee sufficient disk space and quota/write failures must leave the existing database untouched.
 - Let the gardener save the package wherever they wish (such as a USB drive or a folder synchronized with Google Drive, Dropbox, OneDrive, or Nextcloud).
 - Do not require a cloud account, SOLACE server, or provider-specific integration for v1 backup and recovery.
 - Make clear that browser storage is not guaranteed permanent and that exported backups must be kept somewhere safe.
 
-The archive layout, restore conflict policy, and performance limits for large media collections belong in `TECH_SPEC.md`.
+The archive includes metadata and cross-references for intentionally deleted photos but omits deleted image blobs. **JSZip is the preferred V1 candidate** for ZIP packing/unpacking; actual performance and memory use on phones must be tested. The manifest must contain a separately versioned format, data/media uncompressed byte counts and record counts. Detailed archive layout, restore validation, and large-media limits belong in `TECH_SPEC.md`.
 
 ## 3. Post-MVP
 
@@ -234,7 +250,7 @@ These are **future directions, not v1 commitments**; version numbers are illustr
 
 Importing a photo into Garden creates a resized/optimized copy; it does not modify the original. Storage budgets, persistence requests, and device/browser limits require validation in `TECH_SPEC.md`. Ordinary gardening notes do not require a special application-level encryption feature for v1; handle user content privately by default and explain the limits of browser storage and unencrypted exported packages.
 
-**Still to specify:** exact schemas, storage quotas, media processing, backup file format, and restoration safeguards.
+**Still to specify:** final schemas, numeric storage budget defaults/limits, image-format and dimension benchmarks, precise media processing configuration, and complete restore validation/recovery implementation.
 
 ## 5. Future Data Handling
 
