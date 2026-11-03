@@ -1,4 +1,11 @@
 {
+	"name": "SOLACE Garden",
+  	"version": "0.0.1-alpha",
+  	"description": "The Garden app for SOLACE Network",
+	"keywords": ["preact", "bootstrap", "dexie"],
+  	"author": "Ken Dawson <ken@solace.network>",
+  	"license": "GPL-3.0-or-later",
+  	"homepage": "https://github.com/yourusername/my-preact-app#readme",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -6,8 +13,15 @@
 		"build": "vite build",
 		"preview": "vite preview"
 	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/solacenetwork/solace-garden.git"
+  	},
+	"bugs": {
+    	"url": "https://github.com/solacenetwork/solace-garden/issues"
+  	},
 	"dependencies": {
-		"bootstrap": "^6.0.0-alpha.1",
+		"bootstrap": "6.0.0-alpha.1",
 		"dexie": "^4.4.7",
 		"dexie-react-hooks": "^4.4.0",
 		"preact": "^11.0.0",
