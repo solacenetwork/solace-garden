@@ -174,7 +174,18 @@ Garden v1 will record **individual harvest events associated with plant-group en
 
 ### 2.12 Calendar and Reminders
 
-*To discuss.* Gardening events and reminders, such as watering, weeding, and pest control.
+Garden v1 will provide a **simple personal calendar for manually entered gardening events and reminders**.
+
+- Gardeners can create and view dated calendar events, such as watering, weeding, planting, or pest-control activities.
+- A gardener may set a reminder for an event and receive an alert when supported by the device and browser.
+- Gardeners can dismiss or clear reminders and delete events they no longer need.
+- Keep the experience simple; do not require automatic scheduling, recurrence rules, or calendar-based progression of plant-group indicators.
+- V1 does not require automatically displaying planting dates, harvests, or other Garden records on the calendar.
+- Calendar event and reminder data are part of the local-first application data and portable application-wide backup.
+
+**Technical-spec detail:** event fields, reminder times, notification permissions, what happens when the app is closed or offline, and alert reliability must be investigated in `TECH_SPEC.md`. In particular, do not promise background alerts when the browser/platform cannot reliably deliver them without a server or push service.
+
+**Post-MVP (possible v3/v4):** richer integration with garden and harvest records, external calendar interoperability, and optional calendar publishing or sharing. These are future directions, not v1 commitments.
 
 ### 2.13 Navigation and Creation
 
