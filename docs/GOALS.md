@@ -118,15 +118,21 @@ The interface should be quick and uncomplicated, not a project-management system
 
 ### 2.7 Garden Journal
 
-Garden v1 includes a **free-form personal Journal**, like a simple blog, independent of structured garden/plant tracking:
+Garden v1 includes a **free-form, private personal Journal**, like a simple blog, independent of structured garden/plant tracking:
 
-- Create, save, view, edit, and delete dated entries with titles.
-- Use a mobile-friendly WYSIWYG editor with ordinary rich-text formatting, links, and inserted photographs.
-- Browse entries chronologically.
-- Reference photographs from Garden's shared media collection rather than introducing a separate Journal photo store.
-- Make saved entries available offline and include them in application-wide backup and restore.
+- Create, save, view, edit, and delete dated entries with titles. Entry date is editable and separate from the creation timestamp.
+- Use **Tiptap** as the selected lightweight WYSIWYG editing engine, with **our own Preact/Bootstrap 6 interface**, not an off-the-shelf blog UI. Keep formatting simple: bold, italic, headings, lists, links, and inserted Gallery photographs.
+- Store Journal content as **structured JSON**, with an explicit document-format version and references to shared Gallery media IDs, not transient blob URLs or duplicate image storage.
+- Insert photos from the shared Gallery or import new ones using the shared media workflow. Photographs support **optional captions and alt text**; a caption may be suggested as initial alt text, but the two values remain independently editable.
+- Browse entries **newest first** using reusable preview cards with date, title, excerpt, and optional photo. Support text-only entries, grid/list views, optional **year/month archive filters**, and a simple Load More or pagination control.
+- **Responsive layout:** desktop archive sidebar alongside a card grid; tablet filters above cards; mobile stacks content vertically, using a single-column list and a compact year/month selector. Journal editing uses a dedicated page, not a popup.
+- **Manual Save only**, with no autosave or drafts. Disable Save when no valid new/changed content needs saving; keep Save available until Dexie confirms success. An undo that returns content to the saved state should also clear the dirty state.
+- Warn on unsaved changes using native JavaScript confirmation when navigating within the app, and `beforeunload` where supported when closing or refreshing; confirming departure discards the unsaved changes. Browser/mobile restrictions mean unload warnings cannot be guaranteed.
+- Use **Tiptap's built-in multi-level Undo/Redo** while editing; do not build a separate history engine. Editing history need not survive closing the entry.
+- Deleting a Journal entry requires confirmation and **permanently removes that entry in v1**, without a trash/recovery feature. **Never delete shared Gallery photographs** merely because their Journal entry was deleted. Deleted Gallery photographs instead show the established placeholder while retaining their media references.
+- Make saved entries available offline and include them in application-wide ZIP backup and restore.
 
-There is **no Draft/Publish distinction in v1**: Save and subsequent Edit are sufficient for a single-user, nonpublic Journal. Do not require plant-group associations, automatically change growth indicators, or implement public sharing, RSS, comments, or publishing workflows. TinyMCE, Quill, and other editors can be evaluated in `TECH_SPEC.md`.
+There is **no Draft/Publish distinction in v1**. Do not require plant-group associations, automatically change growing phases, or implement public sharing, RSS, comments, or publishing workflows. **Autosave, deleted-entry recovery, and entry version history** may be considered for v2/v3; they are not MVP features. Exact Tiptap extension configuration, reference rendering, sanitization, and dirty-state implementation belong in `TECH_SPEC.md`.
 
 ### 2.8 Photos and Gallery
 
