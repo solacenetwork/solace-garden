@@ -204,18 +204,23 @@ Garden v1 will record **individual harvest events associated with plant-group en
 
 ### 2.12 Calendar and Reminders
 
-Garden v1 will provide a **simple personal calendar for manually entered gardening events and reminders**.
+Garden v1 will provide a **local-first personal calendar** for manually entered gardening events and optional reminders.
 
-- Gardeners can create and view dated calendar events, such as watering, weeding, planting, or pest-control activities.
-- A gardener may set a reminder for an event and receive an alert when supported by the device and browser.
-- Gardeners can dismiss or clear reminders and delete events they no longer need.
-- Keep the experience simple; do not require automatic scheduling, recurrence rules, or calendar-based progression of plant-group indicators.
-- V1 does not require automatically displaying planting dates, harvests, or other Garden records on the calendar.
-- Calendar event and reminder data are part of the local-first application data and portable application-wide backup.
+- Use **FullCalendar** (installed/bundled locally, not a CDN) for responsive calendar presentation and date selection; use the **RRule plugin** for recurring events.
+- Gardeners can create, view, edit, and delete one-time events for activities such as watering, weeding, planting, or pest checks. **Date required; start time optional**, allowing all-day or timed events.
+- Support recurring **daily, weekly, monthly, and yearly** schedules. In v1 editing a recurring event changes its **entire series**; per-occurrence overrides/exclusions and sophisticated recurrence management are deferred.
+- Each event may optionally have a reminder **at its scheduled start time only**; no advance-notice offsets in v1. For an **all-day event**, use a gardener-wide **All-day event reminder time**, default **9:00 AM**, adjustable in settings. Changing this setting affects future all-day reminder timing without rewriting events.
+- Provide **in-app reminders by default** (an indicator/alert while Garden is open). A gardener-wide **Allow browser notifications** toggle defaults **off**. Turning it on initiates a user-gesture-based browser permission request; if permission is granted and notifications are supported, use a native browser notification **instead of** a duplicate in-app popup. If unavailable, denied, disabled, or delivery fails, fall back to an in-app reminder while the app runs.
+- Turning off the toggle stops Garden from issuing browser notifications and returns to in-app alerts; **the app cannot revoke browser-granted permission**, which must be managed in browser/site settings.
+- Be transparent that reminders **only fire while the PWA is running** in v1. No push, background alarm guarantee, service-based workaround, or server required. Gardeners can dismiss/clear due reminders, with occurrence-aware deduplication.
+- Offer a gardener-wide **12-hour / 24-hour clock display preference**, defaulting to **12-hour**. This changes presentation only; internally store local times consistently (such as `HH:mm`).
+- **Use the device's system clock and local time zone** for all calendar and reminder calculations. Do not introduce NTP, external time verification, clock correction, or server time dependencies. Incorrect device time is outside Garden's responsibility; recurring local wall times should remain stable across daylight-saving changes.
+- No automatic scheduling or calendar-driven progression of plant-group indicators. V1 does not require automatically populating events from planting dates, harvests, or other records.
+- Event data, recurrence definitions, notification preferences, and reminder state are part of local application data and portable application-wide ZIP backup/restore.
 
-**Technical-spec detail:** event fields, reminder times, notification permissions, what happens when the app is closed or offline, and alert reliability must be investigated in `TECH_SPEC.md`. In particular, do not promise background alerts when the browser/platform cannot reliably deliver them without a server or push service.
+**Technical details:** The app schedules/checks due occurrences while active; FullCalendar/RRule display recurrence but **do not independently schedule or deliver notifications**. Native Notification API delivery is platform-dependent (service-worker `showNotification()` where appropriate); background delivery is not promised. See `TECH_SPEC.md`.
 
-**Post-MVP (possible v3/v4):** richer integration with garden and harvest records, external calendar interoperability, and optional calendar publishing or sharing. These are future directions, not v1 commitments.
+**Post-MVP:** advance/custom reminder offsets, richer occurrence exceptions, background push/delivery when closed, integration with garden and harvest records, external calendar interoperability, and optional calendar publishing/sharing.
 
 ### 2.13 Navigation and Creation
 
