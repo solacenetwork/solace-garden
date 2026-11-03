@@ -1,6 +1,6 @@
 # SOLACE Garden — Technical Specification
 
-**Status:** Working draft 0.2 — decisions confirmed through 2026-11-03; remaining implementation choices labeled as proposals.  
+**Status:** Working draft 0.3 — decisions confirmed through 2026-11-03; remaining implementation choices labeled as proposals.  
 **Date:** 2026-11-03  
 **Sources:** [GOALS.md](GOALS.md) (approved MVP direction), [COMPREHENSIVE_REVIEW.md](COMPREHENSIVE_REVIEW.md) (historical evidence), and current code in this repository.
 
@@ -40,7 +40,8 @@
 | FilePond + image plugins | Preferred candidate; proof of concept needed | Local file import, resized display+thumbnail variants without server upload; verify Preact integration |
 | lightGallery | Preferred candidate; proof of concept needed | Gallery/lightbox viewing; GPLv3 compatible with this project's license |
 | JSZip | Preferred candidate; benchmark needed | Local ZIP backup/import; in-memory operation may be problematic for very large collections |
-| Rich-text editor, test tooling | To evaluate | Confirm offline compatibility and accessibility |
+| Tiptap 3 open-source core | **Selected for Journal v1**; integration testing pending | Vanilla JavaScript editor engine within custom Preact/Bootstrap UI; structured JSON and custom media node; no React wrapper required |
+| Test tooling | To evaluate | Confirm offline compatibility and accessibility |
 
 The temporary `items` store in `src/db.js` is a proof of concept, **not the intended production schema**. The test demonstrated data persistence across a complete browser and Vite restart. Offline loading, large media, and restoration remain untested.
 
@@ -82,11 +83,27 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 
 | Store | Key fields | Rules |
 | --- | --- | --- |
-| `journalEntries` | `id`, `title`, `entryDate`, `content`, timestamps | Dated personal rich text with shared media-ID references. No publication/draft distinction. |
+| `journalEntries` | `id`, `title`, `entryDate`, `content`, `contentFormatVersion`, `createdAt`, `updatedAt` | Dated personal Tiptap/ProseMirror structured JSON with shared media IDs. Entry date is user-selected and independent of audit times. No publication/draft distinction. |
 | `listItems` | `id`, `kind`, `text`, `completed`, `sortOrder`, timestamps | `kind` todo/tobuy, gardener-wide. |
 | `notes` | `id`, `text`, timestamps | Gardener-wide quick notes. |
 | `calendarEvents` | `id`, `title`, `eventDate`, `startTime?`, `description?`, `remindAt?`, `reminderDismissedAt?`, timestamps | Manual calendar, optional reminders, no guaranteed closed-browser delivery. |
 | `settings` | `key`, `value` | Measurement system and configurable **total media-storage budget** (numeric defaults/range TBD by testing); potentially preferred location. |
+
+### 3.3a Journal editor, media references and lifecycle (confirmed V1 behavior)
+
+**Editor engine and UI:** Use **Tiptap 3 open-source core** through its vanilla JavaScript API, integrated into a **custom Preact/Bootstrap 6 Journal UI**. Tiptap owns editing operations, selection, structured JSON, and built-in multi-level **Undo/Redo**; Preact owns the toolbar, page, cards, and dialogs. No React UI dependency or full word-processing features. Limit V1 formatting to paragraphs/headings, bold/italic, bulleted/numbered lists, links, and Gallery photos. Editor configuration and extension choices require a small implementation proof of concept.
+
+**Document persistence:** Store `editor.getJSON()` (ProseMirror-style document JSON) in `journalEntries.content`, with `contentFormatVersion` to support later migrations. Never persist object URLs, copied Gallery blobs, or unsanitized arbitrary HTML as the authoritative entry content. A custom `gardenImage` node carries stable `mediaId` and optional independently editable `caption` and `alt` attributes. Suggest caption text as initial alt text if useful, but don't permanently equate a visual caption with accessible description. Resolve the media ID at render time through the shared media service; missing/deleted blobs display the bundled placeholder without erasing references. Reused images do not create separate media copies.
+
+**Entry lifecycle:** Creating a new entry requires valid title/content; the date is editable and stored separately from `createdAt`. Saving is an **explicit** action with no autosave, Draft, or Publish states. Save is disabled for no changes/invalid content; dirty-state comparison should account for title, entry date, structured JSON and image attributes, including when Undo returns content to its last saved state. Only clear dirty state and disable Save after Dexie confirms a successful write; on save error preserve edits for retry. Built-in multi-level Undo/Redo applies within a single editing session; reset editor history when opening another entry. Do not implement persistent edit history in v1.
+
+**Unsaved changes:** On in-app navigation, show a native `window.confirm()` prompt if dirty; accept = discard and navigate, cancel = stay. For tab refresh/close, use `beforeunload` only while dirty and where supported; browser/mobile platforms may suppress the prompt, so don't promise loss prevention.
+
+**Deletion:** Require explicit confirmation; remove the Journal record permanently from the active Dexie dataset in v1. **Never delete a referenced Gallery media record or blob** solely because the Journal entry was deleted. The entry's embedded references disappear with the entry; garden and other Journal references are unaffected. This is different from Gallery deletion, which retains media tombstones. Previously exported ZIP backups may still include a deleted entry. Journal trash/restore, autosave, and entry versioning are possible v2/v3 additions, not v1 work.
+
+**Journal browsing:** Default newest first by `entryDate` (stable secondary order for equal dates). Custom reusable `JournalPage`, `JournalArchive`, `JournalCard`, `JournalList`, `JournalEntry`, `JournalEditor`, `JournalToolbar`, and `JournalImage` components are provisional file/component names. Cards show date, title, excerpt and optional photo; text-only cards remain visually coherent. Allow grid/list views, optional year/month filters and a Load More/pagination mechanism. Desktop (roughly >=992px): archive sidebar + two-column card grid; tablet: archive filters above cards; mobile (roughly <768px): stacked controls and single-column cards with compact year/month selector. Final CSS breakpoints/interaction details can be refined during implementation. Avoid a separate popup Journal/navigation system.
+
+**Source reference:** Historical PHP Journal under `garden-archive/app/garden/journal/` is a UI/feature reference, not code to port. Untitled UI's blog layouts are design inspiration only; don't copy proprietary components or add React/Tailwind.
 
 ### 3.4 Shared media and reference protection
 
@@ -209,7 +226,7 @@ If validation, quota, or restore fails, discard staging and leave the current ac
 
 1. Unit-test domain rules: statuses/close/reopen, independent plant groups, indicator toggles, harvest totals by unit, template copying.
 2. IndexedDB integration tests: migrations, invalid IDs, cascading-or-restricted deletes, media references, live queries.
-3. End-to-end tests: create garden, add repeated plant variety, record multiple harvests, close/archive/reopen, create Journal with photo, backup/restore.
+3. End-to-end tests: create garden, add repeated plant variety, record multiple harvests, close/archive/reopen, create/edit Journal with Gallery photo and caption, save/reload JSON, Undo/Redo, unsaved-change confirmation, permanent Journal deletion without deleting shared photos, backup/restore.
 4. Reliability tests: complete browser restart, offline PWA launch, storage quota failure, large media import/restore, backup version incompatibility.
 
 ## 11. Remaining questions and validation tasks
@@ -218,7 +235,7 @@ If validation, quota, or restore fails, discard staging and leave the current ac
 2. **PlantDB:** Offline catalog integration and custom/unavailable plant records.
 3. **Gallery implementation:** Confirm FilePond no-network variant handling, lightGallery integration, image format/quality/target dimensions, thumbnail performance and metadata extraction.
 4. **Storage budget:** Final numeric default/range and threshold warning UX; browser-specific quota testing.
-5. **Journal:** Editor choice and persistent structured image references; sanitize imported content.
+5. **Journal:** Tiptap vanilla integration and custom node proof of concept; precise JSON schema/document migration, sanitization, dirty-state detection and accessible image/caption rendering.
 6. **Calendar:** Reminder feasibility with platform/browser restrictions.
 7. **Backup:** JSZip large-file/memory benchmarks, manifest schema/version migration, pointer durability, multi-tab coordination, rollback retention period and deletion timing.
 8. **Search and tests:** Search scope/fields/performance, unit/e2e framework, service-worker/PWA offline behavior.
