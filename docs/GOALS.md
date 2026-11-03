@@ -49,27 +49,61 @@ Journal entries, harvest records, completed tasks, and other historical activity
 
 ### 2.3 Plant Research (PlantDB)
 
-*To discuss.* **Existing boundary decision:** PlantDB is an independent project; Garden v1 must provide access to it. The access/integration mechanism remains undecided.
+PlantDB remains an independent project. Garden v1 will integrate a **simple plant selector** into garden creation and provide access to full reference records in PlantDB.
+
+- Search or browse representative plant names (for example, “Potatoes”).
+- Click to select or remove plants from a garden; retain the corresponding PlantDB identifier when available.
+- Keep detailed botanical and growing information in PlantDB, accessible through a link to the full record (potentially in a separate tab).
+- Do not duplicate the PlantDB research interface inside Garden.
+
+**Deferred detail:** The catalog delivery method (published data or API), exact record structure, and how unavailable/custom plant records are handled belong in `TECH_SPEC.md`. Drag-and-drop from a plant toolbar belongs to later interactive-map work.
 
 ### 2.4 Garden Maps
 
-*To discuss.* Determine the simplest v1 way to represent a garden layout without rebuilding the historical drawing editor.
+For v1, provide a **simple way to attach or display an existing garden layout**, such as an uploaded image or sketch, without recreating the historical drawing editor.
+
+Interactive scaled maps, drag-and-drop placement, and calculations of available growing space are post-MVP capabilities.
 
 ### 2.5 Growing Season Tracking
 
-*To discuss.* Define minimum plant records, planting details, and ongoing observations.
+*To discuss — explicitly parked.* The current direction is to track **groups of plants**, not require one record per individual plant, with gardener-controlled indicators that may overlap (for example, flowering, fruit production, and harvesting). No fixed lifecycle or automatic PlantDB-driven progression is required. Confirm the final indicator set and group-management requirements before approving this section.
 
 ### 2.6 Lists and Notes
 
-*To discuss.* To-Do, To-Buy (shopping), and simple Notes.
+Garden v1 will provide lightweight **gardener-wide**, rather than per-garden, lists that remain available across growing seasons:
+
+- **To-Do:** add, edit, complete/uncomplete, remove, and reorder items.
+- **To-Buy:** the same basic checklist operations for purchases shared across gardens.
+- **Notes:** add, edit, and remove simple text notes; no task-completion workflow required.
+- Group these tools within Garden rather than maintaining three standalone list applications.
+- Include lists and notes in the application-wide backup; no separate list-specific export/import controls.
+
+The interface should be quick and uncomplicated, not a project-management system. The planned implementation is a shared Preact/Bootstrap component with local IndexedDB persistence (Dexie is a candidate) and optional SortableJS reordering; final library choices belong in `TECH_SPEC.md`. Gardener-level ownership is a product concept, not a decision about future cross-device synchronization.
 
 ### 2.7 Garden Journal
 
-*To discuss.* Record the growing season with dated journal entries.
+Garden v1 includes a **free-form personal Journal**, like a simple blog, independent of structured garden/plant tracking:
+
+- Create, save, view, edit, and delete dated entries with titles.
+- Use a mobile-friendly WYSIWYG editor with ordinary rich-text formatting, links, and inserted photographs.
+- Browse entries chronologically.
+- Reference photographs from Garden's shared media collection rather than introducing a separate Journal photo store.
+- Make saved entries available offline and include them in application-wide backup and restore.
+
+There is **no Draft/Publish distinction in v1**: Save and subsequent Edit are sufficient for a single-user, nonpublic Journal. Do not require plant-group associations, automatically change growth indicators, or implement public sharing, RSS, comments, or publishing workflows. TinyMCE, Quill, and other editors can be evaluated in `TECH_SPEC.md`.
 
 ### 2.8 Photos and Gallery
 
-*To discuss.* Attach and manage photographs associated with gardens.
+Garden v1 will use **one local media collection** with context-specific views:
+
+- Import photographs from device files, photo pickers, or available camera interfaces.
+- Create optimized, resized copies for Garden (roughly 1600–2400 pixels on the longest edge is a candidate range); **do not alter originals** in the user's device photo library.
+- Store photo data and metadata locally, with a bounded photo-storage budget and clear warnings/handling when capacity is approached. Exact limits depend on device/browser testing.
+- Associate Gallery photos with gardens; show all gardens' photos in a main gallery grouped by year, garden-specific galleries within each garden, and representative thumbnails in garden summaries.
+- Allow Journal entries to reuse photographs from the shared collection without unnecessary duplicate image storage.
+- Include associated photos in complete ZIP backup and restore.
+
+The initial Gallery does not require separate free-form albums, advanced tagging, or a full media-management suite. Uppy is a candidate for file picking, import queues, and progress; IndexedDB/Dexie are candidate local storage tools. Network resumable uploads and server archival are **not v1 requirements**.
 
 ### 2.9 Current and Previous Gardens
 
@@ -87,14 +121,49 @@ Journal entries, harvest records, completed tasks, and other historical activity
 
 *To discuss.* Gardening events and reminders, such as watering, weeding, and pest control.
 
+### 2.13 Navigation and Creation
+
+- Keep the interface uncluttered by grouping related tools instead of giving every feature its own top-level button.
+- Provide a prominent **Create New** split-button control in the upper-right area: the primary action creates a garden; the dropdown offers other relevant creation actions.
+- Keep garden-specific actions, such as Add Plant or Save as Template, within the relevant garden context.
+- Offer clear access to Current and Previous Gardens, with responsive desktop and mobile layouts.
+
+The exact menu contents and responsive interactions belong in the technical specification.
+
+### 2.14 Portable Backup and Restore
+
+- Export all locally managed Garden data and associated media as a **portable, versioned ZIP package**.
+- Restore from a ZIP package with validation and appropriate safeguards against accidental replacement or data loss.
+- Let the gardener save the package wherever they wish (such as a USB drive or a folder synchronized with Google Drive, Dropbox, OneDrive, or Nextcloud).
+- Do not require a cloud account, SOLACE server, or provider-specific integration for v1 backup and recovery.
+- Make clear that browser storage is not guaranteed permanent and that exported backups must be kept somewhere safe.
+
+The archive layout, restore conflict policy, and performance limits for large media collections belong in `TECH_SPEC.md`.
+
 ## 3. Post-MVP
 
-Valuable capabilities that need not be included in the first release. **To discuss** after the minimum implementation of each MVP feature has been agreed upon.
+These are **future directions, not v1 commitments**; version numbers are illustrative targets rather than finalized delivery milestones.
+
+- **Interactive Garden Map (possible v2/v3):** scaled growing areas and containers; drag plants from a floating PlantDB selector; evaluate plant footprints and available space; reject placements that do not fit, with a clear explanation.
+- **Plant-compatibility guidance (possible v4):** advisory information about neighboring plants, supported by PlantDB references and appropriate caution about varying horticultural evidence.
+- **Cloud backup (possible v2/v3):** user-configured backup destinations and automatic transfer of portable packages to supported services.
+- **Connected Garden/archive (possible v3):** one Garden application available from the website and installable as a PWA; full historical access when connected, a smaller offline working set, and optional remote archival of older photographs.
+- **Historical media retention:** potentially retain one or two seasons of locally stored display-size photos while keeping searchable older text records and representative thumbnails; older galleries could be fetched on demand.
+- **Later hosting options:** SOLACE household devices (SHD) and SOS, potentially with household disks or Nextcloud, as alternatives to centralized storage.
+- **Journal/public features:** opt-in publishing, RSS, video/media embeds, and community functionality if justified.
 
 ## 4. Initial Data Handling
 
-What gets stored, where it lives, and how people access it during Phase 1. **To discuss.**
+**Approved v1 direction:** Garden should work local-first, including offline access to locally held records, Journal content, lists, and imported media. Browser-managed storage (likely IndexedDB) will hold application data. A portable ZIP export/restore provides user-controlled backup without mandatory hosting or cloud accounts.
+
+Importing a photo into Garden creates a resized/optimized copy; it does not modify the original. Storage budgets, persistence requests, and device/browser limits require validation in `TECH_SPEC.md`. Ordinary gardening notes do not require a special application-level encryption feature for v1; handle user content privately by default and explain the limits of browser storage and unencrypted exported packages.
+
+**Still to specify:** exact schemas, storage quotas, media processing, backup file format, and restoration safeguards.
 
 ## 5. Future Data Handling
 
-Local-first operation, synchronization, portability, privacy, and eventually household-hosted services. **To discuss.**
+**Architectural direction, not a settled synchronization design:** Garden is one web application at `garden.solace.network` that compatible browsers may install as a PWA. Online and offline experiences can expose different amounts of historical data depending on connectivity and available storage, without requiring separate unrelated applications.
+
+Future users may choose backup destinations, the amount of historical media retained locally, and whether/how to synchronize with a central server or household-hosted SHD/SOS system. Structured historical data may remain locally searchable while older photos are archived remotely and fetched when connected.
+
+**To discuss later:** sync mechanisms, conflict resolution, offline selection/retention policies, archival verification, and provider integrations. None are v1 prerequisites.
