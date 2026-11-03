@@ -159,7 +159,18 @@ Garden v1 will provide **four gardener-selected statuses** for each garden:
 
 ### 2.11 Harvest Tracking
 
-*To discuss.* Record harvest yields associated with gardens and plants.
+Garden v1 will record **individual harvest events associated with plant-group entries**, not with individual plants.
+
+- A gardener may add multiple dated harvest records to a plant group during its growing cycle.
+- Each harvest record contains a **date**, **quantity**, and **unit of measurement**, and belongs to one specific plant-group entry.
+- Plant groups that reference the same PlantDB variety still have separate harvest histories and totals.
+- Show a chronological record of harvests for a plant group and automatically calculate its total harvested quantity **for compatible units**.
+- Harvest records remain part of their garden's historical data, including after the garden is completed, closed, or archived; existing read-only rules apply.
+- This approach preserves the information needed for later comparisons and analytics without adding per-plant tracking to the MVP.
+
+**Technical-spec detail:** available units, unit conversions (if any), quantity precision, entry editing/deletion, and how totals spanning incompatible units are displayed belong in `TECH_SPEC.md`. Do not sum different units without a defined conversion rule.
+
+**Post-MVP potential:** comparisons of yield across plant groups, gardens, or growing cycles; harvest trends and other analysis built from dated records. These are not v1 requirements.
 
 ### 2.12 Calendar and Reminders
 
