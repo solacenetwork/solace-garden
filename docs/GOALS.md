@@ -237,6 +237,20 @@ Garden v1 will provide a **local-first personal calendar** for manually entered 
 
 The exact menu contents and responsive interactions belong in the technical specification.
 
+### 2.13a Simple and Standard Interface Modes
+
+Garden V1 should be **mobile-first and desktop-complete**, suited to quick observation/data entry outside and more detailed review and planning indoors. Two presentations access **the same data, features, and business rules**:
+
+- **Simple Mode:** Prioritize direct, touch-friendly entry and immediate reference, using large main-screen action buttons rather than requiring a hamburger menu for frequent tasks. Initial primary destinations are **Plants, Harvest, Photos, Tasks, Calendar, and Notes**. Calendar and Notes are full view/add/edit workspaces, not just one-click creation shortcuts; exact home-screen layout remains subject to UI validation.
+- **Standard Mode:** Provide fuller navigation and more detailed planning, organization, review, and management interfaces. Garden/template creation, layout work, detailed Journal editing, Gallery metadata/bulk organization, and historical garden administration are primarily Standard Mode activities, **not prohibited on a mobile device**.
+- **Automatic (default):** Use responsive viewport width to choose Simple Mode for smaller layouts and Standard Mode for larger layouts. Provide an explicit override at all sizes through Settings with **exactly one selected radio button** from **Automatic**, **Simple Mode**, and **Standard Mode**. The chosen preference persists locally; the specific automatic breakpoint remains to be tested.
+- **Responsive layout remains active within either selected mode.** A manually selected Standard Mode stays Standard even on a phone; a manually selected Simple Mode stays Simple on a desktop. Settings must remain reachable from both modes. Browser “Show desktop site” is not a reliable replacement for this control.
+- **Outdoor operation:** Make key touch targets generous and high-contrast for wet/dirty hands and compatible touchscreen gloves. For fullscreen data-entry dialogs, use a conspicuous upper-right **X** with a generous touch area; closing discards nothing silently if there are unsaved edits. Use clear Save/Done actions and local-save feedback.
+- **Focused plant updates:** Simple Mode's **Update Plants** leads to the current garden's plant-group list. Tapping a group immediately opens a fullscreen indicator editor (no extra Continue step). Grow indicators remain independently toggleable; Save returns to the **same plant-group list**, keeping filter and scroll context, so another group can be updated. The upper-left application logo provides a direct route to the Simple Mode home screen.
+- **Supporting information:** Historical desktop Infobox/mobile Infobar ideas are **optional design candidates**, not required permanent panels. Present contextual data only where it improves a task.
+
+The precise Standard Mode navigation, automatic breakpoint, Simple Mode home layout, and whether/where contextual panels appear are still open **Milestone 1 UI design decisions**. A gardener may always choose Standard Mode to use its full interface on a landscape tablet or phone.
+
 ### 2.14 Portable Backup and Restore
 
 - Export all locally managed Garden data and associated media as a **portable, versioned ZIP package**.
