@@ -1,4 +1,5 @@
 import preactLogo from '../../assets/preact.svg';
+import { ItemList } from '../../components/ItemList.jsx';
 import './style.css';
 
 export function Home() {
@@ -25,6 +26,7 @@ export function Home() {
 					href="https://vitejs.dev"
 				/>
 			</section>
+			<ItemList />
 		</div>
 	);
 }

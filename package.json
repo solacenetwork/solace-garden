@@ -1,11 +1,14 @@
 {
-	"name": "SOLACE Garden",
+	"name": "solace-garden",
   	"version": "0.0.1-alpha",
   	"description": "The Garden app for SOLACE Network",
-	"keywords": ["preact", "bootstrap", "dexie"],
-  	"author": "Ken Dawson <ken@solace.network>",
+	"keywords": ["SOLACE", "garden", "PWA"],
+  	"author": {
+		"name": "SOLACE Network",
+		"email": "ken@solace.network",
+		"url": "https://solacenetwork.com"
+	},
   	"license": "GPL-3.0-or-later",
-  	"homepage": "https://github.com/yourusername/my-preact-app#readme",
 	"private": true,
 	"type": "module",
 	"scripts": {
