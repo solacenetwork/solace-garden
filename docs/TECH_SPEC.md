@@ -1,6 +1,6 @@
 # SOLACE Garden — Technical Specification
 
-**Status:** Working draft 0.5 — decisions confirmed through 2026-11-03; remaining implementation choices labeled as proposals.  
+**Status:** Working draft 0.6 — decisions confirmed through 2026-11-03; remaining implementation choices labeled as proposals.  
 **Date:** 2026-11-03  
 **Sources:** [GOALS.md](GOALS.md) (approved MVP direction), [COMPREHENSIVE_REVIEW.md](COMPREHENSIVE_REVIEW.md) (historical evidence), and current code in this repository.
 
@@ -81,7 +81,13 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 
 **Harvest units:** Gardener-wide `settings.measurementSystem` is `imperial` by default; can select `metric`. Imperial weight selection: oz/lb; Metric: g/kg. Store the **actual unit on every record**; changing preference does not reinterpret saved values. Derive count totals and compatible weight totals separately, with explicit conversions; never infer absent weights. V2 planned: volume and volume units (cups, quarts, gallons, milliliters, liters, bushels, pecks); do not convert volume to weight without commodity-specific information.
 
-**PlantDB:** Preserve **string** reference IDs (the archived five-character zero-padded `pid` is a concrete example) and a `displayName` snapshot to remain legible if the external catalog later changes or is unavailable. A separate PlantDB backend (e.g. MariaDB) is authoritative; its admin publishing operation writes versioned **static JSON** to `https://garden.solace.network/assets/data/`. Garden consumes this published catalog, **not a live database API**. Publish a lightweight version/compatibility manifest (for example `schemaVersion`, `dataVersion`, `catalog` filename) and an immutable/versioned catalog JSON. The current compatible catalog must be included in the PWA's offline precache/download; verify initial caching before claiming offline readiness. When online, check the manifest and download/validate a newer compatible JSON before switching the active cached catalog; keep the last good version on error. Service worker controls network caching while application logic checks schema compatibility and dataset integrity. **Reference catalog data is separate from gardener-owned Dexie records**, and catalog updates never rewrite saved plant groups, phases, harvests, or user edits. Detailed PlantDB records remain in the separate research interface. Handling user-defined/unmatched plants and exact publication filenames remain integration details to validate.
+**PlantDB V1 static reference catalog (confirmed):** For Garden V1, bundle a **read-only JSON catalog** in `public/assets/data/plants.json`, initially using the archived `garden-archive/app/garden/plantdb/js/plants.json` (69 records, about 21 KB). Its records contain a string `pid` (preserve leading zeros), name, scientific name, categories, URL aliases and image reference; adapt archived image paths for Garden's static asset layout. No backend PlantDB, database queries, published-data manifest, automatic version checks or runtime API are required to ship Garden V1. Garden search covers the gardener's saved Garden records; the plant-picker search operates separately over this static catalog.
+
+**PlantDB catalog access:** Load the JSON once via a small `PlantCatalogService` with a shared fetch/promise cache, expose read-only catalog state and helpers such as `findById` and `searchPlants` through a **Preact Context Provider**, and use `useMemo` for lookup maps/derived searches only if useful. A direct case-insensitive in-memory name search is sufficient at this size. Keep the interface replaceable so the future publisher can supply a compatible JSON without rewriting plant-selector UI. Persist gardener-owned plant groups independently in Dexie with `plantDbId` and a `displayName` snapshot; catalog edits/refreshes never overwrite personal records. Handle missing/unknown references gracefully; exact custom-plant interaction can be refined during implementation.
+
+**PlantDB static image assets (confirmed):** Bundle reference photos as **static application assets**, for example `public/assets/data/plantdb/images/`, and store matching public relative URLs in the catalog. Render images on demand with ordinary image URLs and browser lazy loading; the PWA/service worker resolves cached resources—not arbitrary direct filesystem access. **Precache the optimized plant-selection thumbnails** with the catalog so offline plant browsing has images even before a particular thumbnail has been opened (subject to size testing). Optional larger reference photos may load on demand and only be available offline after caching; provide a bundled fallback image. Reference images live outside Dexie, do not duplicate into the gardener's Gallery, and **do not count toward the configurable 250 MB personal-media budget**. Audit copied assets, rights/attribution, and their total cache size.
+
+**Separate future PlantDB project:** A dedicated PlantDB `GOALS.md`/`TECH_SPEC.md` will define the authoritative server-side database (e.g. MariaDB), administration, publication to `https://garden.solace.network/assets/data/`, schema/data version manifests, compatible catalog updates, and any community contributions. This **is not a Garden V1 dependency**. Garden's service/catalog boundary should permit later versioned data and image updates while preserving the last known-good cached catalog and all saved garden records.
 
 ### 3.3 Gardener-wide records
 
@@ -230,7 +236,7 @@ If validation, quota, or restore fails, discard staging and leave the current ac
 
 ## 8. Offline/PWA and storage reliability
 
-- Installable PWA and service-worker caching of application shell/assets are v1 requirements; implementation tooling TBD.
+- Installable PWA and service-worker caching of application shell/assets are v1 requirements; implementation tooling TBD. Include the static PlantDB JSON and optimized selection thumbnails in the offline resource set, and verify successful caching before promising offline catalog browsing.
 - IndexedDB supports offline data access independently of the service worker. First install still requires obtaining the application files.
 - Evaluate `navigator.storage.estimate()`, `navigator.storage.persist()`, browser quota failures, and large gallery imports.
 - Clearly explain that browser profile deletion, private browsing, eviction, or device loss can remove local data; ZIP exports are essential.
@@ -253,7 +259,7 @@ If validation, quota, or restore fails, discard staging and leave the current ac
 ## 11. Remaining questions and validation tasks
 
 1. **Garden creation:** Implement shared wizard/Quick Start/Advanced form state, template prefill, transactional validation, and the protected location/type deletion rules. V1 template field-copy and deletion semantics are decided; test them.
-2. **PlantDB:** Implement versioned JSON publish/manifest and offline precache/update verification against the existing PlantDB backend; verify catalog schema compatibility and how unavailable/custom plant records work.
+2. **PlantDB:** Bundle archived JSON and optimized reference thumbnails; update asset paths, verify Preact Context/provider and single-fetch behavior, precache offline assets, handle missing plant IDs and broken images, and test image bundle size. Server publishing/version manifests belong to a separate future PlantDB specification.
 3. **Gallery implementation:** Confirm FilePond no-network variant handling, lightGallery integration, image format/quality/target dimensions, thumbnail performance and metadata extraction.
 4. **Storage budget:** Default is 250 MB; confirm configuration range/steps, threshold warnings, browser-specific quotas, and effectiveness of 1920px/256px/WebP ~80% image defaults.
 5. **Journal:** Tiptap vanilla integration and custom node proof of concept; precise JSON schema/document migration, sanitization, dirty-state detection and accessible image/caption rendering.
