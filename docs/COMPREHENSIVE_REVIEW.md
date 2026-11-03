@@ -471,17 +471,23 @@ The examined table primarily describes list storage associated with a member rec
 
 This is distinct from the garden metadata represented in the JavaScript JSON samples.
 
-### 8.4 Historical assessment
+### 8.4 Historical assessment and standalone-app provenance
 
-The list tools illustrate a shared implementation used for several distinct user-facing purposes.
+The list tools illustrate a shared implementation used for several distinct user-facing purposes. The developer identified the PHP Garden List Manager as an adaptation of the separate [kendawson-online/todo](https://github.com/kendawson-online/todo) application, reused inside Garden rather than originally designed as a Garden subsystem.
 
-The original design treated Notes as a list-oriented tool, while the Journal was implemented separately.
+The standalone application's `showList(config)` accepts a storage `key`, `listname`, and `locale`; the PHP Garden variant also accepts styling options. The Garden list picker passes configurations that keep the lists separate in browser storage:
 
-Whether these concepts should remain separate in a future version has not yet been decided.
+| Garden list | Configured `localStorage` key |
+|---|---|
+| To-Do | `garden_todo` |
+| To-Get | `garden_toget` |
+| Notes | `garden_notes` |
+
+The standalone app's per-list JSON export/import explains why the archived Garden UI includes separate backup controls; it does **not** establish the existence of a unified Garden backup solution. The original design treated Notes as a list-oriented tool, while the Journal was implemented separately. Source inspection demonstrates local list CRUD and reordering behavior, but not complete PHP database integration or runtime acceptance tests.
 
 **Historical implementation status:** Partial pending integration verification.
 
-**Future disposition:** Undecided.
+**Current disposition:** Redesign/Combine — preserve lightweight gardener-wide lists and notes, but use a shared Garden component and application-wide backup. The approved requirements are in [GOALS.md](GOALS.md#26-lists-and-notes); the historical source is not the implementation prescription.
 
 ---
 
@@ -518,7 +524,7 @@ A complete assessment of entry creation, persistence, retrieval, searching, and 
 
 **Historical implementation status:** Partial / Unknown.
 
-**Future disposition:** Undecided.
+**Current disposition:** Redesign — retain a free-form Journal with WYSIWYG editing, photographs, and Save/Edit for v1, but do not carry over the unfinished Draft/Publish workflow. See [GOALS.md](GOALS.md#27-garden-journal). The distinction between historical implementation and approved new requirements is intentional.
 
 ---
 
@@ -572,6 +578,8 @@ The garden-creation wizard anticipates map integration, but the examined step do
 
 ## 12. Historical Feature: Photo Gallery
 
+The PHP Gallery page describes the intended first-version model of photographs associated with specific gardens and organized by year; standalone freely organized galleries were a later idea. It displays demonstration images, not proof of a completed photo persistence system.
+
 The PHP archive includes:
 
 - Gallery pages
@@ -588,7 +596,7 @@ The JavaScript versions preserve Gallery as a visible feature.
 
 **Historical implementation status:** Partial pending functional verification.
 
-**Future disposition:** Undecided.
+**Current disposition:** Redesign/Combine — one shared Garden media collection, with year-level, garden-level, and Journal-specific views; this is a new v1 decision, not a claim that the historical Gallery implemented it. See [GOALS.md](GOALS.md#28-photos-and-gallery).
 
 ---
 
@@ -617,7 +625,7 @@ Their actual persistence and data-recovery behavior requires further inspection.
 
 **Historical implementation status:** Partial.
 
-**Future disposition:** Undecided.
+**Current disposition:** Redesign — the approved v1 goal is a portable application-wide ZIP export and restore, including photographs, rather than copying the archive's sample-JSON behavior or standalone list backups. See [GOALS.md](GOALS.md#214-portable-backup-and-restore). Future cloud/household synchronization remains undecided.
 
 ---
 
