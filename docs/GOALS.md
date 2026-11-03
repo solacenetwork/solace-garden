@@ -24,7 +24,10 @@ The MVP should support a coherent garden-management workflow while keeping indiv
 - Each garden has its own identity, information, and lifecycle; historical activity remains associated with that garden record.
 - The model should accommodate gardens whose layout stays the same across years as well as gardens whose size or configuration changes significantly.
 - Users can create a garden from scratch or start from a saved garden template.
-- Garden creation should be approachable rather than requiring all optional tools and settings to be configured at once.
+- **Default to a guided Create Garden wizard**, with a **Quick Start** shortcut and an **Advanced** single-page form using the same fields, validation and creation behavior. Switching between Wizard and Advanced must preserve entered values.
+- The wizard guides the gardener through **starting from scratch or a saved template**, **garden name/location/type**, and **review/create** (three short steps are the V1 target).
+- **Quick Start** requires only a garden name; use the built-in **Default** location and **In-Ground** type, set **Planned** status, and leave optional planting/start dates, plants, layouts and other details blank. Create a valid garden immediately, not a temporary draft; gardeners complete it later.
+- **Advanced** exposes the same configuration on one form, including optional details. All paths create a new record and navigate to its garden detail page for subsequent editing and plant additions.
 
 **Scope boundary:** We are not requiring a single permanent physical-garden record containing every growing season. Reusable templates provide continuity without merging separate seasons' histories.
 
@@ -45,15 +48,16 @@ Users should be able to:
 
 Journal entries, harvest records, completed tasks, and other historical activity should **not** be copied into a new garden when applying a template.
 
-**V1 template scope:** Save as Template creates a **new named template**, not an overwrite. A template carries reusable configuration (such as description, location, garden type, and layout) but **never plant groups**, growing indicators, history, Journal entries, harvests, dates, or status. A new garden begins with its own identity and Planned status. Editing/overwriting existing templates is deferred; historical template versions and restoration are future possibilities. Detailed deletion and reference policies belong in `TECH_SPEC.md`.
+**V1 template scope:** Save as Template creates a **new named template**, not an overwrite. Copy a **suggested garden name** (editable on creation), **description, location, garden type, and layout media reference**. Never copy plant groups, phases, harvesting history, Journal or Calendar records, completed tasks, historical dates, or status. Every new garden gets its own ID, **Planned** status and blank dates. **Permanently deleting a template after confirmation is allowed even when gardens were created from it**; existing gardens are independent, and deletion must not remove shared Gallery photos. Editing/overwriting templates and template version history are deferred.
 
 ### 2.2a Locations and Garden Types
 
 - Every garden belongs to exactly one physical **Location** and has exactly one **Garden Type**. Locations are reusable across independent garden projects and years.
-- Seed the initial Location named **Default**; automatically select it for the first garden. Gardeners can create additional named locations in v1. Renaming the built-in Default location is deferred.
+- Seed the initial Location named **Default**, used by Quick Start and initially selected for new gardens. Gardeners can create and rename additional locations in v1. The built-in Default cannot be renamed or deleted in v1.
+- An **unused custom location** can be deleted after confirmation; a location referenced by **any garden**, including completed/archived gardens, cannot be deleted until those gardens have been reassigned. Editable gardens may have their location reassigned.
 - Allow an optional manually entered USDA hardiness zone on each location, with a link to the official USDA zone lookup. No location permission or automatic geolocation is required in v1.
 - Seed Garden Types: **In-Ground, Raised Bed, Container, Greenhouse, Hydroponic, Other**. Custom type creation/editing is deferred.
-- A Garden Type cannot be deleted while referenced by **any** garden, including completed, closed, or archived gardens. Reassignment must happen before deletion.
+- Seeded Garden Types **cannot be deleted** in v1, even if unused. Custom types are deferred; in any future type-management workflow, referenced types (including those used by historical gardens) remain protected. A garden's type may be reassigned only while that garden is editable.
 
 ### 2.3 Plant Research (PlantDB)
 
@@ -63,8 +67,10 @@ PlantDB remains an independent project. Garden v1 will integrate a **simple plan
 - Provide a simple selection workflow for adding PlantDB plants to a garden (a one-click, one-pick approach is a v1 candidate); retain the corresponding PlantDB identifier when available. Gardeners must be able to add the same plant more than once as independent plant-group entries.
 - Keep detailed botanical and growing information in PlantDB, accessible through a link to the full record (potentially in a separate tab).
 - Do not duplicate the PlantDB research interface inside Garden.
+- **PlantDB's backend master database (for example MariaDB) publishes versioned JSON reference data** to `garden.solace.network/assets/data/`. The PWA ships/caches the current lightweight catalog for offline plant selection and checks for compatible published updates when online; Garden never directly queries the backend database. Keep reference data separate from gardener-owned records.
+- Published data has independent **schema compatibility** and **dataset publication** versions. An update must be fetched/validated fully before replacing the last working offline catalog; it must **never automatically overwrite a gardener's plant groups, observations, or historical records**.
 
-**Deferred detail:** The exact add/remove interaction, including how repeated selections are presented, remains a UI design decision. The catalog delivery method (published data or API), exact record structure, and how unavailable/custom plant records are handled belong in `TECH_SPEC.md`. Drag-and-drop from a plant toolbar belongs to later interactive-map work.
+**Technical detail:** The exact add/remove interaction, repeated-selection presentation, published JSON manifest/record schema, cache/update validation, and any user-created/unavailable plant flow require implementation validation in `TECH_SPEC.md`. Drag-and-drop from a plant toolbar belongs to later interactive-map work.
 
 ### 2.4 Garden Maps
 
@@ -140,7 +146,7 @@ Garden v1 will use **one local media collection** with context-specific views:
 
 - Import photographs from device files, photo pickers, or available camera interfaces.
 - Create optimized, resized copies for Garden (roughly 1600–2400 pixels on the longest edge is a candidate range); **do not alter originals** in the user's device photo library.
-- Store only **optimized display images and thumbnails**, never full-resolution originals, and leave the device originals untouched. Provide a **gardener-configurable total media-storage budget in v1**, with usage warnings and appropriate failure handling; default/range require testing.
+- Store only **optimized display images and thumbnails**, never full-resolution originals, and leave the device originals untouched. Provide a **gardener-configurable total media-storage budget in v1**, initially **250 MB**. Proposed optimization defaults: **1920px maximum display dimension, 256px thumbnails, WebP preferred with compatibility fallback, and approximately 80% compression quality**. Verify actual sizes, image support, and browser quotas through testing; these starting values may need tuning.
 - Allow Gallery photographs to exist **without a garden association**, including general gardening photos used in Journal entries. A single photo may be linked to **multiple gardens** without duplicating image data; show the main Gallery grouped by capture year, garden-specific views, and representative thumbnails in garden summaries.
 - Every photo supports **optional title, description, and tags**. Derive Gallery year from original photo timestamp (prefer capture EXIF, fall back to source-file modification time, then import date); allow manual date correction.
 - Removing a photo from a garden only unlinks that association. On confirmed permanent deletion from Gallery, remove image blobs but **preserve media metadata and references as a tombstone**; linked views use a bundled placeholder instead of broken images.
@@ -212,7 +218,7 @@ Garden v1 will provide a **local-first personal calendar** for manually entered 
 - Each event may optionally have a reminder **at its scheduled start time only**; no advance-notice offsets in v1. For an **all-day event**, use a gardener-wide **All-day event reminder time**, default **9:00 AM**, adjustable in settings. Changing this setting affects future all-day reminder timing without rewriting events.
 - Provide **in-app reminders by default** (an indicator/alert while Garden is open). A gardener-wide **Allow browser notifications** toggle defaults **off**. Turning it on initiates a user-gesture-based browser permission request; if permission is granted and notifications are supported, use a native browser notification **instead of** a duplicate in-app popup. If unavailable, denied, disabled, or delivery fails, fall back to an in-app reminder while the app runs.
 - Turning off the toggle stops Garden from issuing browser notifications and returns to in-app alerts; **the app cannot revoke browser-granted permission**, which must be managed in browser/site settings.
-- Be transparent that reminders **only fire while the PWA is running** in v1. No push, background alarm guarantee, service-based workaround, or server required. Gardeners can dismiss/clear due reminders, with occurrence-aware deduplication.
+- Be transparent that reminders **only fire while the PWA is running** in v1. No push, background alarm guarantee, service-based workaround, or server required. **Missed reminders are simply ignored when Garden reopens**: no retroactive catch-up queue or overdue alerts. Future occurrences of recurring events still notify normally. Gardeners can dismiss/clear due reminders, with occurrence-aware deduplication.
 - Offer a gardener-wide **12-hour / 24-hour clock display preference**, defaulting to **12-hour**. This changes presentation only; internally store local times consistently (such as `HH:mm`).
 - **Use the device's system clock and local time zone** for all calendar and reminder calculations. Do not introduce NTP, external time verification, clock correction, or server time dependencies. Incorrect device time is outside Garden's responsibility; recurring local wall times should remain stable across daylight-saving changes.
 - No automatic scheduling or calendar-driven progression of plant-group indicators. V1 does not require automatically populating events from planting dates, harvests, or other records.
