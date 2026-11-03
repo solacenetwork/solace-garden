@@ -1,6 +1,6 @@
 # SOLACE Garden — Technical Specification
 
-**Status:** Working draft 0.6 — decisions confirmed through 2026-11-03; remaining implementation choices labeled as proposals.  
+**Status:** Working draft 0.7 — decisions confirmed through 2026-11-03; remaining implementation choices labeled as proposals.  
 **Date:** 2026-11-03  
 **Sources:** [GOALS.md](GOALS.md) (approved MVP direction), [COMPREHENSIVE_REVIEW.md](COMPREHENSIVE_REVIEW.md) (historical evidence), and current code in this repository.
 
@@ -187,6 +187,24 @@ The index choices should follow real UI queries and be reviewed before implement
 - Backup service: export/import and archive validation without being coupled to UI components.
 
 Avoid putting business rules solely in individual click handlers. Database foreign keys are not enforced automatically by IndexedDB; deletion and relationship integrity must be implemented and tested in application code.
+
+### 5.1 Responsive interface modes and interaction patterns (V1 agreed behavior; layout details under review)
+
+**Shared application:** Build Simple Mode and Standard Mode as presentation/navigation choices over common Preact state, Dexie stores, and domain services, not independent products or data models. The mode should not control whether a user has access to their saved data. Responsive Bootstrap styling works within either mode; a manual choice is never overridden by media queries.
+
+**Preference:** Persist one local settings record, proposed `settings.interfaceMode = 'auto' | 'simple' | 'standard'` (default `auto`). Expose three mutually exclusive **native Bootstrap radio buttons** in Settings, with labels Automatic, Simple Mode, Standard Mode. Settings must be reachable from either interface. Resolve effective mode as `preference === 'auto' ? (viewportMatchesNarrowBreakpoint ? 'simple' : 'standard') : preference`. Implement responsive detection with `matchMedia` and a change listener (properly cleaned up on unmount); the exact Bootstrap-aligned breakpoint is **not yet selected**. Browser desktop-site requests may alter the reported viewport and must not be treated as a dedicated mode signal. Switching modes or resizing while a form is dirty must preserve edits or ask before discarding them.
+
+**Simple Mode entry points:** Candidate main home destinations, discussed and favored for V1, are **Plants, Harvest, Photos, Tasks, Calendar, Notes** as large, high-contrast, touch-friendly buttons. Prefer task-focused workflows over nested hamburger navigation for frequent outdoor operations. **Notes** opens a fullscreen browse/add/edit/delete workspace; **Calendar** opens a view/add/edit workspace (not merely an Add Event shortcut). Photos supports capture and viewing; Tasks supports checking off and potentially reordering work. Detailed UI compositions remain Milestone 1 questions, not finalized wireframes.
+
+**Plant group update navigation (agreed):** From Simple Mode home, tap **Update Plants** → display existing plant groups for the current garden → tap a group to **immediately** open its fullscreen editor. The selector reads gardener-owned `plantGroups` in Dexie, not the PlantDB reference list; distinguish repeated varieties by garden and identifying metadata. The editor presents the **ten independent phase indicators**, each manually toggleable, with existing optional start/end date controls; e.g. turn Seedling off and Vegetative Growth on without changing unrelated indicators. **Save/Done** commits via shared domain services and returns to the **plant-group list**, retaining search/filter and scroll position for repetitive updates. The upper-left SOLACE Garden logo leads directly to Simple Mode home. Distinguish this from **adding** a plant group, which uses the static PlantDB catalog selector. When arriving from an already selected group, skip redundant selection.
+
+**Dialog conventions:** On phone-sized viewports, use a Bootstrap fullscreen (or breakpoint-responsive fullscreen) modal for choosing/editing plant groups and other focused actions; a conventional dialog or responsive layout is acceptable on wider screens. A conspicuous **upper-right X** should have at least a ~48 × 48 CSS-pixel hit target, clear accessible label and contrast, and act as **Close/Cancel**, never Save. Dirty forms require discard confirmation; consider disabling accidental backdrop dismissal for sensitive forms. Use explicit Save/Done buttons, wait for successful Dexie persistence before showing saved state, and return to the user's working context. Offcanvas panels are available for secondary choices or contextual info, but are not required for everyday Simple Mode navigation.
+
+**Standard Mode emphasis:** All garden activities should remain usable even when Standard Mode is selected on a narrow phone viewport; favor richer navigation and management tools for creating/editing gardens and templates, garden-layout work, full Journal editing with images, Gallery metadata/bulk organization, archived-garden administration, and backups/settings. The old navbar/sidebar/Infobox/statusbar and mobile Infobar are historical reference ideas **rather than required UI structures**. Contextual information may use inline cards, expandable details, or an optional panel depending on screen and task.
+
+**Device boundary:** No automatic cross-device sync in V1. Data entered on a phone remains in that browser's local Dexie database until explicitly transferred via ZIP backup/restore; do not imply that changing presentation modes or opening Garden on a desktop makes phone data available there.
+
+**Open design questions:** Exact automatic breakpoint, Standard Mode navigation, context-information presentation, mode-switch shortcut placement outside Settings, detailed desktop/mobile wireframes, and precise six-action placement/labels will be finalized during Roadmap Milestone 1. Record these as open choices instead of implying a completed visual design.
 
 ## 6. Search (proposed)
 
