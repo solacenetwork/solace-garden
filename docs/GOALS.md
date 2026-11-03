@@ -107,7 +107,25 @@ The initial Gallery does not require separate free-form albums, advanced tagging
 
 ### 2.9 Current and Previous Gardens
 
-*To discuss.* Quick access to active gardens and earlier garden records.
+Garden v1 will provide **four gardener-selected statuses** for each garden:
+
+| Status | Meaning | Location |
+|---|---|---|
+| Planned | The garden is being prepared; planting has not begun. | Current Gardens |
+| Active | The garden is being cultivated or maintained. | Current Gardens |
+| Completed | The garden's planting project or growing cycle has ended. | Previous Gardens |
+| Archived | The garden is retained as a read-only historical record. | Previous Gardens |
+
+- The gardener manually chooses a garden's status using a select list. Dates and calendar-year changes must not automatically complete or archive a garden.
+- When selecting **Completed**, offer to **Close Garden** with the explanation that it can be reopened later for edits. The gardener may instead keep the completed garden editable to finish recording information.
+- Closing a garden makes it read-only without deleting its records; reopening restores edit access.
+- Selecting **Archived** automatically closes the garden and makes it read-only. An explicit **Unarchive Garden** action unlocks it and returns the status to **Completed**, preserving the garden's data.
+- Current Gardens contains Planned and Active gardens; Previous Gardens contains Completed and Archived gardens, including closed records that remain viewable.
+- A garden is a distinct planting project or group of plants for a particular growing cycle, **not a permanent physical location**. A new planting cycle creates a separate garden record and history; gardeners are not required to enter a formal season identifier or use a dedicated “New Season” action.
+- To reuse a physical layout or configuration, the gardener uses the existing **Create New Garden** workflow and can select a previously saved garden template (see [Garden Templates](#22-garden-templates)). Historical activity is not copied into the new record.
+- The gardener controls how long a growing cycle lasts; perennial or overwintering projects need not end at the calendar-year boundary.
+
+**Technical-spec detail:** exact confirmation dialogs, read-only enforcement, and status transition handling belong in `TECH_SPEC.md`.
 
 ### 2.10 Search
 
