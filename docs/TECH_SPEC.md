@@ -1,6 +1,6 @@
 # SOLACE Garden — Technical Specification
 
-**Status:** Working draft 0.4 — decisions confirmed through 2026-11-03; remaining implementation choices labeled as proposals.  
+**Status:** Working draft 0.5 — decisions confirmed through 2026-11-03; remaining implementation choices labeled as proposals.  
 **Date:** 2026-11-03  
 **Sources:** [GOALS.md](GOALS.md) (approved MVP direction), [COMPREHENSIVE_REVIEW.md](COMPREHENSIVE_REVIEW.md) (historical evidence), and current code in this repository.
 
@@ -55,18 +55,20 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 
 | Store | Fields (proposed) | V1 rules (confirmed) |
 | --- | --- | --- |
-| `locations` | `id`, `name`, `hardinessZone?`, `latitude?`, `longitude?`, `isSystemDefault`, timestamps | Seed immutable-name **Default** location; optional manually entered USDA zone (1a–13b), USDA lookup link. Users may add named locations. No GPS permission or auto lookup. |
-| `gardenTypes` | `id`, `name`, `description?`, `isSystem`, `sortOrder` | Seed In-Ground, Raised Bed, Container, Greenhouse, Hydroponic, Other. One type per garden. Never delete a type referenced by **any** garden, including closed/archived; require prior reassignment, enforcing rule inside a Dexie transaction. Custom types/editing deferred. |
+| `locations` | `id`, `name`, `hardinessZone?`, `latitude?`, `longitude?`, `isSystemDefault`, timestamps | Seed non-deletable, non-renamable **Default** location; custom locations can be created/renamed and deleted after confirmation **only if no garden refers to them**, including historical gardens. Optional manually entered USDA zone (1a–13b) and lookup link; no GPS/automatic lookup. |
+| `gardenTypes` | `id`, `name`, `description?`, `isSystem`, `sortOrder` | Seed In-Ground, Raised Bed, Container, Greenhouse, Hydroponic, Other; all **seeded types are protected against deletion even when unused**. One type per garden; editable gardens can change type. Custom type creation/editing deferred. |
 | `gardens` | `id`, `name`, `description?`, `locationId`, `gardenTypeId`, `status`, `isClosed`, `layoutMediaId?`, optional dates, timestamps | Every garden has exactly one location and one type; each garden is an independent planting project, not a permanent place. Status Planned/Active/Completed/Archived. |
 | `gardenTemplates` | `id`, `name`, `configuration`, timestamps | Save as Template **always creates a NEW named snapshot in v1**. Creating a garden from a template copies reusable configuration such as suggested name/description, location ID, garden type ID, and layout media ID; never plants or historical state. |
 
-**Location:** Automatically select `Default` for new gardens initially; custom locations are selectable and can be created during garden creation. Renaming the built-in Default and auto zone lookup are future possibilities. Locations are reusable across garden years.
+**Locations:** Default is a protected system record and is the initially selected location. Custom locations are selectable, creatable and renamable; deleting an unused custom location requires confirmation and a transactional check across **all** gardens, including completed, closed and archived. Referenced locations must be reassigned first; closed/archived gardens must follow the existing reopen/unarchive rules before changes. Automatic geolocation/zone lookup is deferred. Locations are reusable across garden years.
 
-**Garden type deletion:** Check all `gardens` references in the same transaction, regardless of garden status. Archived gardens must be explicitly unarchived before they can be reassigned, consistent with lifecycle restrictions. Whether seeded types can be deleted when entirely unused remains an implementation/UI policy question; **never** delete referenced types.
+**Garden type protection:** Seeded Garden Types are immutable as to existence and **cannot be deleted even if unused** in v1. Custom type management is deferred. Editable gardens may change their type; changing references in closed/archived gardens requires following normal lifecycle unlocking rules. Revalidate references transactionally.
 
 **Garden lifecycle:** Statuses are explicitly chosen by the gardener; finishing a plant group never changes garden status. Completed prompts optional Close Garden, but may remain editable; Archived is automatically closed/read-only; Unarchive returns to Completed/editable. Read-only enforcement must cover dependent garden data.
 
-**Templates:** New gardens get a new ID, Planned status, blank dates, no plant groups/indicators/harvests/Journal/completed tasks. Existing gardens are **not linked for live updates** to their source template. Template editing/overwriting is deferred to v2+ with explicit warning/confirmation. Potential v3/v4 `templateVersions` store keeps historic configuration JSON snapshots; restoring a prior snapshot creates a new version, and any referenced layout media must remain addressable. Template deletion behavior remains open.
+**Templates:** V1 template configuration contains **suggested garden name, description, locationId, gardenTypeId, and layoutMediaId** only; the suggested name is editable when creating a garden. Applying a template creates an independent garden with a new ID, Planned status, blank start/planting dates, no plant groups/indicators/harvests/Journal/Calendar/task history. No live link or future propagation from template to created gardens. **Delete a template permanently after confirmation even when existing gardens originated from it**; deletion affects only the template record, not those gardens or any shared Gallery media. A template referenced by the create form must be revalidated on save; resolve missing/deleted media via existing placeholders. Template editing/overwriting deferred; potential later template snapshot versions remain future work.
+
+**Garden creation workflows (confirmed V1):** The default Create Garden UI is a short **three-stage wizard**: (1) scratch or saved template, (2) name, Location and Garden Type, (3) review/create. **Quick Start** provides immediate creation with **garden name as the only required input**, default Location = protected `Default`, default Type = `In-Ground`, status = `Planned`, no planting/start date and no plant groups/layout/other optional data. A Quick Start garden is a normal persistent garden, not a draft, and may be completed later. **Advanced** exposes the wizard's full configuration (including optional description, dates and layout reference) in a single form. Wizard and Advanced share the **same in-memory state**, validators and creation service so switching views doesn't discard entered data; each flow creates a garden through the same validated Dexie transaction and navigates to the new garden detail view. Template selection prefills editable name/description/location/type/layout values; optional plants are added after creation. Auto-generated UUID and timestamps are never user inputs. Historical `garden_quickstart.json` / `garden_full.json` are conceptual references, not current storage schemas.
 
 ### 3.2 Plant groups and harvests
 
@@ -79,7 +81,7 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 
 **Harvest units:** Gardener-wide `settings.measurementSystem` is `imperial` by default; can select `metric`. Imperial weight selection: oz/lb; Metric: g/kg. Store the **actual unit on every record**; changing preference does not reinterpret saved values. Derive count totals and compatible weight totals separately, with explicit conversions; never infer absent weights. V2 planned: volume and volume units (cups, quarts, gallons, milliliters, liters, bushels, pecks); do not convert volume to weight without commodity-specific information.
 
-**PlantDB:** Preserve string reference IDs and a `displayName` snapshot to remain legible when external catalog is absent. Catalog delivery/cache and unmatched/custom choices remain open.
+**PlantDB:** Preserve **string** reference IDs (the archived five-character zero-padded `pid` is a concrete example) and a `displayName` snapshot to remain legible if the external catalog later changes or is unavailable. A separate PlantDB backend (e.g. MariaDB) is authoritative; its admin publishing operation writes versioned **static JSON** to `https://garden.solace.network/assets/data/`. Garden consumes this published catalog, **not a live database API**. Publish a lightweight version/compatibility manifest (for example `schemaVersion`, `dataVersion`, `catalog` filename) and an immutable/versioned catalog JSON. The current compatible catalog must be included in the PWA's offline precache/download; verify initial caching before claiming offline readiness. When online, check the manifest and download/validate a newer compatible JSON before switching the active cached catalog; keep the last good version on error. Service worker controls network caching while application logic checks schema compatibility and dataset integrity. **Reference catalog data is separate from gardener-owned Dexie records**, and catalog updates never rewrite saved plant groups, phases, harvests, or user edits. Detailed PlantDB records remain in the separate research interface. Handling user-defined/unmatched plants and exact publication filenames remain integration details to validate.
 
 ### 3.3 Gardener-wide records
 
@@ -89,7 +91,7 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 | `listItems` | `id`, `kind`, `text`, `completed`, `sortOrder`, timestamps | `kind` todo/tobuy, gardener-wide. |
 | `notes` | `id`, `text`, timestamps | Gardener-wide quick notes. |
 | `calendarEvents` | `id`, `title`, `eventDate`, `startTime?`, `description?`, `allDay`, `recurrenceRule?`, `reminderEnabled`, timestamps | Manually created one-off or recurring events; local calendar dates/times, optional at-time reminder, entire-series edits in v1. Recurrence is stored as a rule, not pre-expanded occurrences. |
-| `settings` | `key`, `value` | Measurement system; configurable **total media-storage budget** (numeric defaults/range TBD); calendar all-day reminder time (`09:00` default), clock format (`12` default), browser notifications toggle (`false` default); potentially preferred location. |
+| `settings` | `key`, `value` | Measurement system; **250 MB default** configurable total media-storage budget; calendar all-day reminder time (`09:00` default), clock format (`12` default), browser notifications toggle (`false` default); potentially preferred location. |
 
 ### 3.3a Journal editor, media references and lifecycle (confirmed V1 behavior)
 
@@ -113,7 +115,7 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 
 **Recurrence:** One-time events plus daily/weekly/monthly/yearly recurring series using RRule. Persist a stable series ID and recurrence definition; generate/display occurrences for the requested view rather than storing each as a separate event. **Editing or deleting a recurring event affects the whole series** in v1. Per-occurrence edits, exclusions, skipping, and individual completion history are outside v1. Specify a sensible finite/unbounded-series representation and inclusive/exclusive boundaries when implementing; test DST and month-end recurrence.
 
-**Reminders:** `reminderEnabled` is an optional event-level choice. Deliver **at the event's start time only** (no lead-time offsets). A timed event uses its stored local start time; an all-day event uses a gardener-wide `calendar.allDayReminderTime` setting defaulting to `09:00`, evaluated at occurrence time rather than copied into individual events. Changing the setting affects subsequent reminders. Maintain lightweight occurrence-aware delivery/dismissal state keyed by event/series ID plus occurrence date/time (separate Dexie store or equivalent; exact indexing TBD) so an open tab/restart doesn't repeatedly alert for the same due instance. Consider how to handle missed occurrences when reopening: **do not promise retroactive alerts** until a policy is chosen. Multi-tab deduplication requires testing.
+**Reminders:** `reminderEnabled` is an optional event-level choice. Deliver **at the event's start time only** (no lead-time offsets). A timed event uses its stored local start time; an all-day event uses a gardener-wide `calendar.allDayReminderTime` setting defaulting to `09:00`, evaluated at occurrence time rather than copied into individual events. Changing the setting affects subsequent reminders. Maintain lightweight occurrence-aware delivery/dismissal state keyed by event/series ID plus occurrence date/time (separate Dexie store or equivalent; exact indexing TBD) so an open tab/restart doesn't repeatedly alert for the same due instance. **Missed occurrences are discarded** when Garden is reopened; never enqueue catch-up or overdue reminders. The next future recurrence remains eligible. Multi-tab deduplication requires testing.
 
 **Notification channel selection:** In-app notification indicator/alert is the V1 default. `notifications.allowBrowser` setting defaults `false`. Only when the user enables it from an explicit interaction should the app call `Notification.requestPermission()`; browser permission is also separately checked. If enabled, permitted, and supported, display **one browser notification in place of** the in-app popup; if denied/unavailable/not delivered, show the in-app alternative where possible. On mobile, prefer a registered service worker's `showNotification()` when supported rather than assuming `new Notification()` works. No push subscription or background scheduling. Turning the toggle off immediately stops application-issued browser notifications and reverts to in-app reminders; **JavaScript cannot revoke previously granted browser/site permission**. Explain how to revoke it through browser settings if desired. Permission state and app preference are distinct; don't infer the toggle is true just because permission is granted.
 
@@ -139,7 +141,7 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 
 **Future media restoration:** User reimports a candidate original; compare filename/date/dimensions/size and potentially perceptual fingerprints, then **confirm** before restoring blobs onto the existing media ID; all previous references reconnect without rebuilding associations. Automatic detection/repair and holistic missing-image recovery are **not v1**.
 
-**Storage budget v1:** Gardener configures a total media-storage budget (previously discussed candidate 50–1000 MB in 50 MB steps; **not final**). Track optimized image+thumbnail bytes, warn before/near limit, handle browser quota failure. Browser quota is a separate limit and can be smaller than the user's setting; do not promise hard disk availability.
+**Storage and optimization defaults (agreed V1 starting values):** Gardener-configurable total media budget **250 MB by default**; upper/lower bounds and increment to validate in UI testing. Display images: **1920px longest edge maximum**; thumbnails: **256px longest edge maximum**; **WebP preferred with compatibility fallback**, approximately **80% compression quality** as a starting point. Benchmark browser support, output format/quality, memory, image clarity and photo import performance before finalizing implementation constants. Track optimized display+thumbnail bytes, warn before/near budget, and handle quota failure; browser quota is independent of the user budget and can be smaller.
 
 ## 4. Candidate Dexie v1 indexes (proposed, not yet applied)
 
@@ -250,16 +252,16 @@ If validation, quota, or restore fails, discard staging and leave the current ac
 
 ## 11. Remaining questions and validation tasks
 
-1. **Template management:** Exact editable configuration subset, safe deletion semantics and future overwrite UI. V1 new-template snapshots **do not copy plant groups**.
-2. **PlantDB:** Offline catalog integration and custom/unavailable plant records.
+1. **Garden creation:** Implement shared wizard/Quick Start/Advanced form state, template prefill, transactional validation, and the protected location/type deletion rules. V1 template field-copy and deletion semantics are decided; test them.
+2. **PlantDB:** Implement versioned JSON publish/manifest and offline precache/update verification against the existing PlantDB backend; verify catalog schema compatibility and how unavailable/custom plant records work.
 3. **Gallery implementation:** Confirm FilePond no-network variant handling, lightGallery integration, image format/quality/target dimensions, thumbnail performance and metadata extraction.
-4. **Storage budget:** Final numeric default/range and threshold warning UX; browser-specific quota testing.
+4. **Storage budget:** Default is 250 MB; confirm configuration range/steps, threshold warnings, browser-specific quotas, and effectiveness of 1920px/256px/WebP ~80% image defaults.
 5. **Journal:** Tiptap vanilla integration and custom node proof of concept; precise JSON schema/document migration, sanitization, dirty-state detection and accessible image/caption rendering.
 6. **Calendar:** FullCalendar/RRule Preact proof of concept; date/time/recurrence boundaries, permission UX, notification fallbacks, occurrence-level deduplication and running-app reliability.
 7. **Backup:** JSZip large-file/memory benchmarks, manifest schema/version migration, pointer durability, multi-tab coordination, rollback retention period and deletion timing.
 8. **Search and tests:** Search scope/fields/performance, unit/e2e framework, service-worker/PWA offline behavior.
-9. **Garden type/location lifecycle:** Safe deletion/rename specifics; keep all foreign key invariants.
-10. **Product UI:** Photo deletion confirmation design, replacement placeholder handling, layout/template linking.
+9. **Garden type/location lifecycle:** Enforce decided protected seeded records, custom-location deletion checks, editable-only reassignments, and historical foreign key invariants.
+10. **Product UI:** Photo deletion confirmation design, replacement placeholder handling, layout/template linking and switching between Wizard/Advanced without losing form data.
 
 ## 12. Explicitly outside v1
 
