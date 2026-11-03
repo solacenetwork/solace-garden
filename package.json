@@ -1,14 +1,18 @@
 {
 	"name": "solace-garden",
-  	"version": "0.0.1-alpha",
-  	"description": "The Garden app for SOLACE Network",
-	"keywords": ["SOLACE", "garden", "PWA"],
-  	"author": {
+	"version": "0.0.1-alpha",
+	"description": "The Garden app for SOLACE Network",
+	"keywords": [
+		"SOLACE",
+		"garden",
+		"PWA"
+	],
+	"author": {
 		"name": "SOLACE Network",
 		"email": "ken@solace.network",
 		"url": "https://solacenetwork.com"
 	},
-  	"license": "GPL-3.0-or-later",
+	"license": "GPL-3.0-or-later",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -19,19 +23,37 @@
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/solacenetwork/solace-garden.git"
-  	},
+	},
 	"bugs": {
-    	"url": "https://github.com/solacenetwork/solace-garden/issues"
-  	},
+		"url": "https://github.com/solacenetwork/solace-garden/issues"
+	},
 	"dependencies": {
+		"@fullcalendar/rrule": "^7.1.3",
+		"@tiptap/core": "^3.32.2",
+		"@tiptap/pm": "^3.32.2",
+		"@tiptap/starter-kit": "^3.32.2",
 		"bootstrap": "6.0.0-alpha.1",
 		"dexie": "^4.4.7",
 		"dexie-react-hooks": "^4.4.0",
+		"filepond": "^4.32.12",
+		"filepond-plugin-file-validate-size": "^2.2.8",
+		"filepond-plugin-file-validate-type": "^1.2.9",
+		"filepond-plugin-image-exif-orientation": "^1.0.11",
+		"filepond-plugin-image-preview": "^4.6.12",
+		"filepond-plugin-image-resize": "^2.0.10",
+		"filepond-plugin-image-transform": "^3.8.8",
+		"fullcalendar": "^7.1.3",
+		"jszip": "^3.10.2",
+		"lightgallery": "^3.0.0",
 		"preact": "^11.0.0",
-		"preact-iso": "^2.12.2"
+		"preact-iso": "^2.12.2",
+		"rrule": "^2.8.1",
+		"sortablejs": "^1.15.7",
+		"temporal-polyfill": "^1.0.6"
 	},
 	"devDependencies": {
 		"@preact/preset-vite": "^2.10.6",
-		"vite": "^8.3.1"
+		"vite": "^8.3.1",
+		"vite-plugin-pwa": "^2.0.0"
 	}
 }
