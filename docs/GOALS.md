@@ -155,7 +155,16 @@ Garden v1 will provide **four gardener-selected statuses** for each garden:
 
 ### 2.10 Search
 
-*To discuss.* Search current and historical gardens.
+Garden v1 will provide **one application-wide search with filters** for locally managed Garden records, covering both Current and Previous Gardens.
+
+- Provide a single, consistent search entry point rather than separate search interfaces for each Garden section.
+- Search across garden names and plant-group entries, including repeated plant varieties in different gardens and historical records.
+- Offer simple filters to narrow results (for example, by garden, garden status, or record type where supported).
+- Results should clearly identify the associated garden and record so the gardener can navigate directly to it.
+- **Exclude PlantDB reference content from Garden-wide search.** PlantDB is a separate project with its own search interface. Garden's plant-group entries may be found by their names, but searching botanical reference records belongs to PlantDB.
+- Search should work on locally available Garden data, consistent with the local-first MVP.
+
+**Technical-spec detail:** the exact searchable fields, record-type coverage (such as Journal, Notes, or calendar entries), filter options, indexing approach, and behavior for future remotely archived data belong in `TECH_SPEC.md`. No advanced ranking or full-text search engine is required by this goals statement.
 
 ### 2.11 Harvest Tracking
 
