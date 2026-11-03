@@ -1,6 +1,6 @@
 # SOLACE Garden — Technical Specification
 
-**Status:** Working draft 0.3 — decisions confirmed through 2026-11-03; remaining implementation choices labeled as proposals.  
+**Status:** Working draft 0.4 — decisions confirmed through 2026-11-03; remaining implementation choices labeled as proposals.  
 **Date:** 2026-11-03  
 **Sources:** [GOALS.md](GOALS.md) (approved MVP direction), [COMPREHENSIVE_REVIEW.md](COMPREHENSIVE_REVIEW.md) (historical evidence), and current code in this repository.
 
@@ -41,6 +41,8 @@
 | lightGallery | Preferred candidate; proof of concept needed | Gallery/lightbox viewing; GPLv3 compatible with this project's license |
 | JSZip | Preferred candidate; benchmark needed | Local ZIP backup/import; in-memory operation may be problematic for very large collections |
 | Tiptap 3 open-source core | **Selected for Journal v1**; integration testing pending | Vanilla JavaScript editor engine within custom Preact/Bootstrap UI; structured JSON and custom media node; no React wrapper required |
+| FullCalendar + RRule plugin | **Selected for Calendar v1**; integration testing pending | Install locally with npm/Vite (no CDN); monthly calendar UI, event/recurrence display and date selection; Preact owns forms/state |
+| Browser Notification API + service-worker display when supported | **Selected for optional v1 notifications**; platform testing pending | User permission required; reminders scheduled only while app is active; no push/background guarantee |
 | Test tooling | To evaluate | Confirm offline compatibility and accessibility |
 
 The temporary `items` store in `src/db.js` is a proof of concept, **not the intended production schema**. The test demonstrated data persistence across a complete browser and Vite restart. Offline loading, large media, and restoration remain untested.
@@ -86,8 +88,8 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 | `journalEntries` | `id`, `title`, `entryDate`, `content`, `contentFormatVersion`, `createdAt`, `updatedAt` | Dated personal Tiptap/ProseMirror structured JSON with shared media IDs. Entry date is user-selected and independent of audit times. No publication/draft distinction. |
 | `listItems` | `id`, `kind`, `text`, `completed`, `sortOrder`, timestamps | `kind` todo/tobuy, gardener-wide. |
 | `notes` | `id`, `text`, timestamps | Gardener-wide quick notes. |
-| `calendarEvents` | `id`, `title`, `eventDate`, `startTime?`, `description?`, `remindAt?`, `reminderDismissedAt?`, timestamps | Manual calendar, optional reminders, no guaranteed closed-browser delivery. |
-| `settings` | `key`, `value` | Measurement system and configurable **total media-storage budget** (numeric defaults/range TBD by testing); potentially preferred location. |
+| `calendarEvents` | `id`, `title`, `eventDate`, `startTime?`, `description?`, `allDay`, `recurrenceRule?`, `reminderEnabled`, timestamps | Manually created one-off or recurring events; local calendar dates/times, optional at-time reminder, entire-series edits in v1. Recurrence is stored as a rule, not pre-expanded occurrences. |
+| `settings` | `key`, `value` | Measurement system; configurable **total media-storage budget** (numeric defaults/range TBD); calendar all-day reminder time (`09:00` default), clock format (`12` default), browser notifications toggle (`false` default); potentially preferred location. |
 
 ### 3.3a Journal editor, media references and lifecycle (confirmed V1 behavior)
 
@@ -104,6 +106,22 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 **Journal browsing:** Default newest first by `entryDate` (stable secondary order for equal dates). Custom reusable `JournalPage`, `JournalArchive`, `JournalCard`, `JournalList`, `JournalEntry`, `JournalEditor`, `JournalToolbar`, and `JournalImage` components are provisional file/component names. Cards show date, title, excerpt and optional photo; text-only cards remain visually coherent. Allow grid/list views, optional year/month filters and a Load More/pagination mechanism. Desktop (roughly >=992px): archive sidebar + two-column card grid; tablet: archive filters above cards; mobile (roughly <768px): stacked controls and single-column cards with compact year/month selector. Final CSS breakpoints/interaction details can be refined during implementation. Avoid a separate popup Journal/navigation system.
 
 **Source reference:** Historical PHP Journal under `garden-archive/app/garden/journal/` is a UI/feature reference, not code to port. Untitled UI's blog layouts are design inspiration only; don't copy proprietary components or add React/Tailwind.
+
+### 3.3b Calendar, recurrence, notifications and clock (confirmed V1 behavior)
+
+**Presentation and persistence:** Use **FullCalendar** with **RRule** installed through npm and bundled by Vite for offline operation; no runtime CDN. Render a month-view calendar (mobile-responsive) and use custom Preact/Bootstrap event forms and date-click interactions. Events are private, gardener-wide, created manually; date required, optional start time and description; an omitted time means an **all-day** event. FullCalendar is a calendar UI/recurrence-expansion layer, not the database or alarm scheduler. Keep business rules and persistence independent of the UI library.
+
+**Recurrence:** One-time events plus daily/weekly/monthly/yearly recurring series using RRule. Persist a stable series ID and recurrence definition; generate/display occurrences for the requested view rather than storing each as a separate event. **Editing or deleting a recurring event affects the whole series** in v1. Per-occurrence edits, exclusions, skipping, and individual completion history are outside v1. Specify a sensible finite/unbounded-series representation and inclusive/exclusive boundaries when implementing; test DST and month-end recurrence.
+
+**Reminders:** `reminderEnabled` is an optional event-level choice. Deliver **at the event's start time only** (no lead-time offsets). A timed event uses its stored local start time; an all-day event uses a gardener-wide `calendar.allDayReminderTime` setting defaulting to `09:00`, evaluated at occurrence time rather than copied into individual events. Changing the setting affects subsequent reminders. Maintain lightweight occurrence-aware delivery/dismissal state keyed by event/series ID plus occurrence date/time (separate Dexie store or equivalent; exact indexing TBD) so an open tab/restart doesn't repeatedly alert for the same due instance. Consider how to handle missed occurrences when reopening: **do not promise retroactive alerts** until a policy is chosen. Multi-tab deduplication requires testing.
+
+**Notification channel selection:** In-app notification indicator/alert is the V1 default. `notifications.allowBrowser` setting defaults `false`. Only when the user enables it from an explicit interaction should the app call `Notification.requestPermission()`; browser permission is also separately checked. If enabled, permitted, and supported, display **one browser notification in place of** the in-app popup; if denied/unavailable/not delivered, show the in-app alternative where possible. On mobile, prefer a registered service worker's `showNotification()` when supported rather than assuming `new Notification()` works. No push subscription or background scheduling. Turning the toggle off immediately stops application-issued browser notifications and reverts to in-app reminders; **JavaScript cannot revoke previously granted browser/site permission**. Explain how to revoke it through browser settings if desired. Permission state and app preference are distinct; don't infer the toggle is true just because permission is granted.
+
+**Running-PWA limitation:** The reminder checker runs **only while SOLACE Garden is active**; native notifications still need a living app context to schedule them. Warn users in settings/event UI that reminders are not guaranteed after closing/suspending the PWA and may be delayed by browser throttling. Offline event display and in-app checking work without a network, subject to local browser limitations.
+
+**Device-local timekeeping:** The system clock and local time zone reported by the browser are authoritative for v1. No NTP/external service, user-adjustable app clock, or incorrect-clock compensation. Store date-only strings (`YYYY-MM-DD`) and local wall-clock times (`HH:mm`) rather than interpreting them as UTC timestamps or fixed offsets; derive actual instants in the local time zone for matching reminders and recurrence. Retain 9 AM local time through DST changes. `calendar.clockFormat` (`12` by default, or `24`) affects formatting of FullCalendar, details and reminder messages **only**, never event instants. Native HTML time inputs might follow device locale instead of the app's clock-format preference.
+
+**V1 tests:** Confirm daily/weekly/monthly/yearly recurrence and whole-series editing/deletion, local start-time and all-day 09:00 behavior, clock format display, DST/zone changes, browser permission states, enable/disable fallback, single-channel delivery, occurrence deduplication, offline while open, suspended/closed-browser limitations, and ZIP backup/restore of rules/settings/reminder state.
 
 ### 3.4 Shared media and reference protection
 
@@ -139,7 +157,8 @@ db.version(1).stores({
   journalEntries: 'id, entryDate, updatedAt',
   listItems: 'id, kind, [kind+sortOrder]',
   notes: 'id, updatedAt',
-  calendarEvents: 'id, eventDate, remindAt',
+  calendarEvents: 'id, eventDate, startTime, reminderEnabled',
+  // Additional reminder-delivery/acknowledgment store may be needed for deduplication.
   media: 'id, kind, year, status, photoDate, createdAt',
   gardenMedia: 'id, gardenId, mediaId, &[gardenId+mediaId]',
   mediaData: 'id',
@@ -236,7 +255,7 @@ If validation, quota, or restore fails, discard staging and leave the current ac
 3. **Gallery implementation:** Confirm FilePond no-network variant handling, lightGallery integration, image format/quality/target dimensions, thumbnail performance and metadata extraction.
 4. **Storage budget:** Final numeric default/range and threshold warning UX; browser-specific quota testing.
 5. **Journal:** Tiptap vanilla integration and custom node proof of concept; precise JSON schema/document migration, sanitization, dirty-state detection and accessible image/caption rendering.
-6. **Calendar:** Reminder feasibility with platform/browser restrictions.
+6. **Calendar:** FullCalendar/RRule Preact proof of concept; date/time/recurrence boundaries, permission UX, notification fallbacks, occurrence-level deduplication and running-app reliability.
 7. **Backup:** JSZip large-file/memory benchmarks, manifest schema/version migration, pointer durability, multi-tab coordination, rollback retention period and deletion timing.
 8. **Search and tests:** Search scope/fields/performance, unit/e2e framework, service-worker/PWA offline behavior.
 9. **Garden type/location lifecycle:** Safe deletion/rename specifics; keep all foreign key invariants.
@@ -244,4 +263,4 @@ If validation, quota, or restore fails, discard staging and leave the current ac
 
 ## 12. Explicitly outside v1
 
-Scaled interactive map editing, automated plant-stage progression, per-individual-plant records, advanced harvest analytics, public Journal/RSS, social accounts, remote synchronization, cloud backup, remote historical-photo archival, PlantDB moderation, and advanced recurring calendar integration remain post-MVP unless GOALS.md is deliberately revised.
+Scaled interactive map editing, automated plant-stage progression, per-individual-plant records, advanced harvest analytics, public Journal/RSS, social accounts, remote synchronization, cloud backup, remote historical-photo archival, PlantDB moderation, and advanced recurring-event exceptions and background/push calendar notifications remain post-MVP unless GOALS.md is deliberately revised.
