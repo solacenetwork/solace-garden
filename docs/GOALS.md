@@ -52,11 +52,11 @@ Journal entries, harvest records, completed tasks, and other historical activity
 PlantDB remains an independent project. Garden v1 will integrate a **simple plant selector** into garden creation and provide access to full reference records in PlantDB.
 
 - Search or browse representative plant names (for example, “Potatoes”).
-- Click to select or remove plants from a garden; retain the corresponding PlantDB identifier when available.
+- Provide a simple selection workflow for adding PlantDB plants to a garden (a one-click, one-pick approach is a v1 candidate); retain the corresponding PlantDB identifier when available. Gardeners must be able to add the same plant more than once as independent plant-group entries.
 - Keep detailed botanical and growing information in PlantDB, accessible through a link to the full record (potentially in a separate tab).
 - Do not duplicate the PlantDB research interface inside Garden.
 
-**Deferred detail:** The catalog delivery method (published data or API), exact record structure, and how unavailable/custom plant records are handled belong in `TECH_SPEC.md`. Drag-and-drop from a plant toolbar belongs to later interactive-map work.
+**Deferred detail:** The exact add/remove interaction, including how repeated selections are presented, remains a UI design decision. The catalog delivery method (published data or API), exact record structure, and how unavailable/custom plant records are handled belong in `TECH_SPEC.md`. Drag-and-drop from a plant toolbar belongs to later interactive-map work.
 
 ### 2.4 Garden Maps
 
@@ -125,7 +125,7 @@ Garden v1 will use **one local media collection** with context-specific views:
 - Import photographs from device files, photo pickers, or available camera interfaces.
 - Create optimized, resized copies for Garden (roughly 1600–2400 pixels on the longest edge is a candidate range); **do not alter originals** in the user's device photo library.
 - Store photo data and metadata locally, with a bounded photo-storage budget and clear warnings/handling when capacity is approached. Exact limits depend on device/browser testing.
-- Associate Gallery photos with gardens; show all gardens' photos in a main gallery grouped by year, garden-specific galleries within each garden, and representative thumbnails in garden summaries.
+- Allow Gallery photographs to exist **without a garden association**, including general gardening photos used in Journal entries. Photos may optionally be associated with a garden; show the main gallery grouped by year, garden-specific galleries within each garden, and representative thumbnails in garden summaries.
 - Allow Journal entries to reuse photographs from the shared collection without unnecessary duplicate image storage.
 - Include associated photos in complete ZIP backup and restore.
 
@@ -159,12 +159,13 @@ Garden v1 will provide **one application-wide search with filters** for locally 
 
 - Provide a single, consistent search entry point rather than separate search interfaces for each Garden section.
 - Search across garden names and plant-group entries, including repeated plant varieties in different gardens and historical records.
-- Offer simple filters to narrow results (for example, by garden, garden status, or record type where supported).
+- Provide a search-field dropdown to choose the search scope. **Garden data is the default**, with optional scopes for **Lists**, **Calendar**, and **Journal**. The exact dropdown presentation is a UI design detail.
+- Within Garden results, offer simple filters where useful (for example, by garden or garden status).
 - Results should clearly identify the associated garden and record so the gardener can navigate directly to it.
 - **Exclude PlantDB reference content from Garden-wide search.** PlantDB is a separate project with its own search interface. Garden's plant-group entries may be found by their names, but searching botanical reference records belongs to PlantDB.
 - Search should work on locally available Garden data, consistent with the local-first MVP.
 
-**Technical-spec detail:** the exact searchable fields, record-type coverage (such as Journal, Notes, or calendar entries), filter options, indexing approach, and behavior for future remotely archived data belong in `TECH_SPEC.md`. No advanced ranking or full-text search engine is required by this goals statement.
+**Technical-spec detail:** the exact searchable fields within each scope, treatment of multiple list types, filter behavior, indexing approach, and behavior for future remotely archived data belong in `TECH_SPEC.md`. No advanced ranking or sophisticated full-text search engine is required by this goals statement.
 
 ### 2.11 Harvest Tracking
 
@@ -237,7 +238,7 @@ Importing a photo into Garden creates a resized/optimized copy; it does not modi
 
 ## 5. Future Data Handling
 
-**Architectural direction, not a settled synchronization design:** Garden is one web application at `garden.solace.network` that compatible browsers may install as a PWA. Online and offline experiences can expose different amounts of historical data depending on connectivity and available storage, without requiring separate unrelated applications.
+**Architectural direction, not a settled synchronization design:** Garden is one web application at `garden.solace.network` that compatible browsers may install as a PWA **in v1**, with local-first, offline-capable data handling. The PWA itself does not require connected storage or synchronization. In future versions, online and offline experiences may expose different amounts of historical data depending on connectivity and available storage, without requiring separate unrelated applications.
 
 Future users may choose backup destinations, the amount of historical media retained locally, and whether/how to synchronize with a central server or household-hosted SHD/SOS system. Structured historical data may remain locally searchable while older photos are archived remotely and fetched when connected.
 
