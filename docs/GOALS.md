@@ -66,7 +66,33 @@ Interactive scaled maps, drag-and-drop placement, and calculations of available 
 
 ### 2.5 Growing Season Tracking
 
-*To discuss — explicitly parked.* The current direction is to track **groups of plants**, not require one record per individual plant, with gardener-controlled indicators that may overlap (for example, flowering, fruit production, and harvesting). No fixed lifecycle or automatic PlantDB-driven progression is required. Confirm the final indicator set and group-management requirements before approving this section.
+Garden v1 tracks **independent plant-group entries**, rather than requiring a separate record for every individual plant.
+
+- A gardener can add the same plant (for example, “Roma Tomatoes”) more than once when creating or editing a garden. Each entry is a distinct group, even when the entries reference the same PlantDB plant record.
+- Each group maintains its own values, including quantity, planting date, and growing indicators, so staggered or succession plantings can be tracked separately.
+- Growing indicators are a **standard predefined list in v1**, shared across plant groups and controlled manually by the gardener using independent checkboxes.
+- Multiple indicators can be active at the same time; they are not exclusive stages of a required linear progression.
+- Indicators do not advance automatically based on dates or PlantDB reference information. Marking a plant group **Finished** does not change the overall garden lifecycle status (see [Current and Previous Gardens](#29-current-and-previous-gardens)).
+
+**Initial v1 growing indicators (adjustable as requirements evolve):**
+
+1. Seeds Started
+2. Germinating
+3. Seedling
+4. Transplanted / Planted
+5. Vegetative Growth
+6. Flowering
+7. Fruit Production
+8. Harvesting
+9. Dormant
+10. Finished
+
+**Post-MVP directions (tentative):**
+
+- **Possible v2/v3:** Let gardeners customize growing-indicator labels rather than relying exclusively on the fixed list.
+- **Possible v4:** Let gardeners organize multiple independent plant entries under gardener-defined grouping labels. This is distinct from the individual plant-group entries required in v1 and is not an MVP requirement.
+
+**Technical-spec detail:** exact plant-group fields and identities, indicator storage, checkbox presentation, and any future grouping structure belong in `TECH_SPEC.md`.
 
 ### 2.6 Lists and Notes
 
