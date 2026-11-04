@@ -1,6 +1,6 @@
 # SOLACE Garden — Roadmap
 
-**Status:** Working draft — UI planning in progress  
+**Status:** Working draft — V1 UI and architecture planning in progress  
 **Date:** 2026-11-03  
 **References:** [GOALS.md](GOALS.md), [TECH_SPEC.md](TECH_SPEC.md)
 
@@ -47,3 +47,44 @@ This roadmap tracks implementation planning for SOLACE Garden V1. **Milestone 1 
 ## Subsequent milestones
 
 **To be defined** after the UI discussion, using the existing Goals and Technical Specification as the requirements baseline.
+
+
+## V1 UI detail — New interaction candidate (November 2026)
+
+- **Contextual drawer:** Prototype a reusable Bootstrap bottom offcanvas (`.offcanvas-bottom`) for secondary information, with a small accessible fixed Info/arrow tab while closed and a full-width panel when open. Approx. 40–50% viewport height is a starting point; evaluate `dvh` with `vh` fallback and mobile safe-area spacing. It is optional, not a replacement for fullscreen modal editing. Hide/show the trigger as offcanvas opens/closes.
+- **Simple Mode:** The favored six central actions are **Plants/Update Plants, Harvest, Photos, Tasks, Calendar, Notes**. Calendar and Notes open complete usable workspaces, not only quick-add shortcuts. Plant group selection opens the fullscreen phase editor immediately and returns to the same filtered/scrolled group list after Save. The upper-left logo returns Home subject to unsaved-form safeguards. Existing decisions in TECH_SPEC §5.1 remain authoritative; final wireframes, action labeling and automatic breakpoint remain open.
+
+## V1 architecture milestone — Storage abstraction and ZIP portability
+
+**V1 acceptance objectives (implementation pending):**
+
+- [ ] Create storage-neutral repository/domain service contracts and one Dexie implementation. Keep raw Dexie table calls out of presentation components.
+- [ ] Default to Dexie/IndexedDB without a storage configuration file; synchronization remains disabled. Validate optional provider settings centrally; separate provider configuration from gardener preferences. Do not ship or require other backends in V1.
+- [ ] Preserve portable schema versions, stable record UUIDs, media references, and device-independent ZIP exports. Existing restore remains **staged, validated, and replace-only**, not diff/merge.
+- [ ] Test fully offline PWA use, multi-device independence, ZIP portability, storage quota and media limits. Explicitly explain that using a different browser/device does not expose the phone's records until a manual restore or a future sync service.
+- [ ] Ensure storage configuration and authentication secrets do not leak into portable backups; future provider swaps must never silently overwrite local data.
+
+These objectives supplement the existing V1 feature plan. They **do not introduce accounts, hosted infrastructure, Tauri, or live sync** into the current MVP.
+
+## Long-term version roadmap (proposed sequence, not release commitments)
+
+| Version | Focus | Scope boundary |
+|---|---|---|
+| **V1** | Offline-first Preact PWA, Dexie, Simple/Standard Mode, local ZIP export/replace-restore | No accounts, server, or cross-device sync |
+| **V2** | Hosted Laravel/MariaDB accounts and Garden backend; one-way phone/PWA upload, authenticated online viewing | Local PWA remains source of truth; not two-way edit sync |
+| **V3** | True bidirectional cloud synchronization | Revisions, deletions, conflicts, resumable/retry-safe transfers |
+| **V4** | OAuth integrations for third-party cloud providers (Dropbox, OneDrive, Google Drive as candidates) | Decide backup vs sync semantics per provider |
+| **V5/V6** | Household SOS/SHD synchronization via pared-down Laravel/PHP/MariaDB server | One HID and authorized sub-MIDs locally; optional central sync |
+| **V7/V8** | Separate generic SOLACE Sync/Tauri initiative for cross-application/device interchange | SQLite/filesystem handling, pairing, manifests and shared transport; not Garden-only |
+
+### Backend distinction for future phases
+
+The network-wide **`solace-main`** backend manages SOLACE users, HIDs/MIDs and broader governance/membership. The future **SOS household Laravel** service is deliberately narrower: one HID and its authorized MIDs, local Garden/other app data and related synchronization. Share compatible app-level interchange/API contracts where practical **without assuming that a household must deploy the entire central server**.
+
+### Deferred research / design decisions
+
+- V2 account provisioning, upload ownership, hosted image quotas, optional free-tier advertising and premium storage/business model.
+- V3 revision scheme, tombstones, conflict UX, cross-device identity, offline queues and media consistency.
+- V4 cloud-provider OAuth permissions and whether connected storage supports backups, sync, or both.
+- V5/V6 local trust/identity, LAN discovery and HTTPS/certificates, central + household topology and authoritative-record policies.
+- V7/V8 reusable SOLACE Sync archive/manifest spec, Tauri/SQLite media design, transport security and app-owned merge behavior.
