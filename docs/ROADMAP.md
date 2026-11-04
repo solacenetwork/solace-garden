@@ -95,11 +95,15 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 ### Milestone 4 — Router, route catalog, and Home navigation
 
-- [ ] Establish a single route map and placeholder pages for Home, Gardens, Plants/Update Plants, Harvest, Photos/Gallery, Tasks, Calendar, Notes, Journal, Settings, and appropriate supporting sections (Templates, Locations, Search, etc.).
-- [ ] Make navigation links/buttons lead to their intended placeholders, with working back/forward navigation, meaningful unknown-route fallback, and a Home action/logo available in the interface.
-- [ ] Share routes and application destinations across Simple and Standard presentations, rather than duplicating pages.
+**Status:** Complete (2026-11-04). The route infrastructure is shared; full Simple/Standard presentation behavior remains for Milestones 5–6.
 
-**Done when:** All planned top-level destinations are reachable, and Home and browser navigation behave correctly without real garden data.
+- [x] Establish a single route map and placeholder pages for Home, Gardens, Plants/Update Plants, Harvest, Photos/Gallery, Tasks, Calendar, Notes, Journal, Settings, and appropriate supporting sections (Templates, Locations, Search, etc.).
+- [x] Make navigation links/buttons lead to their intended placeholders, with working back/forward navigation, meaningful unknown-route fallback, and a Home action/logo available in the interface.
+- [x] Share routes and application destinations across Simple and Standard presentations, rather than duplicating pages.
+
+**Completion record:** Implemented in [8167a65](https://github.com/solacenetwork/solace-garden/commit/8167a65370d227293054b2e9033308a5048cbdbe). `src/navigation.js` now defines 13 routes (Home plus six primary and six secondary destinations), with derived navigation groups and catalog-driven placeholders. The six Simple Mode home actions were preserved, and a compact secondary workspace directory makes the remaining routes accessible. Codex reported successful tests of link navigation, Home/logo links, Back/Forward, direct URL loading, refresh, 404 handling, Bootstrap Icon rendering, and responsive layouts; `npm run build` passed. Production hosting will require SPA fallback to `index.html` for refreshed deep links.
+
+**Done when:** All planned top-level destinations are reachable, and Home and browser navigation behave correctly without real garden data. **Satisfied.**
 
 ### Milestone 5 — Simple Mode layout first
 
