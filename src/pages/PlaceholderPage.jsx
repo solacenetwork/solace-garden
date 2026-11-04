@@ -1,29 +1,30 @@
 import { useLocation } from 'preact-iso';
-import { primaryActions } from '../navigation.js';
+import { findRoute } from '../navigation.js';
+import { NotFound } from './_404.jsx';
 
 export function PlaceholderPage() {
-	const { url } = useLocation();
-	const action = primaryActions.find(({ path }) => path === url);
+	const { path } = useLocation();
+	const destination = findRoute(path);
 
-	if (!action) {
-		return null;
+	if (!destination || destination.path === '/') {
+		return <NotFound />;
 	}
 
 	return (
 		<section class="container placeholder-page" aria-labelledby="page-title">
-		<div class="placeholder-page__icon" aria-hidden="true">
-			<i class={`bi bi-${action.icon}`}></i>
-		</div>
-		<p class="placeholder-page__eyebrow">Workspace preview</p>
-		<h1 id="page-title">{action.label}</h1>
-		<p>{action.description}</p>
-		<p class="placeholder-page__status">
-			This area will be connected in a later milestone.
-		</p>
-		<a class="app-button" href="/">
-			<i class="bi bi-arrow-left" aria-hidden="true"></i>
-			Back to Home
-		</a>
-	</section>
+			<div class="placeholder-page__icon" aria-hidden="true">
+				<i class={`bi bi-${destination.icon}`}></i>
+			</div>
+			<p class="placeholder-page__eyebrow">Workspace preview</p>
+			<h1 id="page-title">{destination.label}</h1>
+			<p>{destination.description}</p>
+			<p class="placeholder-page__status">
+				This area will be connected in a later milestone.
+			</p>
+			<a class="app-button" href="/">
+				<i class="bi bi-arrow-left" aria-hidden="true"></i>
+				Back to Home
+			</a>
+		</section>
 	);
 }

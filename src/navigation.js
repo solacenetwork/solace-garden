@@ -1,10 +1,18 @@
-export const primaryActions = [
+export const routeCatalog = [
+	{
+		path: '/',
+		label: 'Home',
+		icon: 'house-door',
+		description: 'Choose a SOLACE Garden workspace.',
+		section: 'home',
+	},
 	{
 		path: '/plants',
 		label: 'Plants',
 		detail: 'Update Plants',
 		icon: 'flower2',
 		description: 'Review plant groups and record growing progress.',
+		section: 'primary',
 	},
 	{
 		path: '/harvest',
@@ -12,6 +20,7 @@ export const primaryActions = [
 		detail: 'Record a harvest',
 		icon: 'basket2',
 		description: 'Record what you picked and review harvest history.',
+		section: 'primary',
 	},
 	{
 		path: '/photos',
@@ -19,6 +28,7 @@ export const primaryActions = [
 		detail: 'Open Gallery',
 		icon: 'camera',
 		description: 'Capture garden photos and browse the Gallery.',
+		section: 'primary',
 	},
 	{
 		path: '/tasks',
@@ -26,6 +36,7 @@ export const primaryActions = [
 		detail: 'View garden tasks',
 		icon: 'check2-square',
 		description: 'Keep track of garden to-dos and shopping needs.',
+		section: 'primary',
 	},
 	{
 		path: '/calendar',
@@ -33,6 +44,7 @@ export const primaryActions = [
 		detail: 'View schedule',
 		icon: 'calendar3',
 		description: 'See upcoming garden events and reminders.',
+		section: 'primary',
 	},
 	{
 		path: '/notes',
@@ -40,5 +52,64 @@ export const primaryActions = [
 		detail: 'Open notes',
 		icon: 'journal-text',
 		description: 'Capture a quick observation while it is fresh.',
+		section: 'primary',
+	},
+	{
+		path: '/gardens',
+		label: 'Gardens',
+		icon: 'tree',
+		description: 'Manage current and previous gardens and growing projects.',
+		section: 'secondary',
+	},
+	{
+		path: '/journal',
+		label: 'Journal',
+		icon: 'journal-richtext',
+		description: 'Create and browse private, dated garden journal entries.',
+		section: 'secondary',
+	},
+	{
+		path: '/search',
+		label: 'Search',
+		icon: 'search',
+		description:
+			'Find gardens, plant groups, lists, calendar events, and journal entries.',
+		section: 'secondary',
+	},
+	{
+		path: '/templates',
+		label: 'Templates',
+		icon: 'copy',
+		description: 'Manage reusable starting points for new gardens.',
+		section: 'secondary',
+	},
+	{
+		path: '/locations',
+		label: 'Locations',
+		icon: 'geo-alt',
+		description: 'Manage the physical locations associated with your gardens.',
+		section: 'secondary',
+	},
+	{
+		path: '/settings',
+		label: 'Settings',
+		icon: 'gear',
+		description:
+			'Adjust SOLACE Garden preferences and local application options.',
+		section: 'secondary',
 	},
 ];
+
+export const primaryActions = routeCatalog.filter(
+	({ section }) => section === 'primary',
+);
+
+export const secondaryDestinations = routeCatalog.filter(
+	({ section }) => section === 'secondary',
+);
+
+export const workspaceRoutes = routeCatalog.filter(({ path }) => path !== '/');
+
+export function findRoute(path) {
+	return routeCatalog.find((route) => route.path === path);
+}

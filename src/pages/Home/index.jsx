@@ -1,4 +1,7 @@
-import { primaryActions } from '../../navigation.js';
+import {
+	primaryActions,
+	secondaryDestinations,
+} from '../../navigation.js';
 import './style.css';
 
 export function Home() {
@@ -24,6 +27,31 @@ export function Home() {
 					</a>
 				))}
 			</nav>
+
+			<section
+				class="workspace-directory"
+				aria-labelledby="workspace-directory-title"
+			>
+				<div class="workspace-directory__intro">
+					<p class="workspace-directory__eyebrow">Workspace directory</p>
+					<h2 id="workspace-directory-title">More places to explore</h2>
+					<p>
+						Open the remaining V1 workspaces while their features are being built.
+					</p>
+				</div>
+				<nav aria-label="Additional Garden workspaces">
+					<ul class="workspace-directory__links">
+						{secondaryDestinations.map((destination) => (
+							<li key={destination.path}>
+								<a class="workspace-link" href={destination.path}>
+									<i class={`bi bi-${destination.icon}`} aria-hidden="true"></i>
+									<span>{destination.label}</span>
+								</a>
+							</li>
+						))}
+					</ul>
+				</nav>
+			</section>
 		</div>
 	);
 }

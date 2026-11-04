@@ -1,8 +1,8 @@
 import { useLocation } from 'preact-iso';
 
 export function Header() {
-	const { url } = useLocation();
-	const isHome = url === '/';
+	const { path } = useLocation();
+	const isHome = path === '/';
 
 	return (
 		<header class="app-header">

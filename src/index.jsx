@@ -3,7 +3,7 @@ import { LocationProvider, Router, Route } from 'preact-iso';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Header } from './components/Header.jsx';
-import { primaryActions } from './navigation.js';
+import { workspaceRoutes } from './navigation.js';
 import { Home } from './pages/Home/index.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
 import { NotFound } from './pages/_404.jsx';
@@ -16,10 +16,10 @@ export function App() {
 			<main id="main-content" class="app-main">
 				<Router>
 					<Route path="/" component={Home} />
-					{primaryActions.map((action) => (
+					{workspaceRoutes.map((route) => (
 						<Route
-							key={action.path}
-							path={action.path}
+							key={route.path}
+							path={route.path}
 							component={PlaceholderPage}
 						/>
 					))}
