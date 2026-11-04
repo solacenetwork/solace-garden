@@ -14,3 +14,9 @@
 - Verify component APIs, exports, types, markup, and Sass/CSS behavior against the installed `bootstrap@6.0.0-alpha.1` package in `node_modules/bootstrap` before implementation. Recheck this guidance whenever the pinned Bootstrap version changes.
 - Bootstrap 6 replaces Offcanvas with Drawer. Use the `Drawer` export, `data-bs-toggle="drawer"`, `data-bs-dismiss="drawer"`, `.drawer*` classes, `*.bs.drawer` events, and a native `<dialog>` element. For a mobile bottom drawer, use `.drawer-bottom`; do not port the old Offcanvas API or render a renamed `<div>`.
 - Integrate Bootstrap JavaScript with Preact lifecycle deliberately: initialize only after the element mounts, remove event listeners and call `dispose()` on unmount, and avoid duplicating Bootstrap-managed state in Preact unless the application needs it.
+
+## Automated browser testing 
+
+All headless browser processes and temporary development servers launched for testing must have explicit timeouts and reliable cleanup. Use try/finally or equivalent mechanisms to terminate browser instances and their child processes, including when tests fail or are interrupted. Never leave orphaned Chromium/Chrome processes running. Avoid concurrent browser instances unless necessary. Verify that test-owned processes have exited before reporting completion. Do not terminate unrelated user browser sessions.
+
+You should favor lightweight tests over launching Chromium when a browser isn't actually necessary.
