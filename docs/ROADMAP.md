@@ -8,15 +8,17 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 ## Step 0.5 — Equip Codex with Bootstrap 6 guidance
 
-**Status:** To do before Milestone 2 UI skeleton work. Bootstrap 6 is currently an alpha dependency; check the exact installed package version, not merely the latest documentation.
+**Status:** Complete (2026-11-04). Bootstrap 6 remains an alpha dependency; verify against the exact installed package when implementing components.
 
-- [ ] Install/review **official Bootstrap agent skills** using `npx skills add twbs/bootstrap`, preferably as repository-local skills under `.agents/skills/` so the guidance travels with the project. Review the proposed files/changes before committing.
-- [ ] Give Codex access to the official [Bootstrap llms.txt](https://getbootstrap.com/llms.txt) index and [llms-full.txt](https://getbootstrap.com/llms-full.txt) reference, plus the [Bootstrap 6 AI guide](https://getbootstrap.com/docs/6.0/getting-started/ai/). Prefer version-matched Bootstrap 6 docs to training-memory examples or Bootstrap 5 articles.
-- [ ] Add short project guidance in `AGENTS.md`: follow the installed Bootstrap 6 package/API; check official component and migration documentation when uncertain; do not blindly copy Bootstrap 5 classes, markup, data attributes, or JavaScript patterns.
-- [ ] Smoke-test a responsive Bootstrap 6 component and a JS-driven component in Preact/Vite. In particular, check whether the Bootstrap 6 **Drawer** component supersedes the older offcanvas assumptions before coding our reusable `AppDrawer`.
-- [ ] Recheck skills/documentation against the installed package when moving to later Bootstrap 6 alpha/beta/stable releases.
+- [x] Install and review **official Bootstrap agent skills** via `npx skills add twbs/bootstrap` as repository-local guidance in `.agents/skills/`. Commit the skills and `skills-lock.json` so they travel with the project.
+- [x] Identify and review the official [Bootstrap llms.txt](https://getbootstrap.com/llms.txt) index, [llms-full.txt](https://getbootstrap.com/llms-full.txt) reference, and [Bootstrap 6 AI guide](https://getbootstrap.com/docs/6.0/getting-started/ai/) for Codex use. Prefer version-matched documentation over Bootstrap 5 examples.
+- [x] Add `AGENTS.md` instructions requiring Bootstrap 6 conventions, consultation of the local skills, and validation against the installed `bootstrap@6.0.0-alpha.1` package.
+- [x] Verify installed Bootstrap and Bootstrap Icons versions, confirm the Bootstrap CSS/JS imports build with Vite, and inspect the Bootstrap 6 **Drawer** implementation and documentation. Drawer replaces Offcanvas and uses native `<dialog>`; use the `Drawer` API for the future `AppDrawer`.
+- [x] Validate the current scaffold with `npm run build` and `npm ls --depth=0` (both passed). A mounted, interactive Preact component smoke test is **not yet done**; complete it during Milestones 2–3 as part of UI/library integration.
 
-**Done when:** Codex can locate the Bootstrap 6 skill and version-relevant documentation, the repository documents the rule, and the initial Bootstrap integration works. Skills improve guidance but do not substitute for code review or compatibility testing.
+**Ongoing maintenance:** Recheck the skills, documentation, and component APIs whenever the pinned Bootstrap 6 version changes (alpha, beta, or stable).
+
+**Completion record:** Official skills, `skills-lock.json`, and `AGENTS.md` were committed in [c850ae8](https://github.com/solacenetwork/solace-garden/commit/c850ae819a01fe6e7edd20167806ff634b74a92e). Initial package checks and Drawer research are complete; actual interactive component testing remains part of the upcoming UI implementation.
 
 ## Milestone 1 — Finalize UI Choices
 
