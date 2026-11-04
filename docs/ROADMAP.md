@@ -64,11 +64,15 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 ### Milestone 2 — UI mockup and application skeleton
 
-- [ ] Build a running Preact + Bootstrap shell with SOLACE Garden branding, provisional header/Home area, primary content region, and a temporary page layout.
-- [ ] Use representative placeholder content and basic mobile/tablet/desktop styling, without requiring a database or feature implementation.
-- [ ] Keep mockup styling easy to adjust based on testing; document substantive changes to navigation or mode behavior.
+**Status:** Complete (2026-11-04); provisional visual design accepted for continued development.
 
-**Done when:** The app opens as a recognizable Garden UI on a narrow phone viewport and a desktop, even though feature pages are not functional.
+- [x] Build a running Preact + Bootstrap 6 shell with SOLACE Garden branding, provisional header/Home area, primary content region, and a temporary page layout.
+- [x] Use representative placeholder content and basic mobile/tablet/desktop styling, without requiring a database or feature implementation.
+- [x] Keep mockup styling easy to adjust based on testing; document substantive changes to navigation or mode behavior.
+
+**Completion record:** Implemented in [fdfd878](https://github.com/solacenetwork/solace-garden/commit/fdfd878b1a80b3ad8624318c60508c5aeec0e01b). Repurposed the existing Preact header/home/404 scaffold, retained `preact-iso`, imported Bootstrap Icons, added six Simple Mode action links and placeholder pages, and removed unused demo code. Codex reported a passing production build and browser checks at 375 × 812 and 1440 × 1000. The user also tested the UI on desktop and on a Samsung Galaxy Tab in portrait orientation and accepted the layout for now. Colors and layout remain provisional; further design refinement is deferred.
+
+**Done when:** The app opens as a recognizable Garden UI on a narrow mobile viewport and a desktop, even though feature pages are not functional. **Satisfied.**
 
 ### Milestone 3 — Library integration and smoke tests
 
