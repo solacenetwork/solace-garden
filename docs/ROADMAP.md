@@ -76,11 +76,22 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 ### Milestone 3 — Library integration and smoke tests
 
-- [ ] Verify installed library versions and that the selected dependencies compile/load with the Preact/Vite scaffold: Dexie and dexie-react-hooks, FullCalendar/RRule, Tiptap, FilePond and its needed plugins, lightGallery, JSZip, SortableJS, and PWA tooling.
-- [ ] Add a minimal import/render/use smoke test or isolated demo for potentially difficult integrations; document any incompatibility rather than adding large feature code now.
-- [ ] Prefer route-level or feature-level lazy loading for large libraries; **verification that a dependency works does not require loading all of them on every page**.
+**Status:** Complete (2026-11-04); no scaffold-blocking incompatibilities identified.
 
-**Done when:** Relevant imports and basic demonstrations work, with no unresolved scaffold-blocking compatibility issues. This is not a requirement to implement Calendar, Journal, Gallery, or ZIP processing yet.
+- [x] Verify installed library versions and that the selected dependencies compile/load with the Preact/Vite scaffold: Dexie and dexie-react-hooks, FullCalendar/RRule, Tiptap, FilePond and its needed plugins, lightGallery, JSZip, SortableJS, and PWA tooling.
+- [x] Run isolated import/render/use smoke tests for potentially difficult integrations and record incompatibilities or limitations without adding production features.
+- [x] Preserve a small application bundle and plan route-level or feature-level lazy loading for large libraries; no feature libraries were added to the startup bundle.
+
+**Completion record:** Codex reported successful browser or isolated tests for Dexie CRUD and `useLiveQuery`, FullCalendar 7 rendering and RRule recurrence, vanilla Tiptap editing, FilePond image processing, lightGallery initialization, JSZip round-trip, SortableJS lifecycle, and temporary PWA build generation. `npm ls --depth=0`, `npm run build`, and `git diff --check` passed. Temporary smoke-test files were removed and the working tree was clean. This was a verification-only milestone; no new production code or permanent test suite was committed.
+
+**Integration findings to revisit when implementing the corresponding features:**
+
+- **Preact:** Garden uses Preact 11; FullCalendar 7 includes its own Preact 10 and `dexie-react-hooks` declares a React peer. Tested integrations work; initially use FullCalendar's imperative API within a lifecycle-managed wrapper, and keep Garden storage access behind application services/repositories. FullCalendar + RRule remain the selected V1 calendar libraries after reviewing alternatives.
+- **lightGallery:** The open-source GPLv3 distribution is intended to use the project's open-source licensing path. Its default license-key warning still needs an appropriate open-source key/configuration before Gallery release; a simple configurable key can accommodate differently licensed distributions where applicable.
+- **PWA:** A temporary `generateSW` build succeeded, but production offline/installability is **not yet enabled or validated**. The Bootstrap Icons font assets require explicit precaching (tested with `woff`/`woff2` patterns); manifest/icons, static-data caching, offline launch, and update behavior remain future acceptance tests.
+- **Deferred testing:** Real photos/EXIF and memory use, interactive drag-and-drop and accessible alternatives, large ZIP archives, and mobile/offline stress testing are not covered by these initial smokes.
+
+**Done when:** Relevant imports and basic demonstrations work with no unresolved scaffold-blocking compatibility issues. **Satisfied.** Calendar, Journal, Gallery, and ZIP processing are not implemented by this milestone.
 
 ### Milestone 4 — Router, route catalog, and Home navigation
 
