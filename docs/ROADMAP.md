@@ -6,6 +6,18 @@
 
 This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, followed by the proposed longer-term version direction. **Build a navigable UI skeleton first; evolve it as we learn.** Later features should not require polishing every mockup up front. Previous Garden implementations are references, not designs we must reproduce.
 
+## Step 0.5 — Equip Codex with Bootstrap 6 guidance
+
+**Status:** To do before Milestone 2 UI skeleton work. Bootstrap 6 is currently an alpha dependency; check the exact installed package version, not merely the latest documentation.
+
+- [ ] Install/review **official Bootstrap agent skills** using `npx skills add twbs/bootstrap`, preferably as repository-local skills under `.agents/skills/` so the guidance travels with the project. Review the proposed files/changes before committing.
+- [ ] Give Codex access to the official [Bootstrap llms.txt](https://getbootstrap.com/llms.txt) index and [llms-full.txt](https://getbootstrap.com/llms-full.txt) reference, plus the [Bootstrap 6 AI guide](https://getbootstrap.com/docs/6.0/getting-started/ai/). Prefer version-matched Bootstrap 6 docs to training-memory examples or Bootstrap 5 articles.
+- [ ] Add short project guidance in `AGENTS.md`: follow the installed Bootstrap 6 package/API; check official component and migration documentation when uncertain; do not blindly copy Bootstrap 5 classes, markup, data attributes, or JavaScript patterns.
+- [ ] Smoke-test a responsive Bootstrap 6 component and a JS-driven component in Preact/Vite. In particular, check whether the Bootstrap 6 **Drawer** component supersedes the older offcanvas assumptions before coding our reusable `AppDrawer`.
+- [ ] Recheck skills/documentation against the installed package when moving to later Bootstrap 6 alpha/beta/stable releases.
+
+**Done when:** Codex can locate the Bootstrap 6 skill and version-relevant documentation, the repository documents the rule, and the initial Bootstrap integration works. Skills improve guidance but do not substitute for code review or compatibility testing.
+
 ## Milestone 1 — Finalize UI Choices
 
 **Status:** In discussion (not yet complete)  
