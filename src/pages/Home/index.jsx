@@ -1,41 +1,29 @@
-import preactLogo from '../../assets/preact.svg';
-import { ItemList } from '../../components/ItemList.jsx';
+import { primaryActions } from '../../navigation.js';
 import './style.css';
 
 export function Home() {
 	return (
-		<div class="home">
-			<a href="https://preactjs.com" target="_blank">
-				<img src={preactLogo} alt="Preact logo" height="160" width="160" />
-			</a>
-			<h1>Get Started building Vite-powered Preact Apps </h1>
-			<section>
-				<Resource
-					title="Learn Preact"
-					description="If you're new to Preact, try the interactive tutorial to learn important concepts"
-					href="https://preactjs.com/tutorial"
-				/>
-				<Resource
-					title="Differences to React"
-					description="If you're coming from React, you may want to check out our docs to see where Preact differs"
-					href="https://preactjs.com/guide/v11/differences-to-react"
-				/>
-				<Resource
-					title="Learn Vite"
-					description="To learn more about Vite and how you can customize it to fit your needs, take a look at their excellent documentation"
-					href="https://vitejs.dev"
-				/>
+		<div class="container home-page">
+			<section class="home-intro" aria-labelledby="home-title">
+				<p class="home-intro__eyebrow">Simple Mode preview</p>
+				<h1 id="home-title">What would you like to do?</h1>
+				<p class="home-intro__summary">
+					Choose a garden activity to get started. These workspaces are
+					placeholders while the first version takes root.
+				</p>
 			</section>
-			<ItemList />
-		</div>
-	);
-}
 
-function Resource(props) {
-	return (
-		<a href={props.href} target="_blank" class="resource">
-			<h2>{props.title}</h2>
-			<p>{props.description}</p>
-		</a>
+			<nav class="action-grid" aria-label="Garden actions">
+				{primaryActions.map((action) => (
+					<a class="action-card" href={action.path} key={action.path}>
+						<span class="action-card__icon" aria-hidden="true">
+							<i class={`bi bi-${action.icon}`}></i>
+						</span>
+						<span class="action-card__label">{action.label}</span>
+						<span class="action-card__detail">{action.detail}</span>
+					</a>
+				))}
+			</nav>
+		</div>
 	);
 }
