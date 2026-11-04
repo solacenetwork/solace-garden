@@ -290,3 +290,42 @@ If validation, quota, or restore fails, discard staging and leave the current ac
 ## 12. Explicitly outside v1
 
 Scaled interactive map editing, automated plant-stage progression, per-individual-plant records, advanced harvest analytics, public Journal/RSS, social accounts, remote synchronization, cloud backup, remote historical-photo archival, PlantDB moderation, and advanced recurring-event exceptions and background/push calendar notifications remain post-MVP unless GOALS.md is deliberately revised.
+
+
+## 13. Storage-provider abstraction and default configuration (V1 architecture; future adapters deferred)
+
+**Core decision:** Preact views and application/domain services must not import Dexie tables or issue raw IndexedDB queries. Concentrate database-specific reads/writes, subscriptions, migrations and transactions in the Dexie adapter and its supporting infrastructure. Define storage-neutral repository/service contracts using stable application entities and IDs. **Implement only Dexie in V1**; do not build placeholder MariaDB/SQLite/JSON drivers merely to demonstrate extensibility.
+
+**Configuration principle:** Optional storage/sync deployment configuration, separate from local application preferences. An absent file (including a missing optional file) yields **`storage.driver = dexie`**, a stable application database name, and **`sync.enabled = false`**. The proposed filename `garden.storage.json` is not finalized. Proposed conceptual defaults:
+
+```json
+{
+  "storage": { "driver": "dexie", "database": "solace-garden" },
+  "sync": { "enabled": false, "provider": null, "endpoint": null }
+}
+```
+
+V1 can embed these defaults and run without fetching an external configuration file. Parse/validate overrides in one initialization module; missing properties use defaults, but explicitly unknown drivers/malformed settings surface an actionable error rather than opening a different empty database. Avoid treating a selected driver as authorization to change or erase stored data; any future migration must be explicit and reversible. Device credentials/tokens must never appear in public JSON or portable Garden backups.
+
+**Storage and sync are separate concerns:** A future browser client will likely **continue using Dexie as its working store** even when `sync.provider` points to hosted Laravel or a household SOS endpoint. An API is not automatically equivalent to a synchronous local repository. Native SQLite/filesystem adapters only apply in suitable native/server contexts; a web PWA cannot directly connect to MariaDB or open arbitrary native paths. Treat JSON primarily as the portable interchange/backup format, not necessarily a live transactional store.
+
+**Repository acceptance tests for V1:** Verify UI/services depend on the repository contract; verify no optional config uses Dexie without network; verify partial/malformed/unsupported settings handling; verify app preference storage remains independent; verify ZIP export/replace-restore preserves stable record IDs and doesn't silently replace provider configuration. Keep `useLiveQuery` or equivalent reactive behavior **behind a data-source-facing hook/service**, or clearly restrict its use to an adapter-aware integration layer so views do not become permanently Dexie-bound.
+
+**Evolution considerations, not V1 delivery:** Add revision and deleted-record tracking when synchronization is designed; timestamps alone do not resolve divergent device histories. Future change processing must handle media by stable IDs and validate uploaded archives. Central Laravel identity and authorization serves many HIDs/MIDs; household SOS Laravel should serve one HID and authorized MIDs, with compatible app-level API boundaries where practical. Avoid assuming identical central and household server deployments.
+
+## 14. Responsive contextual drawer (V1 UI candidate; prototype before commitment)
+
+A **reusable, optional contextual bottom drawer** is preferred over a permanent mobile Infobar/Infobox where a screen benefits from secondary information. Bootstrap `.offcanvas-bottom` can provide a full-width sliding surface, with a small fixed **Info** tab/arrow visible when closed (possibly left aligned). Hide the tab while open; restore it on dismissal. The tab placement must not obstruct primary Save/actions or device safe areas.
+
+Candidate `AppDrawer` supports `placement` (bottom/top/start/end), `title`, `label`, children, optional trigger-tab alignment, and an optional height. A half-screen drawer can use `50vh` fallback followed by `50dvh` so mobile browser toolbars are accounted for. Rely on Bootstrap offcanvas for animation, focus handling and dismissal; coordinate trigger visibility with offcanvas lifecycle events and clean up listeners. Use meaningful accessible names and at least ~48px touch targets. Keep primary editing flows in the previously agreed responsive fullscreen modal/dedicated editor, **not** the contextual drawer. This pattern remains an implementation candidate, not a mandatory drawer on every screen.
+
+## 15. Future synchronization and distribution boundaries (planning only)
+
+- **V1:** Local Dexie/IndexedDB; complete, versioned JSZip backup/restore is **replace-only** and manual. Independent browser profiles/devices do not share data automatically; mode switching changes UI only. Large photo archives require memory/quota testing.
+- **V2:** Optional hosted accounts via Laravel/MariaDB, upload from local Garden and authenticated **online read/view**. No desktop editing that claims to round-trip changes until actual bidirectional sync exists. Registration must preserve existing local UUIDs and must never silently discard an existing dataset. Hosted quotas and optional ads/premium are uncommitted design/business topics.
+- **V3:** Bidirectional change synchronization including per-record revisions, deletions/tombstones, conflict handling, idempotent transfer, and media-state consistency.
+- **V4:** Optional OAuth-connected third-party storage destinations; distinguish portable backups from sync adapters, document scopes and privacy.
+- **V5/V6:** SHD/SOS Laravel API with household-local operation for one HID/authorized MIDs and optional central-server connection; discovery, authenticated local HTTPS, identity and certificate management require separate design. Central `solace-main` remains responsible for network-wide user/identity administration, not copied wholesale to the SHD.
+- **V7/V8:** Generic, application-neutral SOLACE Sync utility candidate using Tauri plus SQLite/native media filesystem; device pairing, transfer, manifests, checksums, retries. Applications own schema-specific merge rules; portable ZIP may seed imports, but transporting files alone does not provide conflict-safe sync. Avoid adding this as a Garden V1 requirement.
+
+**Sync transport note:** Native filesystem access in Tauri and Laravel simplifies file/media transfers, but SQLite/MariaDB records still need an interchange contract. Prefer authenticated HTTPS API transfer for browser interoperability; SFTP may be useful administratively, while unencrypted FTP should not carry private data. Browser local-network access/certificates need validation in later phases.

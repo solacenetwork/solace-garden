@@ -290,3 +290,24 @@ Importing a photo into Garden creates a resized/optimized copy; it does not modi
 Future users may choose backup destinations, the amount of historical media retained locally, and whether/how to synchronize with a central server or household-hosted SHD/SOS system. Structured historical data may remain locally searchable while older photos are archived remotely and fetched when connected.
 
 **To discuss later:** sync mechanisms, conflict resolution, offline selection/retention policies, archival verification, and provider integrations. None are v1 prerequisites.
+
+
+## 6. Storage independence and optional synchronization (November 2026 decisions)
+
+**V1 remains an account-free, fully local, offline-first PWA.** A phone or tablet can serve as the gardener's only device, with Simple Mode on small screens and Standard Mode available by explicit selection. A larger tablet or folding phone can offer more workspace. There is **no required Laravel service, account, cloud storage, or cross-device sync in V1**. Complete ZIP backup/replace-restore remains available for USB drives, personal cloud drives, and deliberate transfer to another browser/device; it is not merge-based sync.
+
+**Storage-independent architecture is a V1 design requirement.** Garden components and domain services must use storage-neutral data contracts/repository boundaries rather than directly depending on Dexie APIs. **Dexie/IndexedDB is the sole V1 implementation**, not a permanent requirement for every runtime. Future implementations may include a Laravel HTTP API, native SQLite, or file-based interchange where the environment supports them. Storage-independent behavior does not imply identical latency, transactions, offline support, or capabilities across those backends.
+
+**Convention over configuration:** If no optional storage/sync configuration is supplied, default to local Dexie/IndexedDB and synchronization disabled. Keep deployment/provider configuration separate from gardener application preferences (interface mode, display, Gallery budget, etc.). Partial configuration may inherit defaults, but explicit invalid or unsupported drivers must fail clearly rather than silently switching stores. Public client config must never contain credentials; changing drivers must not silently migrate or discard existing data. The specific configuration filename and schema are provisional (candidate: `garden.storage.json`).
+
+**Long-term progression (targets, subject to re-planning):**
+
+- **V2:** Create necessary hosted Laravel/MariaDB account and Garden services; support optional free SOLACE Garden accounts, one-way local-to-server upload, and authenticated online viewing. The local device remains the editable source of truth at this stage; do not advertise this as two-way sync.
+- **V3:** Add genuine bidirectional synchronization across authorized devices, with revision/change tracking, deletion propagation, conflict policies, interrupted-transfer recovery, and media reconciliation.
+- **V4:** Explore optional third-party cloud destinations (e.g. Dropbox, OneDrive, Google Drive) through appropriate OAuth/provider integrations. Distinguish backup storage from live synchronization before specifying behavior.
+- **V5/V6:** Support SOS/SHD household-hosted synchronization. A pared-down local Laravel/PHP/MariaDB service primarily serves **one HID and authorized MIDs**, not the complete multi-household registration, identity, and governance responsibilities of central `solace-main`. Where possible, share stable Garden data contracts/APIs, not necessarily entire server deployments. Optional central sync is a future policy/design decision.
+- **V7/V8:** Explore **generic SOLACE Sync**, potentially a Tauri desktop utility with SQLite and native filesystem storage, for portable transfers across multiple SOLACE applications, devices, and SOS. Not a Garden V1 dependency and not Garden-specific business-logic reconciliation.
+
+**Data ownership:** Accounts and hosted services add convenience, not a prerequisite for gardening. Keep portable backups even after sync exists. Future ad-supported free hosted tiers, premium ad removal, and higher hosted-storage quotas are **commercial possibilities to evaluate**, not V1 functionality or committed prices/limits.
+
+**Interoperability:** Stable IDs, portable/versioned ZIP schemas, media IDs/checksums where useful, and deliberate separation of storage versus synchronization should allow future providers to evolve without rewriting Garden's presentation layer. Neither native filesystem access nor swapping the provider URL automatically solves conflicting edits or identity/authorization.
