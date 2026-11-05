@@ -1,5 +1,4 @@
 import { useInterfaceMode } from '../../context/InterfaceModeContext.jsx';
-import { SIMPLE_MODE_MEDIA_QUERY } from '../../services/interfaceMode.js';
 import './style.css';
 
 const modeOptions = [
@@ -16,7 +15,7 @@ const modeOptions = [
 	{
 		value: 'standard',
 		label: 'Standard',
-		description: 'Keep the future information-rich Standard Mode at every screen size.',
+		description: 'Keep the desktop-oriented Standard Mode at every screen size.',
 	},
 ];
 
@@ -39,8 +38,8 @@ export function Settings() {
 			<fieldset class="settings-card" aria-describedby="interface-mode-help">
 				<legend>Interface mode</legend>
 				<p id="interface-mode-help" class="settings-card__help">
-					Automatic currently switches at 48rem, aligned with the app's provisional
-					responsive layout.
+					Automatic chooses Simple Mode on smaller screens and Standard Mode on
+					larger screens.
 				</p>
 
 				<div class="settings-mode-options">
@@ -67,7 +66,7 @@ export function Settings() {
 					<span>Currently showing </span>
 					<strong>{effectiveMode === 'simple' ? 'Simple Mode' : 'Standard Mode'}</strong>
 					{preference === 'auto' && (
-						<span> based on {SIMPLE_MODE_MEDIA_QUERY}.</span>
+						<span> based on your screen size.</span>
 					)}
 				</p>
 

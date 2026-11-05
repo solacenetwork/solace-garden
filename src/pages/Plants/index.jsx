@@ -6,6 +6,8 @@ import './style.css';
 export function Plants() {
 	const dialogElement = useRef(null);
 	const dialogInstance = useRef(null);
+	const isDialogShown = useRef(false);
+	const closeAfterShown = useRef(false);
 	const [selectedGroup, setSelectedGroup] = useState(null);
 
 	useEffect(() => {
@@ -16,12 +18,28 @@ export function Plants() {
 		}
 
 		const instance = new Dialog(element);
-		const handleHidden = () => setSelectedGroup(null);
+		const handleShown = () => {
+			isDialogShown.current = true;
+
+			if (closeAfterShown.current) {
+				closeAfterShown.current = false;
+				void instance.hide();
+			}
+		};
+		const handleHidden = () => {
+			isDialogShown.current = false;
+			closeAfterShown.current = false;
+			setSelectedGroup(null);
+		};
 		dialogInstance.current = instance;
+		element.addEventListener('shown.bs.dialog', handleShown);
 		element.addEventListener('hidden.bs.dialog', handleHidden);
 
 		return () => {
+			element.removeEventListener('shown.bs.dialog', handleShown);
 			element.removeEventListener('hidden.bs.dialog', handleHidden);
+			isDialogShown.current = false;
+			closeAfterShown.current = false;
 			instance.dispose();
 			dialogInstance.current = null;
 		};
@@ -34,6 +52,11 @@ export function Plants() {
 	}, [selectedGroup]);
 
 	const closeEditor = () => {
+		if (!isDialogShown.current) {
+			closeAfterShown.current = true;
+			return;
+		}
+
 		void dialogInstance.current?.hide();
 	};
 
