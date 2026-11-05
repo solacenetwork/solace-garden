@@ -5,6 +5,7 @@ export const routeCatalog = [
 		icon: 'house-door',
 		description: 'Choose a SOLACE Garden workspace.',
 		section: 'home',
+		view: 'home',
 	},
 	{
 		path: '/plants',
@@ -13,6 +14,7 @@ export const routeCatalog = [
 		icon: 'flower2',
 		description: 'Review plant groups and record growing progress.',
 		section: 'primary',
+		view: 'plants',
 	},
 	{
 		path: '/harvest',
@@ -97,6 +99,7 @@ export const routeCatalog = [
 		description:
 			'Adjust SOLACE Garden preferences and local application options.',
 		section: 'secondary',
+		view: 'settings',
 	},
 ];
 

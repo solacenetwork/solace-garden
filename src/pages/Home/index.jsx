@@ -2,13 +2,18 @@ import {
 	primaryActions,
 	secondaryDestinations,
 } from '../../navigation.js';
+import { useInterfaceMode } from '../../context/InterfaceModeContext.jsx';
 import './style.css';
 
 export function Home() {
+	const { effectiveMode } = useInterfaceMode();
+
 	return (
 		<div class="container home-page">
 			<section class="home-intro" aria-labelledby="home-title">
-				<p class="home-intro__eyebrow">Simple Mode preview</p>
+				<p class="home-intro__eyebrow">
+					{effectiveMode === 'simple' ? 'Simple' : 'Standard'} Mode preview
+				</p>
 				<h1 id="home-title">What would you like to do?</h1>
 				<p class="home-intro__summary">
 					Choose a garden activity to get started. These workspaces are
