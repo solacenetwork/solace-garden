@@ -53,7 +53,7 @@ Journal entries, harvest records, completed tasks, and other historical activity
 ### 2.2a Locations and Garden Types
 
 - Every garden belongs to exactly one physical **Location** and has exactly one **Garden Type**. Locations are reusable across independent garden projects and years.
-- Seed the initial Location named **Default**, used by Quick Start and initially selected for new gardens. Gardeners can create and rename additional locations in v1. The built-in Default cannot be renamed or deleted in v1.
+- Seed the initial Location named **Default**, used by Quick Start and initially selected for new gardens. In controls where the context is ambiguous, label it **Default (Location)**; this is a display clarification, not a different stored name or ID. Gardeners can create and rename additional locations in v1. The built-in Default cannot be renamed or deleted in v1.
 - An **unused custom location** can be deleted after confirmation; a location referenced by **any garden**, including completed/archived gardens, cannot be deleted until those gardens have been reassigned. Editable gardens may have their location reassigned.
 - Allow an optional manually entered USDA hardiness zone on each location, with a link to the official USDA zone lookup. No location permission or automatic geolocation is required in v1.
 - Seed Garden Types: **In-Ground, Raised Bed, Container, Greenhouse, Hydroponic, Other**. Custom type creation/editing is deferred.
@@ -114,13 +114,16 @@ Garden v1 tracks **independent plant-group entries**, rather than requiring a se
 
 Garden v1 will provide lightweight **gardener-wide**, rather than per-garden, lists that remain available across growing seasons:
 
-- **To-Do:** add, edit, complete/uncomplete, remove, and reorder items.
-- **To-Buy:** the same basic checklist operations for purchases shared across gardens.
-- **Notes:** add, edit, and remove simple text notes; no task-completion workflow required.
-- Group these tools within Garden rather than maintaining three standalone list applications.
+- **Tasks:** add, edit, complete/uncomplete, remove, and reorder items.
+- **Wish List:** a single gardener-wide purchasing checklist for products needed across all gardens (small supplies or major equipment); add, edit, mark purchased/unpurchased, remove, and reorder items. Optional quantity, notes and a user-provided product URL; no retailer API, price tracking, scraping or checkout in v1.
+- **Notes:** add, edit, and remove simple text notes; no task-completion workflow required. An unlinked **Note** is a standalone record; a **Linked Note** is the same type of record with an optional garden reference.
+- Notes, Tasks and Wish List records belong to the gardener's local collection, not to individual gardens; all may optionally reference one garden via nullable `gardenId`. The default view includes all items regardless of association. Garden completion, closure, archiving and reopening do not remove or unlink them; permanently deleting a garden clears those references while preserving the items.
+- Group these tools within Garden rather than maintaining three standalone list applications. Keep **Tasks** as the existing navigation destination; Wish List can be a separate section/tab within it.
 - Include lists and notes in the application-wide backup; no separate list-specific export/import controls.
 
 The interface should be quick and uncomplicated, not a project-management system. The planned implementation is a shared Preact/Bootstrap component with local IndexedDB persistence (Dexie is a candidate) and optional SortableJS reordering; final library choices belong in `TECH_SPEC.md`. Gardener-level ownership is a product concept, not a decision about future cross-device synchronization.
+
+**Future Wish List possibilities (not v1):** V2 may add user-defined tags and tag filtering. In V3/V4 or later, optionally publish selected Wish List items through `garden.solace.network` for gift purchasing, with explicit opt-in and privacy safeguards; the user-provided product URL is not a retailer integration.
 
 ### 2.7 Garden Journal
 
@@ -174,6 +177,7 @@ Garden v1 will provide **four gardener-selected statuses** for each garden:
 - A garden is a distinct planting project or group of plants for a particular growing cycle, **not a permanent physical location**. A new planting cycle creates a separate garden record and history; gardeners are not required to enter a formal season identifier or use a dedicated “New Season” action.
 - To reuse a physical layout or configuration, the gardener uses the existing **Create New Garden** workflow and can select a previously saved garden template (see [Garden Templates](#22-garden-templates)). Historical activity is not copied into the new record.
 - The gardener controls how long a growing cycle lasts; perennial or overwintering projects need not end at the calendar-year boundary.
+- Each Garden record has an optional embedded **Season Note** (`notes`, initially `null`): a plain-text, short seasonal summary, independent of the Notes workspace and Linked Notes. Limit it to **1,000 characters**, show a remaining-character countdown, and offer optional editing during Close Garden as well as during ordinary editable garden management. Preserve it through completion, closure, archiving and reopening; include it in archived-garden search results. Do not automatically copy it into a template or a future season.
 
 **Technical-spec detail:** exact confirmation dialogs, read-only enforcement, and status transition handling belong in `TECH_SPEC.md`.
 
@@ -182,7 +186,7 @@ Garden v1 will provide **four gardener-selected statuses** for each garden:
 Garden v1 will provide **one application-wide search with filters** for locally managed Garden records, covering both Current and Previous Gardens.
 
 - Provide a single, consistent search entry point rather than separate search interfaces for each Garden section.
-- Search across garden names and plant-group entries, including repeated plant varieties in different gardens and historical records.
+- Search across garden names, embedded **Season Notes**, and plant-group entries, including repeated plant varieties in different gardens and historical records. Include standalone **Notes** and **Linked Notes** in the Lists/Notes search scope and distinguish their result types; archived gardens remain searchable.
 - Provide a search-field dropdown to choose the search scope. **Garden data is the default**, with optional scopes for **Lists**, **Calendar**, and **Journal**. The exact dropdown presentation is a UI design detail.
 - Within Garden results, offer simple filters where useful (for example, by garden or garden status).
 - Results should clearly identify the associated garden and record so the gardener can navigate directly to it.
@@ -262,6 +266,10 @@ The precise Standard Mode navigation, automatic breakpoint, Simple Mode home lay
 - Make clear that browser storage is not guaranteed permanent and that exported backups must be kept somewhere safe.
 
 The archive includes metadata and cross-references for intentionally deleted photos but omits deleted image blobs. **JSZip is the preferred V1 candidate** for ZIP packing/unpacking; actual performance and memory use on phones must be tested. The manifest must contain a separately versioned format, data/media uncompressed byte counts and record counts. Detailed archive layout, restore validation, and large-media limits belong in `TECH_SPEC.md`.
+
+### 2.15 Gardener Settings and location management
+
+Settings is the gardener-facing home for **Location**, the selected Location's optional **USDA Hardiness Zone**, **measurement units** (Imperial/Metric), **theme** (Light/Dark/Automatic), and the already implemented **interface mode** (Automatic/Simple/Standard). Locations and hardiness zones remain location records; editing a zone through Settings must not turn it into one global value. Location administration may retain a dedicated workspace reached from Settings. UI grouping, the meaning of a preferred/default location when multiple locations exist, and theme implementation details remain to be finalized before implementation; no GPS/automatic zone lookup is implied.
 
 ## 3. Post-MVP
 
