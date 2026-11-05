@@ -52,11 +52,7 @@ function validateRecordObject(record, operation) {
 	}
 }
 
-function validateText(text, required) {
-	if (text === undefined && !required) {
-		return;
-	}
-
+function validateText(text) {
 	if (typeof text !== 'string' || text.length === 0) {
 		throw validationError(
 			'INVALID_NOTE_TEXT',
@@ -67,13 +63,13 @@ function validateText(text, required) {
 }
 
 function validateGardenId(gardenId) {
-	if (gardenId !== undefined && gardenId !== null) {
+	if (gardenId !== null) {
 		validateRecordId(gardenId, 'gardenId');
 	}
 }
 
 function validateTimestamp(value, field) {
-	if (value !== undefined && (typeof value !== 'string' || value.length === 0)) {
+	if (typeof value !== 'string' || value.length === 0) {
 		throw validationError(
 			'INVALID_TIMESTAMP',
 			`${field} must be a non-empty string when provided.`,
@@ -85,10 +81,16 @@ function validateTimestamp(value, field) {
 export function validateNewNote(record) {
 	validateRecordObject(record, 'create');
 	validateRecordId(record.id);
-	validateText(record.text, true);
-	validateGardenId(record.gardenId);
-	validateTimestamp(record.createdAt, 'createdAt');
-	validateTimestamp(record.updatedAt, 'updatedAt');
+	validateText(record.text);
+	if (Object.hasOwn(record, 'gardenId')) {
+		validateGardenId(record.gardenId);
+	}
+	if (Object.hasOwn(record, 'createdAt')) {
+		validateTimestamp(record.createdAt, 'createdAt');
+	}
+	if (Object.hasOwn(record, 'updatedAt')) {
+		validateTimestamp(record.updatedAt, 'updatedAt');
+	}
 }
 
 export function validateNoteChanges(changes) {
@@ -110,9 +112,17 @@ export function validateNoteChanges(changes) {
 		);
 	}
 
-	validateText(changes.text, false);
-	validateGardenId(changes.gardenId);
-	validateTimestamp(changes.createdAt, 'createdAt');
-	validateTimestamp(changes.updatedAt, 'updatedAt');
+	if (Object.hasOwn(changes, 'text')) {
+		validateText(changes.text);
+	}
+	if (Object.hasOwn(changes, 'gardenId')) {
+		validateGardenId(changes.gardenId);
+	}
+	if (Object.hasOwn(changes, 'createdAt')) {
+		validateTimestamp(changes.createdAt, 'createdAt');
+	}
+	if (Object.hasOwn(changes, 'updatedAt')) {
+		validateTimestamp(changes.updatedAt, 'updatedAt');
+	}
 }
 

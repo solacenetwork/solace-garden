@@ -156,6 +156,54 @@ describe('Notes repository foundation', () => {
 		storage.close();
 	});
 
+	it('distinguishes omitted update fields from explicitly invalid values', async () => {
+		const storage = await initialize();
+		const repository = storage.repositories.notes;
+		const original = {
+			id: NOTE_UUID_ONE,
+			text: 'Original text',
+			gardenId: NOTE_UUID_TWO,
+		};
+		await repository.create(original);
+
+		for (const invalidText of [undefined, null, '']) {
+			await expect(
+				repository.update(NOTE_UUID_ONE, { text: invalidText }),
+			).rejects.toMatchObject({
+				name: 'ValidationError',
+				code: 'INVALID_NOTE_TEXT',
+				field: 'text',
+			});
+			expect(await repository.getById(NOTE_UUID_ONE)).toEqual(original);
+		}
+
+		await expect(
+			repository.update(NOTE_UUID_ONE, { gardenId: undefined }),
+		).rejects.toMatchObject({
+			name: 'ValidationError',
+			code: 'INVALID_RECORD_ID',
+			field: 'gardenId',
+		});
+		await expect(
+			repository.update(NOTE_UUID_ONE, { updatedAt: undefined }),
+		).rejects.toMatchObject({
+			name: 'ValidationError',
+			code: 'INVALID_TIMESTAMP',
+			field: 'updatedAt',
+		});
+		expect(await repository.getById(NOTE_UUID_ONE)).toEqual(original);
+
+		expect(
+			await repository.update(NOTE_UUID_ONE, { gardenId: null }),
+		).toBe(true);
+		expect(await repository.getById(NOTE_UUID_ONE)).toEqual({
+			...original,
+			gardenId: null,
+		});
+
+		storage.close();
+	});
+
 	it('rolls back all notes writes when an atomic operation fails', async () => {
 		const storage = await initialize();
 		const repository = storage.repositories.notes;
@@ -168,6 +216,28 @@ describe('Notes repository foundation', () => {
 		).rejects.toBeInstanceOf(StorageError);
 
 		expect(await repository.list()).toEqual([]);
+		storage.close();
+	});
+
+	it('commits all notes writes and returns the successful atomic result', async () => {
+		const storage = await initialize();
+		const repository = storage.repositories.notes;
+
+		const result = await repository.runAtomic(async (notes) => {
+			await notes.create({ id: NOTE_UUID_ONE, text: 'First committed note' });
+			await notes.create({ id: NOTE_UUID_TWO, text: 'Second committed note' });
+			return 'both-notes-committed';
+		});
+
+		expect(result).toBe('both-notes-committed');
+		expect(await repository.getById(NOTE_UUID_ONE)).toMatchObject({
+			text: 'First committed note',
+		});
+		expect(await repository.getById(NOTE_UUID_TWO)).toMatchObject({
+			text: 'Second committed note',
+		});
+		expect(await repository.list()).toHaveLength(2);
+
 		storage.close();
 	});
 
