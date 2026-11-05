@@ -5,6 +5,7 @@ import {
 	GARDEN_INDEXES,
 	GARDEN_STORES,
 } from './constants.js';
+import { probeDatabaseExists } from './databaseProbe.js';
 
 export async function discoverDatabaseNames(dependencies) {
 	const indexedDB = dependencies?.indexedDB ?? Dexie.dependencies.indexedDB;
@@ -47,23 +48,7 @@ export function createGardenDatabase(databaseName, dependencies) {
 }
 
 export async function databaseExists(databaseName, dependencies) {
-	const database = new Dexie(databaseName, {
-		...dependencies,
-		addons: [],
-	});
-
-	try {
-		await database.open();
-		database.close();
-		return true;
-	} catch (error) {
-		database.close();
-		if (error?.name === 'NoSuchDatabaseError') {
-			return false;
-		}
-
-		throw error;
-	}
+	return probeDatabaseExists(databaseName, dependencies);
 }
 
 export function validateGardenSchema(database) {

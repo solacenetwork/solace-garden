@@ -9,6 +9,7 @@ import {
 	MAIN_CONFIG_ID,
 } from './constants.js';
 import { createControlDatabase } from './controlDatabase.js';
+import { probeDatabaseExists } from './databaseProbe.js';
 import { createGardenDatabase } from './gardenDatabase.js';
 import { initializeDexieStorage } from './initializeDexieStorage.js';
 
@@ -61,6 +62,15 @@ describe('Dexie storage initialization', () => {
 		return configuration;
 	}
 
+	function disableDatabaseEnumeration() {
+		Object.defineProperty(indexedDB, 'databases', {
+			configurable: true,
+			value: undefined,
+		});
+
+		return () => delete indexedDB.databases;
+	}
+
 	it('initializes a fresh control database and UUID-named Garden database', async () => {
 		const result = await initialize();
 		const configuration = await readConfiguration();
@@ -111,12 +121,21 @@ describe('Dexie storage initialization', () => {
 		reopenedDatabase.close();
 	});
 
-	it('fails safely when database enumeration is unavailable', async () => {
+	it('does not leave a database artifact when the existence probe finds no database', async () => {
+		expect(await probeDatabaseExists(CONTROL_DATABASE_NAME, dependencies)).toBe(false);
+		expect(await indexedDB.databases()).toEqual([]);
+	});
+
+	it('fails safely when a missing control database cannot be followed by enumeration', async () => {
 		const randomUUID = vi.fn(() => UUID_ONE);
-		const result = await initializeDexieStorage({
-			dependencies: { indexedDB: {}, IDBKeyRange },
-			randomUUID,
-		});
+		const restoreEnumeration = disableDatabaseEnumeration();
+		let result;
+
+		try {
+			result = await initialize({ randomUUID });
+		} finally {
+			restoreEnumeration();
+		}
 
 		expect(result).toMatchObject({
 			status: 'recovery-required',
@@ -179,6 +198,111 @@ describe('Dexie storage initialization', () => {
 
 		database.close();
 		result.close();
+	});
+
+	it('opens an existing installation when database enumeration is unavailable', async () => {
+		const initial = await initialize();
+		const databaseName = initial.databaseName;
+		initial.close();
+
+		const firstConnection = createGardenDatabase(databaseName, dependencies);
+		await firstConnection.open();
+		await firstConnection.table('notes').add({
+			id: 'healthy-install-note',
+			text: 'Preserved without enumeration',
+			gardenId: null,
+			updatedAt: '2026-11-05T12:00:00.000Z',
+		});
+		firstConnection.close();
+
+		const randomUUID = vi.fn(() => UUID_TWO);
+		const restoreEnumeration = disableDatabaseEnumeration();
+		let restarted;
+
+		try {
+			restarted = await initializeDexieStorage({ dependencies, randomUUID });
+		} finally {
+			restoreEnumeration();
+		}
+
+		expect(restarted.status).toBe('ready');
+		expect(restarted.databaseName).toBe(databaseName);
+		expect(randomUUID).not.toHaveBeenCalled();
+
+		const secondConnection = createGardenDatabase(databaseName, dependencies);
+		await secondConnection.open();
+		expect(await secondConnection.table('notes').get('healthy-install-note')).toMatchObject({
+			text: 'Preserved without enumeration',
+		});
+		secondConnection.close();
+		restarted.close();
+	});
+
+	it('opens an existing installation without calling a failing enumerator', async () => {
+		const initial = await initialize();
+		const databaseName = initial.databaseName;
+		initial.close();
+
+		const discovery = vi
+			.spyOn(indexedDB, 'databases')
+			.mockRejectedValue(new Error('enumeration unavailable'));
+		const restarted = await initializeDexieStorage({
+			dependencies,
+			randomUUID: vi.fn(() => UUID_TWO),
+		});
+		const discoveryCallCount = discovery.mock.calls.length;
+		discovery.mockRestore();
+
+		expect(restarted.status).toBe('ready');
+		expect(restarted.databaseName).toBe(databaseName);
+		expect(discoveryCallCount).toBe(0);
+
+		restarted.close();
+	});
+
+	it('fails safely when the control database existence probe is blocked', async () => {
+		const randomUUID = vi.fn(() => UUID_ONE);
+		const blockedIndexedDB = {
+			open() {
+				const request = {};
+				queueMicrotask(() => request.onblocked?.());
+				return request;
+			},
+		};
+		const result = await initializeDexieStorage({
+			dependencies: { indexedDB: blockedIndexedDB, IDBKeyRange },
+			randomUUID,
+		});
+
+		expect(result).toMatchObject({
+			status: 'recovery-required',
+			error: { code: 'CONTROL_DATABASE_CHECK_FAILED' },
+		});
+		expect(randomUUID).not.toHaveBeenCalled();
+	});
+
+	it('fails safely when the control database existence probe errors', async () => {
+		const randomUUID = vi.fn(() => UUID_ONE);
+		const failedIndexedDB = {
+			open() {
+				const request = {};
+				queueMicrotask(() => {
+					request.error = new DOMException('Access denied', 'SecurityError');
+					request.onerror?.({ preventDefault() {} });
+				});
+				return request;
+			},
+		};
+		const result = await initializeDexieStorage({
+			dependencies: { indexedDB: failedIndexedDB, IDBKeyRange },
+			randomUUID,
+		});
+
+		expect(result).toMatchObject({
+			status: 'recovery-required',
+			error: { code: 'CONTROL_DATABASE_CHECK_FAILED' },
+		});
+		expect(randomUUID).not.toHaveBeenCalled();
 	});
 
 	it('reuses the active pointer without generating another name', async () => {

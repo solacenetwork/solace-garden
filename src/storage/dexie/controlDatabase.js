@@ -7,6 +7,7 @@ import {
 	MAIN_CONFIG_ID,
 } from './constants.js';
 import { createGardenDatabaseName, isGardenDatabaseName } from './databaseNames.js';
+import { probeDatabaseExists } from './databaseProbe.js';
 
 const INITIALIZING_STATE = 'initializing';
 
@@ -41,6 +42,10 @@ export function createControlDatabase({ dependencies, randomUUID } = {}) {
 	);
 
 	return database;
+}
+
+export function controlDatabaseExists(dependencies) {
+	return probeDatabaseExists(CONTROL_DATABASE_NAME, dependencies);
 }
 
 export function isInitialConfiguration(record) {

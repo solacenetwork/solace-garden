@@ -1,9 +1,9 @@
 import {
-	CONTROL_DATABASE_NAME,
 	CONTROL_STORE_NAME,
 	MAIN_CONFIG_ID,
 } from './constants.js';
 import {
+	controlDatabaseExists,
 	createControlDatabase,
 	isInitialConfiguration,
 	markInitializationComplete,
@@ -19,6 +19,10 @@ import {
 const RECOVERY_DETAILS = {
 	CONTROL_OPEN_FAILED: {
 		message: 'The local storage configuration could not be opened.',
+		action: 'Retry. If this continues, preserve this browser profile before seeking help.',
+	},
+	CONTROL_DATABASE_CHECK_FAILED: {
+		message: 'The local storage configuration could not be checked safely.',
 		action: 'Retry. If this continues, preserve this browser profile before seeking help.',
 	},
 	CONTROL_DATABASE_MISSING: {
@@ -65,15 +69,23 @@ export async function initializeDexieStorage({
 } = {}) {
 	let controlDatabase;
 	let gardenDatabase;
-	let databaseNames;
+	let hasControlDatabase;
 
 	try {
-		databaseNames = await discoverDatabaseNames(dependencies);
+		hasControlDatabase = await controlDatabaseExists(dependencies);
 	} catch {
-		return recoveryRequired('DATABASE_DISCOVERY_UNAVAILABLE');
+		return recoveryRequired('CONTROL_DATABASE_CHECK_FAILED');
 	}
 
-	if (!databaseNames.includes(CONTROL_DATABASE_NAME)) {
+	if (!hasControlDatabase) {
+		let databaseNames;
+
+		try {
+			databaseNames = await discoverDatabaseNames(dependencies);
+		} catch {
+			return recoveryRequired('DATABASE_DISCOVERY_UNAVAILABLE');
+		}
+
 		if (findGardenDatabaseNames(databaseNames).length > 0) {
 			return recoveryRequired('CONTROL_DATABASE_MISSING');
 		}
