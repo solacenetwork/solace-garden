@@ -112,7 +112,7 @@ flowchart TB
     Notes --> N3["Note 3"]
     Gardens --> G1["Garden 1"]
     Gardens --> G2["Garden 2"]
-    N2 -. "gardenId" .-> G2
+    N2 -.->|"gardenId"| G2
     G2 --> Season["Embedded Season Note · max 1,000 chars"]
 ```
 
