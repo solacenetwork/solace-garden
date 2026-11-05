@@ -136,11 +136,19 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 ### Milestone 7 — Reusable UI building blocks
 
-- [ ] Build components as real use cases emerge: responsive fullscreen modal conventions, accessible forms/date controls, cards, search/filter controls, photo selectors and Journal preview/editor pieces.
-- [ ] Prototype optional `AppDrawer` using Bootstrap offcanvas, fixed Info tab, event-driven tab visibility, safe-area-aware `dvh` sizing, and secondary-content-only behavior.
-- [ ] Define common loading/empty/error/save/dirty-state patterns and ensure the shared mode presentation doesn't duplicate business logic.
+**Status:** Complete (2026-11-05). Implementation: [8ef556a](https://github.com/solacenetwork/solace-garden/commit/8ef556aff3ddca901d187551cc198aef75fc4412) (merge commit containing Milestone 7 changes). Manual acceptance completed on phone and desktop.
 
-**Done when:** At least the components needed for the first real pages are reusable and documented, without attempting an entire abstract design system first.
+- [x] Establish focused, reusable conventions for Bootstrap 6 Dialogs, accessible navigation and icon controls, focus management, Close/Cancel, and future Save/dirty-state behavior. Document them in `docs/UI_CONVENTIONS.md` without building speculative components.
+- [x] Add validated short route IDs for Settings return navigation (`/settings?ref=plants`, etc.), with a visible Close link and safe Home fallback for missing, invalid, or Settings references. Preserve normal history and mode changes without a navigation-history store.
+- [x] Prototype optional `AppDrawer` using Bootstrap 6 Drawer on native `<dialog>` (not Bootstrap 5 Offcanvas). Limit its use to Calendar's secondary-context prototype, with event-driven trigger visibility, safe-area-aware dynamic viewport sizing, focus restoration, and unmount cleanup.
+- [x] Document empty/loading/error and Save/dirty-state conventions for future data-backed features. Keep the Simple and Standard presentations on shared routes and components.
+- [x] Review implementation and complete manual checks across phone and desktop, including Settings return paths, mode switching, repeated Dialog/Drawer operation, Escape/Close, focus behavior, responsive layout, and navigation away while the Drawer is open.
+
+**Completion record:** Settings return links use stable catalog IDs and resolve unknown or untrusted references to Home. The Calendar-only Drawer prototype uses Bootstrap 6 lifecycle events and disposal; the Plants quick-close behavior was preserved and its installed Bootstrap 6 CSS variables corrected. Codex reported passing build, navigation assertions, and automated browser checks; the implementation was inspected on GitHub and the user subsequently reported all nine manual acceptance checks passing across phone and desktop.
+
+**Deferred / observation:** One intermittent flicker on mobile Home/Settings was reported, but subsequent phone testing could not reproduce it; **resolved for now — unable to reproduce**, revisit if it returns. Camera/photo selectors, real date controls, search/filter controls, Journal components, shared feedback components, and data-backed Save/dirty guards remain deferred until their concrete feature milestones. Reassess Drawer sizing and placement with real content.
+
+**Done when:** Current reusable patterns are implemented and documented, with the Settings-return flow and optional Drawer manually validated; feature-specific controls remain intentionally deferred. **Satisfied.**
 
 ### Milestone 8 — V1 storage foundations and implementation order
 
