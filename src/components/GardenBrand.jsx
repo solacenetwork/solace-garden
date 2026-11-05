@@ -57,7 +57,7 @@ export function GardenBrand() {
         <img
             src="/assets/branding/solace-garden-green.svg"
             alt=""
-            class="d-none md:d-block"
+            class="garden-brand__wordmark d-none md:d-block"
         />
         </a>
     </>

@@ -213,6 +213,13 @@ body {
   transition: transform 150ms ease;
 }
 
+.garden-brand__wordmark {
+  display: block;
+  width: auto;
+  height: 1.6rem;
+  max-width: 100%;
+}
+
 .garden-brand:focus-visible {
   outline: 3px solid var(--sg-color-focus);
   outline-offset: 4px;
