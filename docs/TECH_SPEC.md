@@ -62,7 +62,7 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 
 **Locations:** A Location is a geographic site/property, e.g. home or community garden, not a bed or growing method. The built-in Default has a stable reserved ID/system flag, is initially selected and used by Quick Start, and is **editable including its name and hardiness zone**; validate a nonblank trimmed name and **never allow its deletion**. Its name can change to Home or similar without changing the ID or Quick Start association. Additional Locations are selectable, creatable and renamable. Deleting a custom Location requires confirmation and a transactional reference check across **all** gardens, including completed, closed and archived. Referenced locations must be reassigned first; closed/archived gardens follow existing unlock rules. Hardiness zone belongs to the Location record. Optional address/coordinates and remote geographic services are deferred; never silently transmit locally stored location information.
 
-**Garden Types:** A Garden stores `typeIds: string[]` referencing multiple valid seeded type IDs. A flat set of independent descriptors supports combinations such as Outdoor/Raised Bed/Container and Indoor/Outdoor; do **not** enforce category hierarchy, exclusivity, or horticultural conflict warnings. Show a responsive grid of toggle buttons with clear selected state and accessible multi-select semantics; use the same reusable control in Wizard and Advanced. Seed existing six types plus Indoor and Outdoor; retain stable type IDs and prohibit deletion of all seeded types. Allow editing selections only while the garden is editable; validate each ID and deduplicate selections in the service. User-defined types may be supported in V2/V3 with a unified logical catalog and optional separate store. Whether an empty `typeIds` is accepted in full forms remains to decide; Quick Start preselects In-Ground.
+**Garden Types:** A Garden stores `typeIds: string[]` referencing multiple valid seeded type IDs. A flat set of independent descriptors supports combinations such as Outdoor/Raised Bed/Container and Indoor/Outdoor; do **not** enforce category hierarchy, exclusivity, or horticultural conflict warnings. Show a responsive grid of toggle buttons with clear selected state and accessible multi-select semantics; use the same reusable control in Wizard and Advanced. Seed existing six types plus Indoor and Outdoor; retain stable type IDs and prohibit deletion of all seeded types. Allow editing selections only while the garden is editable; validate each ID and deduplicate selections in the service. User-defined types may be supported in V2/V3 with a unified logical catalog and optional separate store. An empty `typeIds: []` is valid for full forms and editing, and must be stored as `[]` rather than `null`; Quick Start preselects In-Ground. Reject unknown IDs and duplicates.
 
 **Garden lifecycle:** Statuses are explicitly chosen by the gardener; finishing a plant group never changes garden status. Completed prompts optional Close Garden, but may remain editable; Archived is automatically closed/read-only; Unarchive returns to Completed/editable. Read-only enforcement must cover dependent garden data.
 
@@ -250,6 +250,7 @@ For v1, a debounced query over relevant indexed/locally loaded data may suffice;
 ```text
 solace-garden-backup-YYYY-MM-DD.zip
   manifest.json
+  solace.config.json
   data/locations.json
   data/gardenTypes.json
   data/gardens.json
@@ -267,6 +268,8 @@ solace-garden-backup-YYYY-MM-DD.zip
   media/<media-id>-thumb.<ext>
 ```
 
+**Portable configuration:** `solace.config.json` is an app-namespaced JSON document for exportable gardener preferences where appropriate, subject to schema/version validation. It is **not** a copy of the local `solace-config` control database. Exclude active/previous database names and pointers, staging status, rollback metadata, deployment driver selection, endpoints, credentials and other installation-specific values; importing a ZIP must never replace the control database or blindly apply these settings. The existing `data/settings.json` archive entry may be retained for record-based settings if needed; avoid duplicating preference values between it and `solace.config.json` when finalizing the format.
+
 The final manifest should carry `application`, `formatVersion` (independent of app/Dexie versions), app version, timestamp, record counts, `storage.dataBytes`, `storage.mediaBytes`, and `storage.totalBytes`. The listed media filenames are conceptual, not an authoritative finalized naming convention. Do not export redundant `mediaData` JSON when binary files are already exported. Deleted-photo tombstone records/references stay in JSON; deleted blobs are absent.
 
 **V1 restore is replace-only, not merge.** Never replace existing records in place. Restore sequence:
@@ -274,7 +277,7 @@ The final manifest should carry `application`, `formatVersion` (independent of a
 1. Inspect ZIP manifest/version/structure, enforce archive path/count/size bounds, validate record schemas and ID integrity, and present a backup preview. Avoid blindly trusting archive content (including stored HTML).
 2. Before writing a staging database, call `navigator.storage.estimate()` and compare **estimated extra storage requirement** (manifest uncompressed bytes plus conservative IndexedDB overhead) with `quota - usage`. Existing data is already counted in `usage`; do not double count it. Preflight estimates are advisory, not guaranteed available disk space. Enforce independent limits and catch `QuotaExceededError`.
 3. Create a **separate staging IndexedDB database** using target schema, populate it from ZIP, and check referential integrity, records, media availability, and data readability. Preserve IDs and intentionally deleted tombstones.
-4. Only after successful staging, explicitly confirm replacement and switch a durable **active-database pointer** to staging. IndexedDB does not support database renaming; do not attempt to rename. Coordinate other open tabs and recover cleanly from interrupted switch.
+4. Only after successful staging, explicitly confirm replacement and switch the durable **active-database pointer** in the separate `solace-config` control database to staging. IndexedDB does not support database renaming; do not attempt to rename. Coordinate other open tabs and recover cleanly from interrupted switch.
 5. Restart/reopen on the staged database, verify successful loading, and **retain prior database temporarily** for rollback. Delete previous database only after successful activation/recovery verification.
 
 If validation, quota, or restore fails, discard staging and leave the current active database unchanged. A crash during pointer switching must have a recovery path. Consider retaining user-controlled backup of old data before restore. No cloud account required.
@@ -325,20 +328,31 @@ Scaled interactive map editing, automated plant-stage progression, per-individua
 
 **Core decision:** Preact views and application/domain services must not import Dexie tables or issue raw IndexedDB queries. Concentrate database-specific reads/writes, subscriptions, migrations and transactions in the Dexie adapter and its supporting infrastructure. Define storage-neutral repository/service contracts using stable application entities and IDs. **Implement only Dexie in V1**; do not build placeholder MariaDB/SQLite/JSON drivers merely to demonstrate extensibility.
 
-**Configuration principle:** Optional storage/sync deployment configuration, separate from local application preferences. An absent file (including a missing optional file) yields **`storage.driver = dexie`**, a stable application database name, and **`sync.enabled = false`**. The proposed filename `garden.storage.json` is not finalized. Proposed conceptual defaults:
+**V1 control-store bootstrap (agreed architecture; not yet implemented):** Open/create a small separate IndexedDB database named **`solace-config`** before opening the Garden data database. Its own versioned schema stores the active physical Garden database name, plus only the installation-local activation/recovery metadata needed for future staged restore (such as previous database and pending activation state). Initialize a stable default physical name on first run (exact suffix/naming scheme to finalize), then resolve that pointer through the repository bootstrap. **Do not hardcode one physical Garden data database name throughout UI/services.** Both databases can use Dexie; the control store is not the gardener's records database.
+
+**Configuration principle:** V1 implements **only Dexie/IndexedDB** and synchronization disabled by default. Keep installation/deployment provider configuration distinct from gardener preferences and from the control-store pointer. Unknown or explicitly unsupported drivers are errors, not grounds for silently creating another dataset. Do not implement placeholder Laravel, MariaDB, SQLite or JSON adapters. A future API adapter can require HTTP/authentication and differs materially from local IndexedDB; future synchronization may keep Dexie as the working store instead of replacing it.
+
+**Illustrative local control-store record (not an exported JSON file):**
 
 ```json
 {
-  "storage": { "driver": "dexie", "database": "solace-garden" },
-  "sync": { "enabled": false, "provider": null, "endpoint": null }
+  "configVersion": 1,
+  "storage": {
+    "driver": "dexie",
+    "activeDatabase": "solace-garden-data-001",
+    "previousDatabase": null
+  },
+  "sync": { "enabled": false }
 }
 ```
+
+**Portable configuration filename:** **`solace.config.json`** is the decided name for the JSON *entry within exported Garden ZIP packages*, not a public deployment configuration file read at startup. It contains only deliberately portable preferences and version information. It cannot identify which physical database to open on another device and must not overwrite the `solace-config` control store. If a separate public deployment configuration is needed in future, name and schema are separate, uncommitted decisions.
 
 V1 can embed these defaults and run without fetching an external configuration file. Parse/validate overrides in one initialization module; missing properties use defaults, but explicitly unknown drivers/malformed settings surface an actionable error rather than opening a different empty database. Avoid treating a selected driver as authorization to change or erase stored data; any future migration must be explicit and reversible. Device credentials/tokens must never appear in public JSON or portable Garden backups.
 
 **Storage and sync are separate concerns:** A future browser client will likely **continue using Dexie as its working store** even when `sync.provider` points to hosted Laravel or a household SOS endpoint. An API is not automatically equivalent to a synchronous local repository. Native SQLite/filesystem adapters only apply in suitable native/server contexts; a web PWA cannot directly connect to MariaDB or open arbitrary native paths. Treat JSON primarily as the portable interchange/backup format, not necessarily a live transactional store.
 
-**Repository acceptance tests for V1:** Verify UI/services depend on the repository contract; verify no optional config uses Dexie without network; verify partial/malformed/unsupported settings handling; verify app preference storage remains independent; verify ZIP export/replace-restore preserves stable record IDs and doesn't silently replace provider configuration. Keep `useLiveQuery` or equivalent reactive behavior **behind a data-source-facing hook/service**, or clearly restrict its use to an adapter-aware integration layer so views do not become permanently Dexie-bound.
+**Repository acceptance tests for V1:** Verify initialization creates/opens `solace-config` before resolving the active Garden database; existing valid pointers are honored; missing/invalid pointers fail safely with an explicit recovery path rather than deleting data; UI/services depend on storage-neutral repository contracts; the default works offline without a deployment config; unsupported provider settings fail clearly; app preferences stay separate. Later restore tests must prove ZIP activation switches the pointer without database renaming, leaves the old store recoverable, preserves stable record IDs, and never imports a device-specific pointer from `solace.config.json`. Keep `useLiveQuery` or equivalent reactive behavior **behind a data-source-facing hook/service**, or clearly restrict its use to an adapter-aware integration layer so views do not become permanently Dexie-bound.
 
 **Evolution considerations, not V1 delivery:** Add revision and deleted-record tracking when synchronization is designed; timestamps alone do not resolve divergent device histories. Future change processing must handle media by stable IDs and validate uploaded archives. Central Laravel identity and authorization serves many HIDs/MIDs; household SOS Laravel should serve one HID and authorized MIDs, with compatible app-level API boundaries where practical. Avoid assuming identical central and household server deployments.
 
@@ -349,6 +363,8 @@ A **reusable, optional contextual bottom drawer** is preferred over a permanent 
 Candidate `AppDrawer` supports `placement` (bottom/top/start/end), `title`, `label`, children, optional trigger-tab alignment, and an optional height. A half-screen drawer can use `50vh` fallback followed by `50dvh` so mobile browser toolbars are accounted for. Rely on Bootstrap offcanvas for animation, focus handling and dismissal; coordinate trigger visibility with offcanvas lifecycle events and clean up listeners. Use meaningful accessible names and at least ~48px touch targets. Keep primary editing flows in the previously agreed responsive fullscreen modal/dedicated editor, **not** the contextual drawer. This pattern remains an implementation candidate, not a mandatory drawer on every screen.
 
 ## 15. Future synchronization and distribution boundaries (planning only)
+
+**Version-scope rule:** Only V1 is a current implementation target. All features and architectures described for V2 onward—including Laravel API or SQLite adapters potentially explored around V3/V4—are nonbinding ideas, not guarantees of delivery, timing, or eventual feasibility. V1 must remain independently usable.
 
 - **V1:** Local Dexie/IndexedDB; complete, versioned JSZip backup/restore is **replace-only** and manual. Independent browser profiles/devices do not share data automatically; mode switching changes UI only. Large photo archives require memory/quota testing.
 - **V2:** Optional hosted accounts via Laravel/MariaDB, upload from local Garden and authenticated **online read/view**. No desktop editing that claims to round-trip changes until actual bidirectional sync exists. Registration must preserve existing local UUIDs and must never silently discard an existing dataset. Hosted quotas and optional ads/premium are uncommitted design/business topics.
