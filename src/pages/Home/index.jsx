@@ -1,5 +1,6 @@
 import {
 	primaryActions,
+	getSettingsHref,
 	navigationGroups,
 	routeCatalog,
 	secondaryDestinations,
@@ -52,7 +53,14 @@ export function Home() {
 					<ul class="workspace-directory__links">
 						{secondaryDestinations.map((destination) => (
 							<li key={destination.path}>
-								<a class="workspace-link" href={destination.path}>
+								<a
+									class="workspace-link"
+									href={
+										destination.id === 'settings'
+											? getSettingsHref('/')
+											: destination.path
+									}
+								>
 									<i class={`bi bi-${destination.icon}`} aria-hidden="true"></i>
 									<span>{destination.label}</span>
 								</a>
@@ -98,7 +106,11 @@ function StandardHome() {
 							{destinations.map((destination) => (
 								<a
 									class="standard-home__card"
-									href={destination.path}
+									href={
+										destination.id === 'settings'
+											? getSettingsHref('/')
+											: destination.path
+									}
 									key={destination.path}
 								>
 									<i class={`bi bi-${destination.icon}`} aria-hidden="true"></i>

@@ -7,6 +7,13 @@
 	margin-block-end: 1.75rem;
 }
 
+.settings-page__title-row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
 .settings-page__eyebrow {
 	margin-block-end: 0.4rem;
 	color: var(--sg-color-primary);
@@ -26,6 +33,31 @@
 .settings-page__header > p:last-child,
 .settings-card__help {
 	color: var(--sg-color-text-muted);
+}
+
+.settings-close {
+	display: inline-flex;
+	min-height: 3rem;
+	padding-inline: 1rem;
+	color: var(--sg-color-primary-strong);
+	font-weight: 700;
+	text-decoration: none;
+	background: var(--sg-color-surface);
+	border: 1px solid var(--sg-color-border);
+	border-radius: 999px;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.settings-close:hover {
+	color: var(--sg-color-primary-strong);
+	background: var(--sg-color-primary-soft);
+	border-color: var(--sg-color-primary);
+}
+
+.settings-close:focus-visible {
+	outline: 3px solid var(--sg-color-focus);
+	outline-offset: 3px;
 }
 
 .settings-card {

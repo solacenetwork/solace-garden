@@ -1,4 +1,6 @@
+import { useLocation } from 'preact-iso';
 import { useInterfaceMode } from '../../context/InterfaceModeContext.jsx';
+import { getSettingsReturnPath } from '../../navigation.js';
 import './style.css';
 
 const modeOptions = [
@@ -20,6 +22,8 @@ const modeOptions = [
 ];
 
 export function Settings() {
+	const { query } = useLocation();
+	const returnPath = getSettingsReturnPath(query.ref);
 	const {
 		preference,
 		effectiveMode,
@@ -30,8 +34,16 @@ export function Settings() {
 	return (
 		<section class="container settings-page" aria-labelledby="settings-title">
 			<header class="settings-page__header">
-				<p class="settings-page__eyebrow">Application preferences</p>
-				<h1 id="settings-title">Settings</h1>
+				<div class="settings-page__title-row">
+					<div>
+						<p class="settings-page__eyebrow">Application preferences</p>
+						<h1 id="settings-title">Settings</h1>
+					</div>
+					<a class="settings-close" href={returnPath}>
+						<i class="bi bi-x-lg" aria-hidden="true"></i>
+						<span>Close</span>
+					</a>
+				</div>
 				<p>Choose how SOLACE Garden presents its workspace.</p>
 			</header>
 

@@ -1,0 +1,85 @@
+.app-drawer {
+	--bs-drawer-inset: 0px;
+	--bs-drawer-height: 45vh;
+	--bs-drawer-height: 45dvh;
+	--bs-drawer-color: var(--sg-color-text);
+	--bs-drawer-bg: var(--sg-color-surface);
+	--bs-drawer-border-color: var(--sg-color-border);
+	--bs-drawer-border-radius: 1rem 1rem 0 0;
+}
+
+.app-drawer-trigger {
+	position: fixed;
+	inset-block-end: max(1rem, env(safe-area-inset-bottom));
+	inset-inline-start: 1rem;
+	z-index: 19;
+	display: inline-flex;
+	width: auto;
+	min-width: 3rem;
+	padding-inline: 0.9rem;
+	color: var(--sg-color-surface);
+	font-weight: 700;
+	background: var(--sg-color-primary);
+	border: 0;
+	border-radius: 999px;
+	box-shadow: var(--sg-shadow-raised);
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.app-drawer-trigger:hover {
+	color: var(--sg-color-surface);
+	background: var(--sg-color-primary-strong);
+}
+
+.app-drawer-trigger[hidden] {
+	display: none;
+}
+
+.app-drawer__header {
+	min-height: 4.5rem;
+	padding-block-start: max(1rem, env(safe-area-inset-top));
+}
+
+.app-drawer__header .drawer-title {
+	font-size: 1.25rem;
+}
+
+.app-drawer__icon-close {
+	width: 3rem;
+	height: 3rem;
+	flex: 0 0 3rem;
+}
+
+.app-drawer__body {
+	color: var(--sg-color-text-muted);
+}
+
+.app-drawer__body > * {
+	max-width: 48rem;
+	margin-inline: auto;
+}
+
+.app-drawer__body strong {
+	color: var(--sg-color-text);
+}
+
+.app-drawer__footer {
+	padding-block-end: max(1rem, env(safe-area-inset-bottom));
+}
+
+.app-drawer__close {
+	border: 0;
+}
+
+@media (min-width: 48rem) {
+	.app-drawer {
+		--bs-drawer-height: 40vh;
+		--bs-drawer-height: 40dvh;
+	}
+
+	.app-drawer-trigger {
+		inset-inline-start: auto;
+		inset-inline-end: 1.5rem;
+	}
+}

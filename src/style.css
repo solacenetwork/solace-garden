@@ -67,13 +67,18 @@ body {
 }
 
 .app-settings-link {
-	display: inline-grid;
-	width: 2.75rem;
-	height: 2.75rem;
 	color: var(--sg-color-text-muted);
 	font-size: 1.25rem;
-	text-decoration: none;
 	border-radius: 0.75rem;
+}
+
+.icon-control {
+	display: inline-grid;
+	width: 3rem;
+	height: 3rem;
+	min-width: 3rem;
+	min-height: 3rem;
+	text-decoration: none;
 	place-items: center;
 }
 
@@ -97,7 +102,8 @@ body {
 
 .app-brand:focus-visible,
 .app-settings-link:focus-visible,
-.app-button:focus-visible {
+.app-button:focus-visible,
+.icon-control:focus-visible {
 	outline: 3px solid var(--sg-color-focus);
 	outline-offset: 3px;
 }

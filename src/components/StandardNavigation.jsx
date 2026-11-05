@@ -1,6 +1,10 @@
 import { useLocation } from 'preact-iso';
 import { useState } from 'preact/hooks';
-import { navigationGroups, routeCatalog } from '../navigation.js';
+import {
+	getSettingsHref,
+	navigationGroups,
+	routeCatalog,
+} from '../navigation.js';
 
 export function StandardNavigation() {
 	const { path } = useLocation();
@@ -50,7 +54,11 @@ export function StandardNavigation() {
 									<li key={route.path}>
 										<a
 											class="standard-navigation__link"
-											href={route.path}
+											href={
+												route.id === 'settings'
+													? getSettingsHref(path)
+													: route.path
+											}
 											aria-current={path === route.path ? 'page' : undefined}
 											onClick={() => setIsExpanded(false)}
 										>

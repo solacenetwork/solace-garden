@@ -1,4 +1,5 @@
 import { useLocation } from 'preact-iso';
+import { AppDrawer } from '../components/AppDrawer.jsx';
 import { findRoute } from '../navigation.js';
 import { NotFound } from './_404.jsx';
 
@@ -11,6 +12,7 @@ export function PlaceholderPage() {
 	}
 
 	return (
+		<>
 		<section class="container placeholder-page" aria-labelledby="page-title">
 			<div class="placeholder-page__icon" aria-hidden="true">
 				<i class={`bi bi-${destination.icon}`}></i>
@@ -26,5 +28,24 @@ export function PlaceholderPage() {
 				Back to Home
 			</a>
 		</section>
+		{destination.id === 'calendar' && (
+			<AppDrawer
+				id="calendar-information"
+				title="About the Calendar workspace"
+				triggerLabel="Info"
+			>
+				<div>
+					<p>
+						<strong>Contextual information prototype.</strong> This secondary panel
+						can explain the current workspace without replacing its primary actions.
+					</p>
+					<p>
+						Calendar events and reminders remain placeholder content until their
+						feature milestone.
+					</p>
+				</div>
+			</AppDrawer>
+		)}
+		</>
 	);
 }

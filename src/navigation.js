@@ -1,5 +1,6 @@
 export const routeCatalog = [
 	{
+		id: 'home',
 		path: '/',
 		label: 'Home',
 		icon: 'house-door',
@@ -9,6 +10,7 @@ export const routeCatalog = [
 		view: 'home',
 	},
 	{
+		id: 'plants',
 		path: '/plants',
 		label: 'Plants',
 		detail: 'Update Plants',
@@ -19,6 +21,7 @@ export const routeCatalog = [
 		view: 'plants',
 	},
 	{
+		id: 'harvest',
 		path: '/harvest',
 		label: 'Harvest',
 		detail: 'Record a harvest',
@@ -28,6 +31,7 @@ export const routeCatalog = [
 		navigationGroup: 'activities',
 	},
 	{
+		id: 'photos',
 		path: '/photos',
 		label: 'Photos',
 		detail: 'Open Gallery',
@@ -37,6 +41,7 @@ export const routeCatalog = [
 		navigationGroup: 'activities',
 	},
 	{
+		id: 'tasks',
 		path: '/tasks',
 		label: 'Tasks',
 		detail: 'View garden tasks',
@@ -46,6 +51,7 @@ export const routeCatalog = [
 		navigationGroup: 'activities',
 	},
 	{
+		id: 'calendar',
 		path: '/calendar',
 		label: 'Calendar',
 		detail: 'View schedule',
@@ -55,6 +61,7 @@ export const routeCatalog = [
 		navigationGroup: 'activities',
 	},
 	{
+		id: 'notes',
 		path: '/notes',
 		label: 'Notes',
 		detail: 'Open notes',
@@ -64,6 +71,7 @@ export const routeCatalog = [
 		navigationGroup: 'activities',
 	},
 	{
+		id: 'gardens',
 		path: '/gardens',
 		label: 'Gardens',
 		icon: 'tree',
@@ -72,6 +80,7 @@ export const routeCatalog = [
 		navigationGroup: 'home',
 	},
 	{
+		id: 'journal',
 		path: '/journal',
 		label: 'Journal',
 		icon: 'journal-richtext',
@@ -80,6 +89,7 @@ export const routeCatalog = [
 		navigationGroup: 'workspaces',
 	},
 	{
+		id: 'search',
 		path: '/search',
 		label: 'Search',
 		icon: 'search',
@@ -89,6 +99,7 @@ export const routeCatalog = [
 		navigationGroup: 'workspaces',
 	},
 	{
+		id: 'templates',
 		path: '/templates',
 		label: 'Templates',
 		icon: 'copy',
@@ -97,6 +108,7 @@ export const routeCatalog = [
 		navigationGroup: 'workspaces',
 	},
 	{
+		id: 'locations',
 		path: '/locations',
 		label: 'Locations',
 		icon: 'geo-alt',
@@ -105,6 +117,7 @@ export const routeCatalog = [
 		navigationGroup: 'workspaces',
 	},
 	{
+		id: 'settings',
 		path: '/settings',
 		label: 'Settings',
 		icon: 'gear',
@@ -135,4 +148,23 @@ export const workspaceRoutes = routeCatalog.filter(({ path }) => path !== '/');
 
 export function findRoute(path) {
 	return routeCatalog.find((route) => route.path === path);
+}
+
+export function findRouteById(id) {
+	return routeCatalog.find((route) => route.id === id);
+}
+
+export function getSettingsHref(originPath) {
+	const origin = findRoute(originPath);
+	const returnRoute = origin && origin.id !== 'settings'
+		? origin
+		: findRouteById('home');
+
+	return `/settings?ref=${encodeURIComponent(returnRoute.id)}`;
+}
+
+export function getSettingsReturnPath(reference) {
+	const route = findRouteById(reference);
+
+	return route && route.id !== 'settings' ? route.path : '/';
 }

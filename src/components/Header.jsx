@@ -1,4 +1,5 @@
 import { useLocation } from 'preact-iso';
+import { getSettingsHref } from '../navigation.js';
 import { GardenBrand } from './GardenBrand';
 
 export function Header() {
@@ -9,8 +10,8 @@ export function Header() {
 			<div class="container app-header__inner">
 				<GardenBrand />
 				<a
-					class="app-settings-link"
-					href="/settings"
+					class="icon-control app-settings-link"
+					href={getSettingsHref(path)}
 					aria-label="Settings"
 					aria-current={path === '/settings' ? 'page' : undefined}
 				>

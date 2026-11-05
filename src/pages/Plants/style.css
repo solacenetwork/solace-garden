@@ -98,9 +98,9 @@
 }
 
 .plant-editor {
-	--dialog-width: 48rem;
-	--dialog-color: var(--sg-color-text);
-	--dialog-bg: var(--sg-color-surface);
+	--bs-dialog-width: 48rem;
+	--bs-dialog-color: var(--sg-color-text);
+	--bs-dialog-bg: var(--sg-color-surface);
 }
 
 .plant-editor__header {
