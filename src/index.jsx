@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Header } from './components/Header.jsx';
 import { StandardNavigation } from './components/StandardNavigation.jsx';
+import { StorageRecoveryScreen } from './components/StorageRecoveryScreen.jsx';
 import { InterfaceModeProvider, useInterfaceMode } from './context/InterfaceModeContext.jsx';
 import { routeCatalog } from './navigation.js';
 import { Home } from './pages/Home/index.jsx';
@@ -11,6 +12,7 @@ import { Plants } from './pages/Plants/index.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
 import { Settings } from './pages/Settings/index.jsx';
 import { NotFound } from './pages/_404.jsx';
+import { initializeStorage } from './storage/index.js';
 import './style.css';
 
 const pageComponents = {
@@ -66,4 +68,17 @@ export function App() {
 	);
 }
 
-render(<App />, document.getElementById('app'));
+async function startApplication() {
+	const root = document.getElementById('app');
+	const storage = await initializeStorage();
+
+	if (storage.status === 'recovery-required') {
+		render(<StorageRecoveryScreen error={storage.error} />, root);
+		return;
+	}
+
+	globalThis.addEventListener('pagehide', () => storage.close(), { once: true });
+	render(<App />, root);
+}
+
+void startApplication();

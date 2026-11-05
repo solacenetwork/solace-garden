@@ -33,6 +33,45 @@ body {
 	background: var(--sg-color-background);
 }
 
+.storage-recovery {
+	display: grid;
+	min-height: 100vh;
+	min-height: 100dvh;
+	place-items: center;
+}
+
+.storage-recovery__panel {
+	width: min(100%, 38rem);
+	background: var(--sg-color-surface);
+	border: 1px solid var(--sg-color-border);
+	border-radius: var(--sg-radius-card);
+	box-shadow: var(--sg-shadow-soft);
+}
+
+.storage-recovery__icon {
+	display: block;
+	margin-block: 2rem 1rem;
+	color: #8a5b12;
+	font-size: 2.5rem;
+}
+
+.storage-recovery__retry {
+	display: inline-flex;
+	min-height: 3rem;
+	padding: 0.65rem 1rem;
+	color: var(--sg-color-surface);
+	font-weight: 700;
+	background: var(--sg-color-primary);
+	border: 0;
+	border-radius: 0.75rem;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.storage-recovery__retry:hover {
+	background: var(--sg-color-primary-strong);
+}
+
 #app,
 .app-shell {
 	display: flex;
