@@ -1,885 +1,856 @@
 [
-    {
-        "name": "Artichoke",
-        "scientific": "Cynara scolymus",
-        "url": [
-            "artichoke"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00001",
-        "photo": "/assets/plantdb/images/artichoke.jpg"
-    },
-    {
-        "name": "Arugula",
-        "scientific": "Eruca vesicaria",
-        "url": [
-            "arugula"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00002",
-        "photo": "/assets/plantdb/images/arugula.jpg"
-    },
-    {
-        "name": "Asparagus",
-        "scientific": "Asparagus officinalis",
-        "url": [
-            "asparagus"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00003",
-        "photo": "/assets/plantdb/images/asparagus.jpg"
-    },
-    {
-        "name": "Basil",
-        "scientific": "Ocimum basilicum",
-        "url": [
-            "basil"
-        ],
-        "category": [
-            "herbs"
-        ],
-        "pid": "00004",
-        "photo": "/assets/plantdb/images/basil.jpg"
-    },
-    {
-        "name": "Beans - Green",
-        "scientific": "Phaseolus vulgaris",
-        "url": [
-            "greenbeans",
-            "greenbean",
-            "beans",
-            "bean"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00005",
-        "photo": "/assets/plantdb/images/green-beans.jpg"
-    },
-    {
-        "name": "Beans - Lima",
-        "scientific": "Phaseolus lunatus",
-        "url": [
-            "limabeans",
-            "limabean"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00006",
-        "photo": "/assets/plantdb/images/lima-beans.jpg"
-    },
-    {
-        "name": "Beets",
-        "scientific": "Beta vulgaris",
-        "url": [
-            "beets",
-            "beet"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00007",
-        "photo": "/assets/plantdb/images/beets.jpg"
-    },
-    {
-        "name": "Bell Peppers",
-        "scientific": "Capsicum annuum",
-        "url": [
-            "bellpeppers",
-            "bellpepper",
-            "peppers"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00008",
-        "photo": "/assets/plantdb/images/bell-pepper.jpg"
-    },
-    {
-        "name": "Bok Choy",
-        "scientific": "Brassica rapa subsp. chinensis",
-        "url": [
-            "bokchoy"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00009",
-        "photo": "/assets/plantdb/images/bok-choy.jpg"
-    },
-    {
-        "name": "Broccoli",
-        "scientific": "Brassica oleracea var. italica",
-        "url": [
-            "broccoli"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00010",
-        "photo": "/assets/plantdb/images/broccoli.jpg"
-    },
-    {
-        "name": "Brussels Sprouts",
-        "scientific": "Brassica oleracea var. gemmifera",
-        "url": [
-            "brusselssprouts",
-            "brusselsprouts"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00011",
-        "photo": "/assets/plantdb/images/brussels-sprouts.jpg"
-    },
-    {
-        "name": "Cabbage - Napa",
-        "scientific": "Brassica rapa subsp. pekinensis",
-        "url": [
-            "chinesecabbage",
-            "napacabbage"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00012",
-        "photo": "/assets/plantdb/images/napa-cabbage.jpg"
-    },
-    {
-        "name": "Cabbage - Green",
-        "scientific": "Brassica oleracea",
-        "url": [
-            "cabbage",
-            "greencabbage"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00013",
-        "photo": "/assets/plantdb/images/green-cabbage.jpg"
-    },
-    {
-        "name": "Cabbage - Red",
-        "scientific": "Brassica oleracea var. rubra",
-        "url": [
-            "redcabbage"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00014",
-        "photo": "/assets/plantdb/images/red-cabbage.jpg"
-    },
-    {
-        "name": "Cabbage - Savoy",
-        "scientific": "Brassica oleracea var. sabauda",
-        "url": [
-            "savoycabbage"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00015",
-        "photo": "/assets/plantdb/images/savoy-cabbage.jpg"
-    },
-    {
-        "name": "Cantaloupe",
-        "scientific": "Cucumis melo",
-        "url": [
-            "cantaloupe"
-        ],
-        "category": [
-            "melons"
-        ],
-        "pid": "00061",
-        "photo": "/assets/plantdb/images/cantaloupe.jpg"
-    },
-    {
-        "name": "Carrots",
-        "scientific": "Daucus carota subsp. sativus",
-        "url": [
-            "carrot",
-            "carrots"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00016",
-        "photo": "/assets/plantdb/images/carrots.jpg"
-    },
-    {
-        "name": "Cauliflower",
-        "scientific": "Brassica oleracea var. botrytis",
-        "url": [
-            "cauliflower"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00017",
-        "photo": "/assets/plantdb/images/cauliflower.jpg"
-    },
-    {
-        "name": "Celery",
-        "scientific": "Apium graveolens",
-        "url": [
-            "celery"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00018",
-        "photo": "/assets/plantdb/images/celery.jpg"
-    },
-    {
-        "name": "Chard - Swiss",
-        "scientific": "Beta vulgaris subsp. vulgaris",
-        "url": [
-            "swisschard",
-            "chard"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00019",
-        "photo": "/assets/plantdb/images/swiss-chard.jpg"
-    },
-    {
-        "name": "Chive",
-        "scientific": "Allium schoenoprasum",
-        "url": [
-            "chive",
-            "chives"
-        ],
-        "category": [
-            "herbs"
-        ],
-        "pid": "00020",
-        "photo": "/assets/plantdb/images/chives.jpg"
-    },
-    {
-        "name": "Corn",
-        "scientific": "Zea mays",
-        "url": [
-            "corn"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00021",
-        "photo": "/assets/plantdb/images/corn.jpg"
-    },
-    {
-        "name": "Cucumber",
-        "scientific": "Cucumis sativus",
-        "url": [
-            "cucumber"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00022",
-        "photo": "/assets/plantdb/images/cucumber.jpg"
-    },
-    {
-        "name": "Cress",
-        "scientific": "Lepidium sativum",
-        "url": [
-            "cress"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00023",
-        "photo": "/assets/plantdb/images/cress.jpg"
-    },
-    {
-        "name": "Daikon",
-        "scientific": "Raphanus sativus var. longipinnatus",
-        "url": [
-            "daikon"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00024",
-        "photo": "/assets/plantdb/images/daikon.jpg"
-    },
-    {
-        "name": "Eggplant (Aubergene)",
-        "scientific": "Solanum melongena",
-        "url": [
-            "eggplant",
-            "aubergene"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00025",
-        "photo": "/assets/plantdb/images/eggplant.jpg"
-    },
-    {
-        "name": "Fennel",
-        "scientific": "Foeniculum vulgare",
-        "url": [
-            "fennel"
-        ],
-        "category": [
-            "herbs"
-        ],
-        "pid": "00063",
-        "photo": "/assets/plantdb/images/fennel.jpg"
-    },
-    {
-        "name": "Garlic",
-        "scientific": "Allium sativum",
-        "url": [
-            "garlic"
-        ],
-        "category": [
-            "herbs",
-            "vegetables"
-        ],
-        "pid": "00026",
-        "photo": "/assets/plantdb/images/garlic.jpg"
-    },
-    {
-        "name": "Greens - Collard",
-        "scientific": "Brassica oleracea var. viridis",
-        "url": [
-            "collards",
-            "collardgreens"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00027",
-        "photo": "/assets/plantdb/images/collard-greens.jpg"
-    },
-    {
-        "name": "Greens - Mustard",
-        "scientific": "Brassica juncea",
-        "url": [
-            "mustardgreens",
-            "mustard"
-        ],
-        "category": [
-            "vegetables",
-            "herbs"
-        ],
-        "pid": "00028",
-        "photo": "/assets/plantdb/images/mustard-greens.jpg"
-    },
-    {
-        "name": "Horseradish",
-        "scientific": "Armoracia rusticana",
-        "url": [
-            "horseradish"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00064",
-        "photo": "/assets/plantdb/images/horseradish.jpg"
-    },
-    {
-        "name": "Iceberg Lettuce",
-        "scientific": "Lactuca sativa",
-        "url": [
-            "iceberglettuce",
-            "iceberg"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00065",
-        "photo": "/assets/plantdb/images/iceberg-lettuce.jpg"
-    },
-    {
-        "name": "Jalape\u00f1o Pepper",
-        "scientific": "Capsicum annuum var. annuum",
-        "url": [
-            "jalape\u00f1o",
-            "jalapeno",
-            "jalapenos",
-            "hotpepper"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00029",
-        "photo": "/assets/plantdb/images/jalapeno-pepper.jpg"
-    },
-    {
-        "name": "Jicama",
-        "scientific": "Pachyrhizus erosus",
-        "url": [
-            "jicama"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00030",
-        "photo": "/assets/plantdb/images/jicama.jpg"
-    },
-    {
-        "name": "Kale",
-        "scientific": "Brassica oleracea var. acephala",
-        "url": [
-            "kale"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00031",
-        "photo": "/assets/plantdb/images/kale.jpg"
-    },
-    {
-        "name": "Kohlrabi",
-        "scientific": "Brassica oleracea, var. gongylodes",
-        "url": [
-            "kohlrabi"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00032",
-        "photo": "/assets/plantdb/images/kohlrabi.jpg"
-    },
-    {
-        "name": "Leek",
-        "scientific": "Allium ampeloprasum var. porrum",
-        "url": [
-            "leek",
-            "leeks"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00033",
-        "photo": "/assets/plantdb/images/leeks.jpg"
-    },
-    {
-        "name": "Lettuce - Butterhead",
-        "scientific": "Lactuca sativa var. capitata",
-        "url": [
-            "butterhead",
-            "buttercrunch",
-            "butterheadlettuce",
-            "bostonlettuce",
-            "bibblettuce"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00034",
-        "photo": "/assets/plantdb/images/butterhead-lettuce.jpg"
-    },
-    {
-        "name": "Lettuce - Iceberg",
-        "scientific": "Lactuca sativa var. capitata 'Iceberg'",
-        "url": [
-            "iceberg",
-            "iceberglettuce"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00065",
-        "photo": "/assets/plantdb/images/iceberg-lettuce.jpg"
-    },
-    {
-        "name": "Lettuce - Romaine",
-        "scientific": "Lactuca sativa var. longifolia",
-        "url": [
-            "romaine",
-            "romainelettuce"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00035",
-        "photo": "/assets/plantdb/images/romaine-lettuce.jpg"
-    },
-    {
-        "name": "Mustard",
-        "scientific": "Brassica juncea",
-        "url": [
-            "mustard",
-            "mustardgreens"
-        ],
-        "category": [
-            "vegetables",
-            "herbs"
-        ],
-        "pid": "00028",
-        "photo": "/assets/plantdb/images/mustard-greens.jpg"
-    },
-    {
-        "name": "Nasturtium",
-        "scientific": "Tropaeolum majus",
-        "url": [
-            "nasturtium"
-        ],
-        "category": [
-            "flowers"
-        ],
-        "pid": "00062",
-        "photo": "/assets/plantdb/images/nasturtium.jpg"
-    },
-    {
-        "name": "Okra",
-        "scientific": "Abelmoschus esculentus",
-        "url": [
-            "okra"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00036",
-        "photo": "/assets/plantdb/images/okra.jpg"
-    },
-    {
-        "name": "Onions - Green",
-        "scientific": "Allii fistulosi",
-        "url": [
-            "greenonion",
-            "greenonions"
-        ],
-        "category": [
-            "vegetables",
-            "herbs"
-        ],
-        "pid": "00037",
-        "photo": "/assets/plantdb/images/green-onions.jpg"
-    },
-    {
-        "name": "Onions - Yellow",
-        "scientific": "Allium cepa",
-        "url": [
-            "yellowonion",
-            "brownonion",
-            "spanishonions",
-            "yellowonions"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00038",
-        "photo": "/assets/plantdb/images/onion-yellow.jpg"
-    },
-    {
-        "name": "Onions - White",
-        "scientific": "Allium cepa",
-        "url": [
-            "whiteonion",
-            "sweetonion",
-            "whiteonions"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00039",
-        "photo": "/assets/plantdb/images/onion-white.jpg"
-    },
-    {
-        "name": "Oregano",
-        "scientific": "Origanum vulgare",
-        "url": [
-            "oregano"
-        ],
-        "category": [
-            "herbs"
-        ],
-        "pid": "00040",
-        "photo": "/assets/plantdb/images/oregano.jpg"
-    },
-    {
-        "name": "Parsnips",
-        "scientific": "Pastinaca sativa",
-        "url": [
-            "parsnip",
-            "parsnips"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00041",
-        "photo": "/assets/plantdb/images/parsnip.jpg"
-    },
-    {
-        "name": "Peas",
-        "scientific": "Lathyrus oleraceus",
-        "url": [
-            "pea",
-            "peas",
-            "snappeas"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00042",
-        "photo": "/assets/plantdb/images/peas.jpg"
-    },
-    {
-        "name": "Potato",
-        "scientific": "Solanum tuberosum",
-        "url": [
-            "potato",
-            "potatoes"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00043",
-        "photo": "/assets/plantdb/images/potato.jpg"
-    },
-    {
-        "name": "Potato - Sweet",
-        "scientific": "Ipomoea batatas",
-        "url": [
-            "sweetpotato",
-            "sweetpotatoes"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00044",
-        "photo": "/assets/plantdb/images/potato-sweet.jpg"
-    },
-    {
-        "name": "Pumpkin",
-        "scientific": "Cucurbita pepo",
-        "url": [
-            "pumpkin",
-            "pumpkins"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00045",
-        "photo": "/assets/plantdb/images/pumpkin.jpg"
-    },
-    {
-        "name": "Quinoa",
-        "scientific": "Chenopodium quinoa",
-        "url": [
-            "quinoa"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00066",
-        "photo": "/assets/plantdb/images/quinoa.jpg"
-    },
-    {
-        "name": "Radicchio",
-        "scientific": "Cichorium intybus L. Radicchio",
-        "url": [
-            "radicchio",
-            "italianchicory"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00046",
-        "photo": "/assets/plantdb/images/raddichio.jpg"
-    },
-    {
-        "name": "Radish",
-        "scientific": "Raphanus sativus",
-        "url": [
-            "radish",
-            "radishes"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00047",
-        "photo": "/assets/plantdb/images/radish.jpg"
-    },
-    {
-        "name": "Rutabaga",
-        "scientific": "Brassica napus, var. napobrassica",
-        "url": [
-            "rutabaga"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00048",
-        "photo": "/assets/plantdb/images/rutabaga.jpg"
-    },
-    {
-        "name": "Rhubarb",
-        "scientific": "Rheum rhabarbarum",
-        "url": [
-            "rhubarb"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00049",
-        "photo": "/assets/plantdb/images/rhubarb.jpg"
-    },
-    {
-        "name": "Shallots",
-        "scientific": "Allium cepa, var. aggregatum",
-        "url": [
-            "shallot",
-            "shallots"
-        ],
-        "category": [
-            "vegetables",
-            "herbs"
-        ],
-        "pid": "00050",
-        "photo": "/assets/plantdb/images/shallots.jpg"
-    },
-    {
-        "name": "Spinach",
-        "scientific": "Spinacia oleracea",
-        "url": [
-            "spinach"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00051",
-        "photo": "/assets/plantdb/images/spinach.jpg"
-    },
-    {
-        "name": "Squash - Acorn",
-        "scientific": "Cucurbita pepo var. turbinata",
-        "url": [
-            "acornsquash"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00052",
-        "photo": "/assets/plantdb/images/squash-acorn.jpg"
-    },
-    {
-        "name": "Squash - Butternut",
-        "scientific": "Cucurbita moschata",
-        "url": [
-            "butternut",
-            "butternutsquash"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00053",
-        "photo": "/assets/plantdb/images/squash-butternut.jpg"
-    },
-    {
-        "name": "Squash - Spaghetti",
-        "scientific": "Cucurbita pepo",
-        "url": [
-            "spaghettisquash",
-            "noodlesquash"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00054",
-        "photo": "/assets/plantdb/images/squash-spaghetti.jpg"
-    },
-    {
-        "name": "Squash - Zucchini",
-        "scientific": "Cucurbita pepo",
-        "url": [
-            "zucchini"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00055",
-        "photo": "/assets/plantdb/images/squash-zucchini.jpg"
-    },
-    {
-        "name": "Sunflower",
-        "scientific": "Helianthus annuus",
-        "url": [
-            "sunflower"
-        ],
-        "category": [
-            "flowers"
-        ],
-        "pid": "00056",
-        "photo": "/assets/plantdb/images/sunflowers.jpg"
-    },
-    {
-        "name": "Tomatillo",
-        "scientific": "Physalis philadelphica",
-        "url": [
-            "tomatillo"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00057",
-        "photo": "/assets/plantdb/images/tomatillo.jpg"
-    },
-    {
-        "name": "Tomato",
-        "scientific": "Solanum lycopersicum",
-        "url": [
-            "tomato"
-        ],
-        "category": [
-            "vegetables",
-            "fruits"
-        ],
-        "pid": "00057",
-        "photo": "/assets/plantdb/images/tomato.jpg"
-    },    
-    {
-        "name": "Watermelon",
-        "scientific": "Citrullus lanatus",
-        "url": [
-            "watermelon",
-            "watermelons"
-        ],
-        "category": [
-            "vegetables",
-            "melons"
-        ],
-        "pid": "00059",
-        "photo": "/assets/plantdb/images/watermelon.jpg"
-    },
-    {
-        "name": "Yam - Yellow",
-        "scientific": "Dioscorea cayenensis",
-        "url": [
-            "guineayam",
-            "yam",
-            "yams"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00060",
-        "photo": "/assets/plantdb/images/yam-yellow.jpg"
-    },
-    {
-        "name": "Zucchini",
-        "scientific": "Cucurbita pepo",
-        "url": [
-            "zucchini"
-        ],
-        "category": [
-            "vegetables"
-        ],
-        "pid": "00055",
-        "photo": "/assets/plantdb/images/squash-zucchini.jpg"
-    }
+  {
+    "name": "Artichoke",
+    "scientific": "Cynara scolymus",
+    "url": [
+      "artichoke"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00001",
+    "photo": "/assets/plantdb/images/artichoke.jpg"
+  },
+  {
+    "name": "Arugula",
+    "scientific": "Eruca vesicaria",
+    "url": [
+      "arugula"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00002",
+    "photo": "/assets/plantdb/images/arugula.jpg"
+  },
+  {
+    "name": "Asparagus",
+    "scientific": "Asparagus officinalis",
+    "url": [
+      "asparagus"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00003",
+    "photo": "/assets/plantdb/images/asparagus.jpg"
+  },
+  {
+    "name": "Basil",
+    "scientific": "Ocimum basilicum",
+    "url": [
+      "basil"
+    ],
+    "category": [
+      "herbs"
+    ],
+    "pid": "00004",
+    "photo": "/assets/plantdb/images/basil.jpg"
+  },
+  {
+    "name": "Beans - Green",
+    "scientific": "Phaseolus vulgaris",
+    "url": [
+      "greenbeans",
+      "greenbean",
+      "beans",
+      "bean"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00005",
+    "photo": "/assets/plantdb/images/green-beans.jpg"
+  },
+  {
+    "name": "Beans - Lima",
+    "scientific": "Phaseolus lunatus",
+    "url": [
+      "limabeans",
+      "limabean"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00006",
+    "photo": "/assets/plantdb/images/lima-beans.jpg"
+  },
+  {
+    "name": "Beets",
+    "scientific": "Beta vulgaris",
+    "url": [
+      "beets",
+      "beet"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00007",
+    "photo": "/assets/plantdb/images/beets.jpg"
+  },
+  {
+    "name": "Bell Peppers",
+    "scientific": "Capsicum annuum",
+    "url": [
+      "bellpeppers",
+      "bellpepper",
+      "peppers"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00008",
+    "photo": "/assets/plantdb/images/bell-pepper.jpg"
+  },
+  {
+    "name": "Bok Choy",
+    "scientific": "Brassica rapa subsp. chinensis",
+    "url": [
+      "bokchoy"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00009",
+    "photo": "/assets/plantdb/images/bok-choy.jpg"
+  },
+  {
+    "name": "Broccoli",
+    "scientific": "Brassica oleracea var. italica",
+    "url": [
+      "broccoli"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00010",
+    "photo": "/assets/plantdb/images/broccoli.jpg"
+  },
+  {
+    "name": "Brussels Sprouts",
+    "scientific": "Brassica oleracea var. gemmifera",
+    "url": [
+      "brusselssprouts",
+      "brusselsprouts"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00011",
+    "photo": "/assets/plantdb/images/brussels-sprouts.jpg"
+  },
+  {
+    "name": "Cabbage - Green",
+    "scientific": "Brassica oleracea",
+    "url": [
+      "cabbage",
+      "greencabbage"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00013",
+    "photo": "/assets/plantdb/images/green-cabbage.jpg"
+  },
+  {
+    "name": "Cabbage - Napa",
+    "scientific": "Brassica rapa subsp. pekinensis",
+    "url": [
+      "chinesecabbage",
+      "napacabbage"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00012",
+    "photo": "/assets/plantdb/images/napa-cabbage.jpg"
+  },
+  {
+    "name": "Cabbage - Red",
+    "scientific": "Brassica oleracea var. rubra",
+    "url": [
+      "redcabbage"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00014",
+    "photo": "/assets/plantdb/images/red-cabbage.jpg"
+  },
+  {
+    "name": "Cabbage - Savoy",
+    "scientific": "Brassica oleracea var. sabauda",
+    "url": [
+      "savoycabbage"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00015",
+    "photo": "/assets/plantdb/images/savoy-cabbage.jpg"
+  },
+  {
+    "name": "Cantaloupe",
+    "scientific": "Cucumis melo",
+    "url": [
+      "cantaloupe"
+    ],
+    "category": [
+      "melons"
+    ],
+    "pid": "00061",
+    "photo": "/assets/plantdb/images/cantaloupe.jpg"
+  },
+  {
+    "name": "Carrots",
+    "scientific": "Daucus carota subsp. sativus",
+    "url": [
+      "carrot",
+      "carrots"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00016",
+    "photo": "/assets/plantdb/images/carrots.jpg"
+  },
+  {
+    "name": "Cauliflower",
+    "scientific": "Brassica oleracea var. botrytis",
+    "url": [
+      "cauliflower"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00017",
+    "photo": "/assets/plantdb/images/cauliflower.jpg"
+  },
+  {
+    "name": "Celery",
+    "scientific": "Apium graveolens",
+    "url": [
+      "celery"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00018",
+    "photo": "/assets/plantdb/images/celery.jpg"
+  },
+  {
+    "name": "Chard - Swiss",
+    "scientific": "Beta vulgaris subsp. vulgaris",
+    "url": [
+      "swisschard",
+      "chard"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00019",
+    "photo": "/assets/plantdb/images/swiss-chard.jpg"
+  },
+  {
+    "name": "Chive",
+    "scientific": "Allium schoenoprasum",
+    "url": [
+      "chive",
+      "chives"
+    ],
+    "category": [
+      "herbs"
+    ],
+    "pid": "00020",
+    "photo": "/assets/plantdb/images/chives.jpg"
+  },
+  {
+    "name": "Corn",
+    "scientific": "Zea mays",
+    "url": [
+      "corn"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00021",
+    "photo": "/assets/plantdb/images/corn.jpg"
+  },
+  {
+    "name": "Cress",
+    "scientific": "Lepidium sativum",
+    "url": [
+      "cress"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00023",
+    "photo": "/assets/plantdb/images/cress.jpg"
+  },
+  {
+    "name": "Cucumber",
+    "scientific": "Cucumis sativus",
+    "url": [
+      "cucumber"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00022",
+    "photo": "/assets/plantdb/images/cucumber.jpg"
+  },
+  {
+    "name": "Daikon",
+    "scientific": "Raphanus sativus var. longipinnatus",
+    "url": [
+      "daikon"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00024",
+    "photo": "/assets/plantdb/images/daikon.jpg"
+  },
+  {
+    "name": "Eggplant (Aubergene)",
+    "scientific": "Solanum melongena",
+    "url": [
+      "eggplant",
+      "aubergene"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00025",
+    "photo": "/assets/plantdb/images/eggplant.jpg"
+  },
+  {
+    "name": "Fennel",
+    "scientific": "Foeniculum vulgare",
+    "url": [
+      "fennel"
+    ],
+    "category": [
+      "herbs"
+    ],
+    "pid": "00063",
+    "photo": "/assets/plantdb/images/fennel.jpg"
+  },
+  {
+    "name": "Garlic",
+    "scientific": "Allium sativum",
+    "url": [
+      "garlic"
+    ],
+    "category": [
+      "herbs",
+      "vegetables"
+    ],
+    "pid": "00026",
+    "photo": "/assets/plantdb/images/garlic.jpg"
+  },
+  {
+    "name": "Greens - Collard",
+    "scientific": "Brassica oleracea var. viridis",
+    "url": [
+      "collards",
+      "collardgreens"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00027",
+    "photo": "/assets/plantdb/images/collard-greens.jpg"
+  },
+  {
+    "name": "Horseradish",
+    "scientific": "Armoracia rusticana",
+    "url": [
+      "horseradish"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00064",
+    "photo": "/assets/plantdb/images/horseradish.jpg"
+  },
+  {
+    "name": "Iceberg Lettuce",
+    "scientific": "Lactuca sativa",
+    "url": [
+      "iceberglettuce",
+      "iceberg"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00065",
+    "photo": "/assets/plantdb/images/iceberg-lettuce.jpg",
+    "aliases": [
+      "Lettuce - Iceberg"
+    ]
+  },
+  {
+    "name": "Jalapeño Pepper",
+    "scientific": "Capsicum annuum var. annuum",
+    "url": [
+      "jalapeño",
+      "jalapeno",
+      "jalapenos",
+      "hotpepper"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00029",
+    "photo": "/assets/plantdb/images/jalapeno-pepper.jpg"
+  },
+  {
+    "name": "Jicama",
+    "scientific": "Pachyrhizus erosus",
+    "url": [
+      "jicama"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00030",
+    "photo": "/assets/plantdb/images/jicama.jpg"
+  },
+  {
+    "name": "Kale",
+    "scientific": "Brassica oleracea var. acephala",
+    "url": [
+      "kale"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00031",
+    "photo": "/assets/plantdb/images/kale.jpg"
+  },
+  {
+    "name": "Kohlrabi",
+    "scientific": "Brassica oleracea, var. gongylodes",
+    "url": [
+      "kohlrabi"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00032",
+    "photo": "/assets/plantdb/images/kohlrabi.jpg"
+  },
+  {
+    "name": "Leek",
+    "scientific": "Allium ampeloprasum var. porrum",
+    "url": [
+      "leek",
+      "leeks"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00033",
+    "photo": "/assets/plantdb/images/leeks.jpg"
+  },
+  {
+    "name": "Lettuce - Butterhead",
+    "scientific": "Lactuca sativa var. capitata",
+    "url": [
+      "butterhead",
+      "buttercrunch",
+      "butterheadlettuce",
+      "bostonlettuce",
+      "bibblettuce"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00034",
+    "photo": "/assets/plantdb/images/butterhead-lettuce.jpg"
+  },
+  {
+    "name": "Lettuce - Romaine",
+    "scientific": "Lactuca sativa var. longifolia",
+    "url": [
+      "romaine",
+      "romainelettuce"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00035",
+    "photo": "/assets/plantdb/images/romaine-lettuce.jpg"
+  },
+  {
+    "name": "Mustard Greens",
+    "scientific": "Brassica juncea",
+    "url": [
+      "mustard",
+      "mustardgreens"
+    ],
+    "category": [
+      "vegetables",
+      "herbs"
+    ],
+    "pid": "00028",
+    "photo": "/assets/plantdb/images/mustard-greens.jpg",
+    "aliases": [
+      "Greens - Mustard",
+      "Mustard"
+    ]
+  },
+  {
+    "name": "Nasturtium",
+    "scientific": "Tropaeolum majus",
+    "url": [
+      "nasturtium"
+    ],
+    "category": [
+      "flowers"
+    ],
+    "pid": "00062",
+    "photo": "/assets/plantdb/images/nasturtium.jpg"
+  },
+  {
+    "name": "Okra",
+    "scientific": "Abelmoschus esculentus",
+    "url": [
+      "okra"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00036",
+    "photo": "/assets/plantdb/images/okra.jpg"
+  },
+  {
+    "name": "Onions - Green",
+    "scientific": "Allii fistulosi",
+    "url": [
+      "greenonion",
+      "greenonions"
+    ],
+    "category": [
+      "vegetables",
+      "herbs"
+    ],
+    "pid": "00037",
+    "photo": "/assets/plantdb/images/green-onions.jpg"
+  },
+  {
+    "name": "Onions - White",
+    "scientific": "Allium cepa",
+    "url": [
+      "whiteonion",
+      "sweetonion",
+      "whiteonions"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00039",
+    "photo": "/assets/plantdb/images/onion-white.jpg"
+  },
+  {
+    "name": "Onions - Yellow",
+    "scientific": "Allium cepa",
+    "url": [
+      "yellowonion",
+      "brownonion",
+      "spanishonions",
+      "yellowonions"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00038",
+    "photo": "/assets/plantdb/images/onion-yellow.jpg"
+  },
+  {
+    "name": "Oregano",
+    "scientific": "Origanum vulgare",
+    "url": [
+      "oregano"
+    ],
+    "category": [
+      "herbs"
+    ],
+    "pid": "00040",
+    "photo": "/assets/plantdb/images/oregano.jpg"
+  },
+  {
+    "name": "Parsnips",
+    "scientific": "Pastinaca sativa",
+    "url": [
+      "parsnip",
+      "parsnips"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00041",
+    "photo": "/assets/plantdb/images/parsnip.jpg"
+  },
+  {
+    "name": "Peas",
+    "scientific": "Lathyrus oleraceus",
+    "url": [
+      "pea",
+      "peas",
+      "snappeas"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00042",
+    "photo": "/assets/plantdb/images/peas.jpg"
+  },
+  {
+    "name": "Potato",
+    "scientific": "Solanum tuberosum",
+    "url": [
+      "potato",
+      "potatoes"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00043",
+    "photo": "/assets/plantdb/images/potato.jpg"
+  },
+  {
+    "name": "Potato - Sweet",
+    "scientific": "Ipomoea batatas",
+    "url": [
+      "sweetpotato",
+      "sweetpotatoes"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00044",
+    "photo": "/assets/plantdb/images/potato-sweet.jpg"
+  },
+  {
+    "name": "Pumpkin",
+    "scientific": "Cucurbita pepo",
+    "url": [
+      "pumpkin",
+      "pumpkins"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00045",
+    "photo": "/assets/plantdb/images/pumpkin.jpg"
+  },
+  {
+    "name": "Quinoa",
+    "scientific": "Chenopodium quinoa",
+    "url": [
+      "quinoa"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00066",
+    "photo": "/assets/plantdb/images/quinoa.jpg"
+  },
+  {
+    "name": "Radicchio",
+    "scientific": "Cichorium intybus L. Radicchio",
+    "url": [
+      "radicchio",
+      "italianchicory"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00046",
+    "photo": "/assets/plantdb/images/raddichio.jpg"
+  },
+  {
+    "name": "Radish",
+    "scientific": "Raphanus sativus",
+    "url": [
+      "radish",
+      "radishes"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00047",
+    "photo": "/assets/plantdb/images/radish.jpg"
+  },
+  {
+    "name": "Rhubarb",
+    "scientific": "Rheum rhabarbarum",
+    "url": [
+      "rhubarb"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00049",
+    "photo": "/assets/plantdb/images/rhubarb.jpg"
+  },
+  {
+    "name": "Rutabaga",
+    "scientific": "Brassica napus, var. napobrassica",
+    "url": [
+      "rutabaga"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00048",
+    "photo": "/assets/plantdb/images/rutabaga.jpg"
+  },
+  {
+    "name": "Shallots",
+    "scientific": "Allium cepa, var. aggregatum",
+    "url": [
+      "shallot",
+      "shallots"
+    ],
+    "category": [
+      "vegetables",
+      "herbs"
+    ],
+    "pid": "00050",
+    "photo": "/assets/plantdb/images/shallots.jpg"
+  },
+  {
+    "name": "Spinach",
+    "scientific": "Spinacia oleracea",
+    "url": [
+      "spinach"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00051",
+    "photo": "/assets/plantdb/images/spinach.jpg"
+  },
+  {
+    "name": "Squash - Acorn",
+    "scientific": "Cucurbita pepo var. turbinata",
+    "url": [
+      "acornsquash"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00052",
+    "photo": "/assets/plantdb/images/squash-acorn.jpg"
+  },
+  {
+    "name": "Squash - Butternut",
+    "scientific": "Cucurbita moschata",
+    "url": [
+      "butternut",
+      "butternutsquash"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00053",
+    "photo": "/assets/plantdb/images/squash-butternut.jpg"
+  },
+  {
+    "name": "Squash - Spaghetti",
+    "scientific": "Cucurbita pepo",
+    "url": [
+      "spaghettisquash",
+      "noodlesquash"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00054",
+    "photo": "/assets/plantdb/images/squash-spaghetti.jpg"
+  },
+  {
+    "name": "Sunflower",
+    "scientific": "Helianthus annuus",
+    "url": [
+      "sunflower"
+    ],
+    "category": [
+      "flowers"
+    ],
+    "pid": "00056",
+    "photo": "/assets/plantdb/images/sunflowers.jpg"
+  },
+  {
+    "name": "Tomatillo",
+    "scientific": "Physalis philadelphica",
+    "url": [
+      "tomatillo"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00057",
+    "photo": "/assets/plantdb/images/tomatillo.jpg"
+  },
+  {
+    "name": "Tomato",
+    "scientific": "Solanum lycopersicum",
+    "url": [
+      "tomato"
+    ],
+    "category": [
+      "vegetables",
+      "fruits"
+    ],
+    "pid": "00058",
+    "photo": "/assets/plantdb/images/tomato.jpg"
+  },
+  {
+    "name": "Watermelon",
+    "scientific": "Citrullus lanatus",
+    "url": [
+      "watermelon",
+      "watermelons"
+    ],
+    "category": [
+      "vegetables",
+      "melons"
+    ],
+    "pid": "00059",
+    "photo": "/assets/plantdb/images/watermelon.jpg"
+  },
+  {
+    "name": "Yam - Yellow",
+    "scientific": "Dioscorea cayenensis",
+    "url": [
+      "guineayam",
+      "yam",
+      "yams"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00060",
+    "photo": "/assets/plantdb/images/yam-yellow.jpg"
+  },
+  {
+    "name": "Zucchini",
+    "scientific": "Cucurbita pepo",
+    "url": [
+      "zucchini"
+    ],
+    "category": [
+      "vegetables"
+    ],
+    "pid": "00055",
+    "photo": "/assets/plantdb/images/squash-zucchini.jpg",
+    "aliases": [
+      "Squash - Zucchini"
+    ]
+  }
 ]
