@@ -122,11 +122,17 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 ### Milestone 6 — Standard Mode layout
 
-- [ ] Build a desktop-oriented Standard shell with primary navigation and workspace structure, reusing the same routes and future services as Simple Mode.
-- [ ] Test narrower viewports when Standard Mode is selected manually; don't disable functionality based on display size.
-- [ ] Prototype contextual information placement without committing to the old Infobox/Infobar design.
+**Status:** Complete (2026-11-05). Implementation: [80cf317](https://github.com/solacenetwork/solace-garden/commit/80cf317de091028f5370e462dc5821bee64ca5f4). User manual acceptance testing completed.
 
-**Done when:** Both modes have usable navigation and share destinations; switching modes doesn't unexpectedly lose route context.
+- [x] Build a desktop-oriented Standard shell with primary navigation and workspace structure, reusing the same routes and future services as Simple Mode.
+- [x] Test narrower viewports when Standard Mode is selected manually; don't disable functionality based on display size.
+- [x] Prototype contextual information placement without committing to the old Infobox/Infobar design.
+
+**Completion record:** Added catalog-driven grouped Standard sidebar navigation, responsive compact navigation for narrow Standard Mode, a Standard Home workspace overview, and an optional collapsed “About this workspace” description. Simple Mode retains its six home actions, and both presentations share the same route catalog, Router, and page components. The Header now uses the SOLACE Garden brand as the Home link and a direct Settings gear; Settings explains Automatic mode in plain language. The Plants demonstration Dialog received a fix for quick-close requests during its opening transition. The coding assistant reported a successful build and browser checks of routes, mode overrides, responsive layouts, and dialog behavior. The user manually confirmed the main interactions and desktop keyboard navigation.
+
+**Deferred observations (not blockers):** Settings currently requires browser Back or another navigation action to return to the originating workspace; Milestone 7 will add a Close control using validated short route identifiers (e.g. `/settings?ref=plants`), without a general navigation-history store. Native links/buttons do not require explicit `tabindex`; more comprehensive keyboard and mobile device tests remain useful. A wider Samsung tablet landscape check is pending; explicit Standard Mode on narrow phone screens correctly retains the compact layout. Placement/spacing and other UI polish are deferred until real workflows provide stronger requirements.
+
+**Done when:** Both modes have usable navigation and share destinations; switching modes preserves application route state, while Settings return-to-origin is a separate planned navigation enhancement. **Satisfied.**
 
 ### Milestone 7 — Reusable UI building blocks
 
