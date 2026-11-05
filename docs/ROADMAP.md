@@ -150,27 +150,40 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 **Done when:** Current reusable patterns are implemented and documented, with the Settings-return flow and optional Drawer manually validated; feature-specific controls remain intentionally deferred. **Satisfied.**
 
-### Milestone 8 — V1 storage foundations and implementation order
+### Milestone 8 — Dependency-ordered V1 feature delivery
 
-- [ ] Implement a single storage-neutral repository/service contract and Dexie adapter, with optional provider config defaulting to Dexie/IndexedDB and synchronization disabled. Keep app preferences separate from storage/provider configuration.
-- [ ] Establish record schemas/UUIDs and core integrity rules, plus a few adapter/service tests, before wiring complex page behavior.
-- [ ] Replace placeholder pages in **dependency-aware vertical slices**. Proposed order below; adjust based on integration tests and UX feedback.
+**Planning status:** Sub-milestones 8A–8F drafted from existing GOALS/TECH_SPEC decisions and the November 2026 review; **not yet implemented or fully signed off**. Review undefined details before coding. Further sub-milestones (starting at **8G — PlantDB**) will be specified separately after 8A–8F planning. Milestone 9 remains the final integrated readiness gate. Use 8A, 8B, ... 8Z, then 8A1/B1/... if needed; subdivide large deliverables when they cannot be independently tested.
 
-| Proposed slice | Features | Approximate difficulty | Dependency / rationale |
+| ID | Scope | Dependencies | Acceptance focus |
 |---|---|---|---|
-| 1 | Notes, To-Do and To-Buy lists | Low | Simple CRUD, settings and reusable form patterns |
-| 2 | Locations, seeded Garden Types, Gardens and Templates | Medium | Foundational garden IDs, wizard/Quick Start/Advanced, protected records |
-| 3 | PlantDB static selector, plant groups and manual phases | Medium | Depends on gardens; exercises primary outdoor update flow |
-| 4 | Harvest entry/history and basic search | Medium | Depends on plant groups; meaningful garden workflows |
-| 5 | Gallery import/optimization/media references | High | Shared media foundation used by Journal and garden layouts |
-| 6 | Journal with Tiptap and shared Gallery images | High | Structured rich text, image associations, dirty-state handling |
-| 7 | Calendar and reminders | Medium–High | FullCalendar/RRule, local timing and recurrence behavior |
-| 8 | ZIP export and safe replace-only restore | Very High | Requires mature records/media schema, validation, staging and recovery |
-| 9 | Integration, offline packaging, accessibility and polish | Cross-cutting | End-to-end reliability across the completed workflows |
+| **8A** | **Storage foundations**: storage-neutral repository/service contracts, sole V1 Dexie adapter, stable IDs, schema versions, configuration validation and minimal integrity tests. Deliberately handle the earlier `SolaceGardenDB` v1 demo store. | Scaffold and UI conventions | Repository boundary works offline; no direct Dexie dependency in views; test persistence, invalid configuration and migration strategy |
+| **8B** | **Notes**: gardener-wide CRUD, plain text and optional `gardenId`; unlinked **Note** and **Linked Note** are one record type. | 8A | Create/edit/delete, link/unlink, reload, validation and plain-language empty/error states |
+| **8C** | **Tasks and Wish List**: one gardener-wide Tasks list plus purchasing Wish List, both optionally linked to a garden; Wish List has optional quantity/notes/product URL and purchased status. | 8A and reusable CRUD patterns from 8B | Add/edit/check/uncheck/reorder/delete, reload; no e-commerce, tags or public sharing in V1 |
+| **8D** | **Locations and seeded Garden Types**: protected Default location, manual optional zone, custom location create/rename/restrict deletion; six immutable system Garden Types. | 8A | Seed idempotently, protect Default and seeded types, enforce historic reference rules, expose location management |
+| **8E** | **Gardens**: Wizard/Quick Start/Advanced, validation, status and close/reopen/archive rules, optional 1,000-character embedded **Season Note** and historical search eligibility. | 8D; Notes/Tasks garden-link integrity rules from 8A–8C | New independent garden IDs, form-state preservation, persistence, safe status transitions, archival history, deletion/association integrity |
+| **8F** | **Garden Templates**: named independent snapshots for suggested name, description, location, type and optional layout media reference. No copied historical activity or Season Note. | 8E | Save as new template, create independent Planned garden, reuse/delete safely, handle absent media before Gallery is built |
 
-**Complexity notes:** Gallery and Journal are major integration risks; ZIP validation and crash-safe restore may be the highest reliability risk. Calendar recurrence/notifications also need early isolated tests even if full Calendar is implemented later. Garden creation should precede plant groups and harvests; Gallery should precede Journal image integration. Basic ZIP format design may begin early, even though full restore is a later slice.
+**Shared record behavior:** Notes, Tasks and Wish List items belong to the gardener's local collection and optionally reference a garden; completion/archiving retains those links. Permanently deleting a garden atomically clears links to independent records, not the records themselves. The embedded Season Note is different: it is part of the Garden record and disappears if that garden is permanently deleted. Garden records stay searchable in archived state.
 
-**Done when:** Each completed slice works from UI through domain service and Dexie, persists across reloads, and has relevant tests. Do not wait for every other page before exercising the first vertical slice.
+**Settings integration (planning, not new implementation):** Settings is the entry point for Location management, the selected Location's hardiness zone, Imperial/Metric units, Light/Dark/Automatic theme, and existing interface mode. Keep location zone on the Location record; keep user preferences distinct from deployment storage configuration. The stored system location name is **Default**, displayed as **Default (Location)** when needed for clarity. Exact preferred-location behavior and theme defaults remain open.
+
+**Later Milestone 8 slices — pending separate planning (stop before PlantDB for now):**
+
+| Candidate | Workstream / dependency |
+|---|---|
+| **8G** | PlantDB offline selection / versioned reference boundary (after garden creation) |
+| **8H** | Plant groups and manual growing phases (Gardens + PlantDB) |
+| **8I** | Harvest and history (plant groups) |
+| **8J** | Media records, relationships, optimization and Gallery input/viewing (storage; before Journal) |
+| **8K** | Journal with Tiptap and shared Gallery references (media first) |
+| **8L** | Calendar / recurrence / reminders (garden references and event records) |
+| **8M** | Cross-feature search and filtering, including Season Notes, Notes and historical gardens |
+| **8N** | ZIP export and validated replace-only restore (all persistent stores and media) |
+| **8O** | Feature integration/accessibility/polish, ahead of Milestone 9 readiness |
+
+**Implementation guardrails:** Keep every sub-milestone independently reviewable, test UI → service → Dexie and persistence across reloads, and retain manual device acceptance. Calendar recurrence merits early isolated testing even though complete Calendar is later. Backup manifest/versioning principles begin in 8A, while full ZIP recovery waits until record/media schemas are mature. Garden creation must precede plant groups, media services must precede Journal image integration, and photo-selector/camera behavior belongs to its later media milestone.
+
+**Done when:** Each accepted sub-milestone has scoped work, declared dependencies, passing tests, and a completion record. Do not treat the umbrella Milestone 8 as a single coding task.
 
 ### Milestone 9 — Integrated offline V1 readiness
 
@@ -193,7 +206,7 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 ## V1 UI detail — New interaction candidate (November 2026)
 
-- **Contextual drawer:** Prototype a reusable Bootstrap bottom offcanvas (`.offcanvas-bottom`) for secondary information, with a small accessible fixed Info/arrow tab while closed and a full-width panel when open. Approx. 40–50% viewport height is a starting point; evaluate `dvh` with `vh` fallback and mobile safe-area spacing. It is optional, not a replacement for fullscreen modal editing. Hide/show the trigger as offcanvas opens/closes.
+- **Contextual drawer:** Use the validated optional Bootstrap 6 bottom Drawer (`.drawer-bottom` on native `<dialog>`) for secondary information, with a small accessible fixed Info/arrow tab while closed and a full-width panel when open. Approx. 40–50% viewport height is a starting point; evaluate `dvh` with `vh` fallback and mobile safe-area spacing. It is optional, not a replacement for fullscreen modal editing. Hide/show the trigger as the Drawer opens/closes.
 - **Simple Mode:** The favored six central actions are **Plants/Update Plants, Harvest, Photos, Tasks, Calendar, Notes**. Calendar and Notes open complete usable workspaces, not only quick-add shortcuts. Plant group selection opens the fullscreen phase editor immediately and returns to the same filtered/scrolled group list after Save. The upper-left logo returns Home subject to unsaved-form safeguards. Existing decisions in TECH_SPEC §5.1 remain authoritative; final wireframes, action labeling and automatic breakpoint remain open.
 
 ## V1 architecture milestone — Storage abstraction and ZIP portability
