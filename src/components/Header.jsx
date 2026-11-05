@@ -1,4 +1,5 @@
 import { useLocation } from 'preact-iso';
+import { GardenBrand } from './GardenBrand';
 
 export function Header() {
 	const { path } = useLocation();
@@ -7,15 +8,8 @@ export function Header() {
 	return (
 		<header class="app-header">
 			<div class="container app-header__inner">
-				<a class="app-brand" href="/" aria-label="SOLACE Garden home">
-					<span class="app-brand__mark" aria-hidden="true">
-						<i class="bi bi-flower1"></i>
-					</span>
-					<span class="app-brand__name">
-						<span class="app-brand__network">SOLACE</span>
-						<span>Garden</span>
-					</span>
-				</a>
+
+				<GardenBrand/>
 
 				<nav aria-label="Primary navigation">
 					<a
