@@ -26,7 +26,7 @@ The MVP should support a coherent garden-management workflow while keeping indiv
 - Users can create a garden from scratch or start from a saved garden template.
 - **Default to a guided Create Garden wizard**, with a **Quick Start** shortcut and an **Advanced** single-page form using the same fields, validation and creation behavior. Switching between Wizard and Advanced must preserve entered values.
 - The wizard guides the gardener through **starting from scratch or a saved template**, **garden name/location/type**, and **review/create** (three short steps are the V1 target).
-- **Quick Start** requires only a garden name; use the built-in **Default** location and **In-Ground** type, set **Planned** status, and leave optional planting/start dates, plants, layouts and other details blank. Create a valid garden immediately, not a temporary draft; gardeners complete it later.
+- **Quick Start** requires only a garden name; use the built-in **Default** location and preselect **In-Ground** in the Garden Type selections, set **Planned** status, and leave optional planting/start dates, plants, layouts and other details blank. Create a valid garden immediately, not a temporary draft; gardeners complete it later.
 - **Advanced** exposes the same configuration on one form, including optional details. All paths create a new record and navigate to its garden detail page for subsequent editing and plant additions.
 
 **Scope boundary:** We are not requiring a single permanent physical-garden record containing every growing season. Reusable templates provide continuity without merging separate seasons' histories.
@@ -52,12 +52,17 @@ Journal entries, harvest records, completed tasks, and other historical activity
 
 ### 2.2a Locations and Garden Types
 
-- Every garden belongs to exactly one physical **Location** and has exactly one **Garden Type**. Locations are reusable across independent garden projects and years.
-- Seed the initial Location named **Default**, used by Quick Start and initially selected for new gardens. In controls where the context is ambiguous, label it **Default (Location)**; this is a display clarification, not a different stored name or ID. Gardeners can create and rename additional locations in v1. The built-in Default cannot be renamed or deleted in v1.
-- An **unused custom location** can be deleted after confirmation; a location referenced by **any garden**, including completed/archived gardens, cannot be deleted until those gardens have been reassigned. Editable gardens may have their location reassigned.
-- Allow an optional manually entered USDA hardiness zone on each location, with a link to the official USDA zone lookup. No location permission or automatic geolocation is required in v1.
-- Seed Garden Types: **In-Ground, Raised Bed, Container, Greenhouse, Hydroponic, Other**. Custom type creation/editing is deferred.
-- Seeded Garden Types **cannot be deleted** in v1, even if unused. Custom types are deferred; in any future type-management workflow, referenced types (including those used by historical gardens) remain protected. A garden's type may be reassigned only while that garden is editable.
+**Location is geographic:** A Location means a geographic property or growing site (e.g. home in Graham, NC, versus a community garden), **not** an individual bed, container, crop, or garden on the same property. One location may contain many independent gardens with different names and type selections. Every garden references exactly one `locationId`; the Wizard and Advanced creation forms present a Location selector.
+
+- Seed a stable built-in Location whose initial name is **Default**. It is selected for Quick Start and initially selected in new-garden forms. **The gardener may rename and edit this record**, including its optional hardiness zone, but its name cannot be blank and **the built-in record may never be deleted**. Protection is based on its stable ID/system flag, not whether its current name is “Default”. Show **Default (Location)** only when the label needs disambiguation; that is not an immutable stored name.
+- Additional named geographic Locations are supported in V1 (e.g. **Community Garden**), with create/rename/edit workflows. An unused custom Location can be deleted after confirmation; a Location referenced by any garden, including completed/archived gardens, cannot be deleted until those gardens are reassigned. Only editable gardens can be reassigned.
+- Allow an optional **manually entered USDA Hardiness Zone** on each Location, with a link to the official lookup. An address or GPS coordinates are **not required**; no geolocation permission, automatic zone lookup or network-dependent location features in V1.
+- **Garden Types are independent descriptive classifications, not exclusive categories or an enforced hierarchy.** A garden stores an array of stable predefined type identifiers (`typeIds`) and may combine types such as **Outdoor + Raised Bed + Container** or **Indoor + Outdoor**. The gardener is responsible for choosing appropriate combinations; no consistency checker or cross-type warnings are needed.
+- Seed the existing **In-Ground, Raised Bed, Container, Greenhouse, Hydroponic, Other** types plus **Indoor** and **Outdoor**. The types remain fixed and undeletable in V1. Present them in a responsive **grid of independent toggle buttons** with clearly visible on/off states (accessible as multi-select controls); reuse the selection UI in Wizard and Advanced.
+- Only allow valid seeded type IDs in V1. Garden Type selections can be edited when the garden is editable; archived/closed gardens follow normal unlocking rules. **Custom user-defined types are deferred to V2/V3**, potentially held in a separate user-type store but presented alongside system types.
+- Quick Start retains its automatic built-in Location association and **In-Ground** preselection. Whether gardeners may leave `typeIds` empty in the full forms remains an implementation-policy decision; do not infer a required hierarchy or exclusivity from the presets.
+
+**Future, optional V3/V4 direction:** If gardeners voluntarily provide address/coordinates, separately permissioned online features might offer localized weather, frost alerts, maps or estimated sunlight. Storing geographic details locally does **not** authorize transmission or public sharing. Any such use requires informed, explicit consent, and advanced sunlight estimates may need garden-specific shade/exposure details.
 
 ### 2.3 Plant Research (PlantDB)
 
@@ -269,7 +274,7 @@ The archive includes metadata and cross-references for intentionally deleted pho
 
 ### 2.15 Gardener Settings and location management
 
-Settings is the gardener-facing home for **Location**, the selected Location's optional **USDA Hardiness Zone**, **measurement units** (Imperial/Metric), **theme** (Light/Dark/Automatic), and the already implemented **interface mode** (Automatic/Simple/Standard). Locations and hardiness zones remain location records; editing a zone through Settings must not turn it into one global value. Location administration may retain a dedicated workspace reached from Settings. UI grouping, the meaning of a preferred/default location when multiple locations exist, and theme implementation details remain to be finalized before implementation; no GPS/automatic zone lookup is implied.
+Settings is the gardener-facing home for **Location**, the selected Location's optional **USDA Hardiness Zone**, **measurement units** (Imperial/Metric), **theme** (Light/Dark/Automatic), and the already implemented **interface mode** (Automatic/Simple/Standard). Locations and hardiness zones remain location records; editing a zone through Settings must not turn it into one global value. Location administration may retain a dedicated workspace reached from Settings. Location management in Settings concerns **geographic sites**, not bed positions; the Create Garden forms offer a Location selector, while Quick Start uses the protected built-in Location. No extra global preferred-Location setting is required in V1. Theme implementation details remain to be finalized; no GPS/automatic zone lookup is implied.
 
 ## 3. Post-MVP
 
