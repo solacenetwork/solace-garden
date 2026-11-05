@@ -107,12 +107,18 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 ### Milestone 5 — Simple Mode layout first
 
-- [ ] Build the favored six large touch-oriented home actions: Plants/Update Plants, Harvest, Photos, Tasks, Calendar, Notes; route all to placeholder workspaces.
-- [ ] Implement Automatic / Simple / Standard as one exclusive radio-button preference group, defaulting to Automatic; persist the explicit preference, and test viewport-based selection and overrides.
-- [ ] Develop the phone-size shell, Home/logo behavior, legible buttons, accessible touch targets, and placeholders for full-screen plant-group editing; keep unsaved-form protections for actual editing slices.
-- [ ] Ensure Simple Mode works on tablets/desktop when explicitly selected; leave exact breakpoint and final layout tuning open to prototype testing.
+**Status:** Complete (2026-11-05). Implementation: [1505cd6](https://github.com/solacenetwork/solace-garden/commit/1505cd6289992c0e200f42d5d0c96d6dc18eaac1). Browser acceptance testing passed.
 
-**Done when:** The Simple Mode landing screen and its six navigation paths work end to end with placeholders and the user can select the interface mode.
+- [x] Build the favored six large touch-oriented home actions: Plants/Update Plants, Harvest, Photos, Tasks, Calendar, Notes; route all to placeholder workspaces.
+- [x] Implement Automatic / Simple / Standard as one exclusive radio-button preference group, defaulting to Automatic; persist the explicit preference, and test viewport-based selection and overrides.
+- [x] Develop the phone-size shell, Home/logo behavior, legible buttons, accessible touch targets, and placeholders for full-screen plant-group editing; keep unsaved-form protections for actual editing slices.
+- [x] Ensure Simple Mode works on tablets/desktop when explicitly selected; leave exact breakpoint and final layout tuning open to prototype testing.
+
+**Completion record:** Added a shared Preact interface-mode context, isolated localStorage-backed preference persistence (default `auto`), and a provisional 48rem `matchMedia` breakpoint. Settings provides a three-option radio group; explicit mode selections persist across navigation and reload and are not overridden by viewport changes. Existing routes and six primary actions remain available. The Plants route now has a clearly labeled demonstration-only group selector and a Bootstrap 6 fullscreen-on-small-screens Dialog placeholder, with a Close/Cancel action but no Save or real data. Codex reported successful build and browser smoke tests with cleanup of test processes; user browser acceptance testing also passed.
+
+**Deferred UI observations (not Milestone 5 blockers):** Hide the technical `(max-width: 47.999rem)` media-query text from end-user Settings messaging. For the shared header, use the upper-left SOLACE Garden logo/title as the Home link and an upper-right gear icon as the direct Settings link, removing the redundant Home control. Address these while refining the application shell (Milestone 6). Full Standard Mode and actual plant editing/persistence are separate future work.
+
+**Done when:** The Simple Mode landing screen and its six navigation paths work end to end with placeholders and the user can select the interface mode. **Satisfied.**
 
 ### Milestone 6 — Standard Mode layout
 
