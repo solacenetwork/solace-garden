@@ -55,9 +55,9 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 
 | Store | Fields (proposed) | V1 rules (confirmed) |
 | --- | --- | --- |
-| `locations` | `id`, `name`, `hardinessZone?`, `latitude?`, `longitude?`, `isSystemDefault`, timestamps | Seed non-deletable, non-renamable **Default** location; custom locations can be created/renamed and deleted after confirmation **only if no garden refers to them**, including historical gardens. Optional manually entered USDA zone (1a–13b) and lookup link; no GPS/automatic lookup. |
+| `locations` | `id`, `name`, `hardinessZone?`, `latitude?`, `longitude?`, `isSystemDefault`, timestamps | Seed non-deletable, non-renamable **Default** location (display as **Default (Location)** when context is ambiguous); custom locations can be created/renamed and deleted after confirmation **only if no garden refers to them**, including historical gardens. Optional manually entered USDA zone (1a–13b) and lookup link; no GPS/automatic lookup. |
 | `gardenTypes` | `id`, `name`, `description?`, `isSystem`, `sortOrder` | Seed In-Ground, Raised Bed, Container, Greenhouse, Hydroponic, Other; all **seeded types are protected against deletion even when unused**. One type per garden; editable gardens can change type. Custom type creation/editing deferred. |
-| `gardens` | `id`, `name`, `description?`, `locationId`, `gardenTypeId`, `status`, `isClosed`, `layoutMediaId?`, optional dates, timestamps | Every garden has exactly one location and one type; each garden is an independent planting project, not a permanent place. Status Planned/Active/Completed/Archived. |
+| `gardens` | `id`, `name`, `description?`, `locationId`, `gardenTypeId`, `status`, `isClosed`, `layoutMediaId?`, `notes?` (Season Note), optional dates, timestamps | Every garden has exactly one location and one type; each garden is an independent planting project, not a permanent place. Status Planned/Active/Completed/Archived. |
 | `gardenTemplates` | `id`, `name`, `configuration`, timestamps | Save as Template **always creates a NEW named snapshot in v1**. Creating a garden from a template copies reusable configuration such as suggested name/description, location ID, garden type ID, and layout media ID; never plants or historical state. |
 
 **Locations:** Default is a protected system record and is the initially selected location. Custom locations are selectable, creatable and renamable; deleting an unused custom location requires confirmation and a transactional check across **all** gardens, including completed, closed and archived. Referenced locations must be reassigned first; closed/archived gardens must follow the existing reopen/unarchive rules before changes. Automatic geolocation/zone lookup is deferred. Locations are reusable across garden years.
@@ -65,6 +65,8 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 **Garden type protection:** Seeded Garden Types are immutable as to existence and **cannot be deleted even if unused** in v1. Custom type management is deferred. Editable gardens may change their type; changing references in closed/archived gardens requires following normal lifecycle unlocking rules. Revalidate references transactionally.
 
 **Garden lifecycle:** Statuses are explicitly chosen by the gardener; finishing a plant group never changes garden status. Completed prompts optional Close Garden, but may remain editable; Archived is automatically closed/read-only; Unarchive returns to Completed/editable. Read-only enforcement must cover dependent garden data.
+
+**Season Note:** The Garden record has its own nullable plain-text `notes` field, **not** a row in the gardener-wide `notes` store. Maximum **1,000 characters** (enforce in UI and service validation), with a visible remaining-character countdown. Optional during Close Garden and editable while the garden is unlocked. Preserve when closed/archived/reopened; include in Garden-scope search, including historical gardens. Do not copy into templates. Permanently deleting the garden deletes this embedded field with the garden.
 
 **Templates:** V1 template configuration contains **suggested garden name, description, locationId, gardenTypeId, and layoutMediaId** only; the suggested name is editable when creating a garden. Applying a template creates an independent garden with a new ID, Planned status, blank start/planting dates, no plant groups/indicators/harvests/Journal/Calendar/task history. No live link or future propagation from template to created gardens. **Delete a template permanently after confirmation even when existing gardens originated from it**; deletion affects only the template record, not those gardens or any shared Gallery media. A template referenced by the create form must be revalidated on save; resolve missing/deleted media via existing placeholders. Template editing/overwriting deferred; potential later template snapshot versions remain future work.
 
@@ -94,10 +96,27 @@ Use stable UUIDs for user-created records; use stable seeded identifiers for sys
 | Store | Key fields | Rules |
 | --- | --- | --- |
 | `journalEntries` | `id`, `title`, `entryDate`, `content`, `contentFormatVersion`, `createdAt`, `updatedAt` | Dated personal Tiptap/ProseMirror structured JSON with shared media IDs. Entry date is user-selected and independent of audit times. No publication/draft distinction. |
-| `listItems` | `id`, `kind`, `text`, `completed`, `sortOrder`, timestamps | `kind` todo/tobuy, gardener-wide. |
-| `notes` | `id`, `text`, timestamps | Gardener-wide quick notes. |
+| `listItems` | `id`, `kind`, `text`, `completed`, `sortOrder`, `gardenId?`, `quantity?`, `notes?`, `url?`, timestamps | `kind` identifies **Tasks** or **Wish List** (legacy conceptual names todo/tobuy may remain internal until schema finalized). One gardener-wide collection; Wish List tracks purchased status and optionally quantity, details and user-entered product URL. |
+| `notes` | `id`, `text`, `gardenId?`, timestamps | Gardener-wide quick **Note**; becomes a **Linked Note** when `gardenId` references a garden. This is not the embedded Season Note. |
 | `calendarEvents` | `id`, `title`, `eventDate`, `startTime?`, `description?`, `allDay`, `recurrenceRule?`, `reminderEnabled`, timestamps | Manually created one-off or recurring events; local calendar dates/times, optional at-time reminder, entire-series edits in v1. Recurrence is stored as a rule, not pre-expanded occurrences. |
 | `settings` | `key`, `value` | Measurement system; **250 MB default** configurable total media-storage budget; calendar all-day reminder time (`09:00` default), clock format (`12` default), browser notifications toggle (`false` default); potentially preferred location. |
+
+**Shared gardener-record rule:** Notes, Tasks and Wish List items survive garden completion, closure, archiving and reopening with their optional `gardenId` intact. Permanent garden deletion atomically clears their `gardenId` to `null` rather than deleting those independent records. A garden association is not ownership. Keep all items in their gardener-wide listing regardless of garden status; filters by garden can be added where useful.
+
+```mermaid
+flowchart TB
+    App["SOLACE Garden"] --> Notes["Notes"]
+    App --> Gardens["Gardens"]
+    Notes --> N1["Note 1"]
+    Notes --> N2["Note 2 · Linked Note"]
+    Notes --> N3["Note 3"]
+    Gardens --> G1["Garden 1"]
+    Gardens --> G2["Garden 2"]
+    N2 -. "gardenId" .-> G2
+    G2 --> Season["Embedded Season Note · max 1,000 chars"]
+```
+
+**Future Wish List scope:** V2 may add tags/filtering; V3/V4 or later may support explicitly shared public gift Wish Lists. No public or account functionality in V1.
 
 ### 3.3a Journal editor, media references and lifecycle (confirmed V1 behavior)
 
@@ -163,8 +182,8 @@ db.version(1).stores({
   plantGroups: 'id, gardenId, plantDbId, displayName, plantingDate',
   harvests: 'id, plantGroupId, date',
   journalEntries: 'id, entryDate, updatedAt',
-  listItems: 'id, kind, [kind+sortOrder]',
-  notes: 'id, updatedAt',
+  listItems: 'id, kind, gardenId, [kind+sortOrder]',
+  notes: 'id, gardenId, updatedAt',
   calendarEvents: 'id, eventDate, startTime, reminderEnabled',
   // Additional reminder-delivery/acknowledgment store may be needed for deduplication.
   media: 'id, kind, year, status, photoDate, createdAt',
@@ -182,7 +201,7 @@ The index choices should follow real UI queries and be reviewed before implement
 
 - `db` module: Dexie instance and schema evolution only.
 - Domain services/repositories: create/edit/delete operations, validation, template cloning, lifecycle enforcement, and reference cleanup.
-- Preact pages/components: rendering and user interaction; use `useLiveQuery` for live reads and services for writes.
+- Preact pages/components: rendering and user interaction; use storage-neutral hooks/services for reads and domain services for writes. Any Dexie-specific `useLiveQuery` usage stays inside an adapter-aware integration layer, not general presentation components.
 - Media service: import, optimize, create display object URLs, revoke them, maintain references, and delete safely.
 - Backup service: export/import and archive validation without being coupled to UI components.
 
@@ -206,9 +225,15 @@ Avoid putting business rules solely in individual click handlers. Database forei
 
 **Open design questions:** Exact automatic breakpoint, Standard Mode navigation, context-information presentation, mode-switch shortcut placement outside Settings, detailed desktop/mobile wireframes, and precise six-action placement/labels will be finalized during Roadmap Milestone 1. Record these as open choices instead of implying a completed visual design.
 
+### 5.2 Settings, preferences, and location data
+
+**Settings placement (agreed):** Expose **Location**, the selected Location's optional **USDA Hardiness Zone**, **units** (Imperial/Metric), **theme** (Light/Dark/Automatic), and **interface mode** (Automatic/Simple/Standard) through Settings. The existing Locations workspace may remain the detailed location-management view, accessible from Settings. A hardiness zone belongs to a `locations` record, not a gardener-wide settings value; no automatic geolocation is needed. The exact meaning of selecting a preferred Location when multiple exist, and any impact on Quick Start's fixed Default-location behavior, remain to decide before building these controls.
+
+Units/theme/interface-mode are gardener preferences and must remain separate from storage-provider configuration. Interface mode is implemented in the current shell; units and theme are not yet implemented. Do not imply theme implementation, a theme default, or preference-migration behavior has been settled by listing the intended Settings controls.
+
 ## 6. Search (proposed)
 
-One search entry point with scopes: Garden (default), Lists, Calendar, Journal. Search Plant Group names and Garden names locally, including completed/archived gardens. Garden status and specific garden are optional filters. Exclude PlantDB's botanical reference corpus.
+One search entry point with scopes: Garden (default), Lists/Notes, Calendar, Journal. Search Plant Group names, Garden names **and embedded Season Notes** locally, including completed/archived gardens. In Lists/Notes results distinguish **Note**, **Linked Note** (show the linked garden), and **Season Note** (which navigates to its Garden record). Season Notes are part of Garden scope, not separate Notes rows. Garden status and specific garden are optional filters. Exclude PlantDB's botanical reference corpus.
 
 For v1, a debounced query over relevant indexed/locally loaded data may suffice; measure performance before choosing a dedicated full-text engine. Search field sets, normalization, and limits remain TBD.
 
