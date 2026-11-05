@@ -1,9 +1,44 @@
 import Dexie from 'dexie';
 import {
+	GARDEN_DATABASE_PREFIX,
 	GARDEN_DATABASE_VERSION,
 	GARDEN_INDEXES,
 	GARDEN_STORES,
 } from './constants.js';
+
+export async function discoverDatabaseNames(dependencies) {
+	const indexedDB = dependencies?.indexedDB ?? Dexie.dependencies.indexedDB;
+
+	if (typeof indexedDB?.databases !== 'function') {
+		const error = new Error('IndexedDB database discovery is unavailable.');
+		error.code = 'DATABASE_DISCOVERY_UNAVAILABLE';
+		throw error;
+	}
+
+	let databases;
+	try {
+		databases = await indexedDB.databases();
+	} catch (cause) {
+		const error = new Error('IndexedDB database discovery failed.', { cause });
+		error.code = 'DATABASE_DISCOVERY_FAILED';
+		throw error;
+	}
+
+	if (
+		!Array.isArray(databases) ||
+		databases.some((database) => typeof database?.name !== 'string')
+	) {
+		const error = new Error('IndexedDB database discovery returned an invalid result.');
+		error.code = 'DATABASE_DISCOVERY_FAILED';
+		throw error;
+	}
+
+	return databases.map(({ name }) => name);
+}
+
+export function findGardenDatabaseNames(databaseNames) {
+	return databaseNames.filter((name) => name.startsWith(GARDEN_DATABASE_PREFIX));
+}
 
 export function createGardenDatabase(databaseName, dependencies) {
 	const database = new Dexie(databaseName, dependencies);

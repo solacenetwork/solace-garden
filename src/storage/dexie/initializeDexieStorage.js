@@ -1,4 +1,5 @@
 import {
+	CONTROL_DATABASE_NAME,
 	CONTROL_STORE_NAME,
 	MAIN_CONFIG_ID,
 } from './constants.js';
@@ -9,12 +10,24 @@ import {
 	validateConfiguration,
 	validateControlSchema,
 } from './controlDatabase.js';
-import { openGardenDatabase } from './gardenDatabase.js';
+import {
+	discoverDatabaseNames,
+	findGardenDatabaseNames,
+	openGardenDatabase,
+} from './gardenDatabase.js';
 
 const RECOVERY_DETAILS = {
 	CONTROL_OPEN_FAILED: {
 		message: 'The local storage configuration could not be opened.',
 		action: 'Retry. If this continues, preserve this browser profile before seeking help.',
+	},
+	CONTROL_DATABASE_MISSING: {
+		message: 'The local storage configuration is missing, but existing Garden data was found.',
+		action: 'Do not clear site data. Preserve this browser profile and seek recovery help.',
+	},
+	DATABASE_DISCOVERY_UNAVAILABLE: {
+		message: 'This browser could not safely check for existing Garden data.',
+		action: 'Retry. If this continues, preserve this browser profile and seek recovery help.',
 	},
 	CONFIGURATION_INVALID: {
 		message: 'The saved local database configuration is missing or invalid.',
@@ -52,6 +65,19 @@ export async function initializeDexieStorage({
 } = {}) {
 	let controlDatabase;
 	let gardenDatabase;
+	let databaseNames;
+
+	try {
+		databaseNames = await discoverDatabaseNames(dependencies);
+	} catch {
+		return recoveryRequired('DATABASE_DISCOVERY_UNAVAILABLE');
+	}
+
+	if (!databaseNames.includes(CONTROL_DATABASE_NAME)) {
+		if (findGardenDatabaseNames(databaseNames).length > 0) {
+			return recoveryRequired('CONTROL_DATABASE_MISSING');
+		}
+	}
 
 	try {
 		controlDatabase = createControlDatabase({ dependencies, randomUUID });

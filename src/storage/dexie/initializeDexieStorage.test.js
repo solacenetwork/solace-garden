@@ -78,6 +78,91 @@ describe('Dexie storage initialization', () => {
 		result.close();
 	});
 
+	it('requires recovery when Garden data exists without the control database', async () => {
+		const databaseName = `solace-garden-data-${UUID_TWO}`;
+		createdDatabases.add(databaseName);
+		const existingDatabase = createGardenDatabase(databaseName, dependencies);
+		await existingDatabase.open();
+		await existingDatabase.table('notes').add({
+			id: 'existing-note',
+			text: 'Keep this record',
+			gardenId: null,
+			updatedAt: '2026-11-05T12:00:00.000Z',
+		});
+		existingDatabase.close();
+
+		const randomUUID = vi.fn(() => UUID_ONE);
+		const result = await initialize({ randomUUID });
+
+		expect(result).toMatchObject({
+			status: 'recovery-required',
+			error: { code: 'CONTROL_DATABASE_MISSING' },
+		});
+		expect(randomUUID).not.toHaveBeenCalled();
+		expect((await indexedDB.databases()).map(({ name }) => name)).toEqual([
+			databaseName,
+		]);
+
+		const reopenedDatabase = createGardenDatabase(databaseName, dependencies);
+		await reopenedDatabase.open();
+		expect(await reopenedDatabase.table('notes').get('existing-note')).toMatchObject({
+			text: 'Keep this record',
+		});
+		reopenedDatabase.close();
+	});
+
+	it('fails safely when database enumeration is unavailable', async () => {
+		const randomUUID = vi.fn(() => UUID_ONE);
+		const result = await initializeDexieStorage({
+			dependencies: { indexedDB: {}, IDBKeyRange },
+			randomUUID,
+		});
+
+		expect(result).toMatchObject({
+			status: 'recovery-required',
+			error: { code: 'DATABASE_DISCOVERY_UNAVAILABLE' },
+		});
+		expect(randomUUID).not.toHaveBeenCalled();
+		expect(await indexedDB.databases()).toEqual([]);
+	});
+
+	it('fails safely when database enumeration throws', async () => {
+		const databaseName = `solace-garden-data-${UUID_TWO}`;
+		createdDatabases.add(databaseName);
+		const existingDatabase = createGardenDatabase(databaseName, dependencies);
+		await existingDatabase.open();
+		await existingDatabase.table('notes').add({
+			id: 'preserved-note',
+			text: 'Still here after discovery failure',
+			gardenId: null,
+			updatedAt: '2026-11-05T12:00:00.000Z',
+		});
+		existingDatabase.close();
+
+		const randomUUID = vi.fn(() => UUID_ONE);
+		const discovery = vi
+			.spyOn(indexedDB, 'databases')
+			.mockRejectedValueOnce(new Error('simulated discovery failure'));
+		const result = await initialize({ randomUUID });
+		discovery.mockRestore();
+
+		expect(result).toMatchObject({
+			status: 'recovery-required',
+			error: { code: 'DATABASE_DISCOVERY_UNAVAILABLE' },
+		});
+		expect(randomUUID).not.toHaveBeenCalled();
+		expect((await indexedDB.databases()).map(({ name }) => name)).toEqual([
+			databaseName,
+		]);
+
+		const reopenedDatabase = createGardenDatabase(databaseName, dependencies);
+		await reopenedDatabase.open();
+		expect(await reopenedDatabase.table('notes').get('preserved-note')).toMatchObject({
+			text: 'Still here after discovery failure',
+		});
+		reopenedDatabase.close();
+	});
+
 	it('creates exactly the six agreed Garden stores', async () => {
 		const result = await initialize();
 		const database = createGardenDatabase(result.databaseName, dependencies);
