@@ -168,38 +168,31 @@ flowchart TB
 
 **Storage and optimization defaults (agreed V1 starting values):** Gardener-configurable total media budget **250 MB by default**; upper/lower bounds and increment to validate in UI testing. Display images: **1920px longest edge maximum**; thumbnails: **256px longest edge maximum**; **WebP preferred with compatibility fallback**, approximately **80% compression quality** as a starting point. Benchmark browser support, output format/quality, memory, image clarity and photo import performance before finalizing implementation constants. Track optimized display+thumbnail bytes, warn before/near budget, and handle quota failure; browser quota is independent of the user budget and can be smaller.
 
-## 4. Candidate Dexie v1 indexes (proposed, not yet applied)
+## 4. Milestone 8A initial Dexie schema (agreed scope; not yet applied)
 
-**Current implementation status:** Dexie is installed and was smoke-tested, but the production database, schema and CRUD services have not been created; this section specifies future work, not tables presently available in IndexedDB.
+**Current implementation status:** Dexie was installed and smoke-tested, but there is no active Garden database or production CRUD implementation. Milestone 8A starts the real data schema at Dexie version 1. The schema below contains **only the six stores needed for 8B–8F**; introduce other stores and uncertain indexes in their owning later milestones through normal versioned upgrades.
 
-This outline shows **IndexedDB indexes only**. All other object properties can still be stored without listing them in `stores()`.
+Dexie `stores()` entries below define primary keys and indexes, not every property stored on the objects. Final index choices should be checked against the concrete queries before implementation:
 
 ```js
-// Proposed initial production schema for Milestone 8A; not currently initialized by the app.
+// Proposed six-store data schema for Milestone 8A.
 db.version(1).stores({
+  notes: 'id, gardenId, updatedAt',
+  listItems: 'id, kind, gardenId, [kind+sortOrder]',
   locations: 'id, name',
   gardenTypes: 'id, name, sortOrder',
   gardens: 'id, name, locationId, *typeIds, status, updatedAt',
-  gardenTemplates: 'id, name, updatedAt',
-  plantGroups: 'id, gardenId, plantDbId, displayName, plantingDate',
-  harvests: 'id, plantGroupId, date',
-  journalEntries: 'id, entryDate, updatedAt',
-  listItems: 'id, kind, gardenId, [kind+sortOrder]',
-  notes: 'id, gardenId, updatedAt',
-  calendarEvents: 'id, eventDate, startTime, reminderEnabled',
-  // Additional reminder-delivery/acknowledgment store may be needed for deduplication.
-  media: 'id, kind, year, status, photoDate, createdAt',
-  gardenMedia: 'id, gardenId, mediaId, &[gardenId+mediaId]',
-  mediaData: 'id',
-  settings: 'key'
+  gardenTemplates: 'id, name, updatedAt'
 });
 ```
 
-The index choices should follow real UI queries and be reviewed before implementing. Dexie schema upgrades are numbered and additive: preserve old version declarations and add a new version for structural changes, with data migration when necessary. Never delete and recreate the user's real database as an upgrade strategy.
+**8A responsibilities:** Create the six empty stores and their primary/index definitions. Use stable UUIDs for gardener-created records; maintain stable, reserved identifiers for system presets. Do not populate demonstration records. Idempotent system Location and Garden Type seeding, feature CRUD, lifecycle rules, forms and specialized queries belong to their corresponding 8B–8F slices. Shared validation conventions may begin in 8A, with entity-specific rules added alongside features.
+
+**Versioning policy:** Number schema versions normally, retain prior version declarations when upgrading, and perform safe migrations where data transformations are necessary. Never delete and recreate a user's active database as an upgrade strategy.
 
 **Historical Dexie smoke test (deprecated, not an active application database):** Following the initial Dexie installation, Milestone 3 temporarily exercised CRUD and reactive queries using a test `SolaceGardenDB` version 1 / `items` store. These checks validated library integration only. The temporary smoke-test source was removed, and **the current Garden skeleton does not initialize or use that database**. The current application is a Preact/HTML/JS/CSS interface scaffold without persisted Garden records; the user also inspected the current browser's IndexedDB panel and found no Garden dataset. Old test database names/schema should not be treated as production state or as an application migration requirement.
 
-**Milestone 8A production starting point:** Use the stable logical identity `solace-garden`, but resolve the **physical** data database name from the separate `solace-config` control store (candidate first name: `solace-garden-data-001`). Start the first real Garden data schema at version 1, with seeded reference records when implemented. No migration from `SolaceGardenDB` is planned because it was a deprecated, temporary smoke test, not a supported Garden data store. As with any browser-origin storage, isolated test data may exist in other browser profiles/origins, but there is no evidence of live application data requiring conversion. **From the first production release onward**, retain version declarations and use safe additive/transformational migrations rather than deleting users' databases.
+**Milestone 8A production starting point:** Use the stable logical identity `solace-garden`, but resolve each **physical** data database name from the separate `solace-config` control store. Generate physical names as `solace-garden-data-<uuid>` using `crypto.randomUUID()`, including for the initial database. Start the Garden data schema at version 1 with the six 8A–8F stores defined above; reference-data seeding happens when its feature is implemented. No migration from `SolaceGardenDB` is planned because it was a deprecated, temporary smoke test, not a supported Garden data store. As with any browser-origin storage, isolated test data may exist in other browser profiles/origins, but there is no evidence of live application data requiring conversion. **From the first production release onward**, retain version declarations and use safe additive/transformational migrations rather than deleting users' databases.
 
 ## 5. Data access and UI boundaries (proposed)
 
@@ -334,29 +327,33 @@ Scaled interactive map editing, automated plant-stage progression, per-individua
 
 **Core decision:** Preact views and application/domain services must not import Dexie tables or issue raw IndexedDB queries. Concentrate database-specific reads/writes, subscriptions, migrations and transactions in the Dexie adapter and its supporting infrastructure. Define storage-neutral repository/service contracts using stable application entities and IDs. **Implement only Dexie in V1**; do not build placeholder MariaDB/SQLite/JSON drivers merely to demonstrate extensibility.
 
-**V1 control-store bootstrap (agreed architecture; not yet implemented):** Open/create a small separate IndexedDB database named **`solace-config`** before opening the Garden data database. Its own versioned schema stores the active physical Garden database name, plus only the installation-local activation/recovery metadata needed for future staged restore (such as previous database and pending activation state). Initialize a stable default physical name on first run (exact suffix/naming scheme to finalize), then resolve that pointer through the repository bootstrap. **Do not hardcode one physical Garden data database name throughout UI/services.** Both databases can use Dexie; the control store is not the gardener's records database.
+**V1 control-store bootstrap (agreed architecture; not yet implemented):** Open/create the separate IndexedDB control database **`solace-config`** first; use its own Dexie schema version. Keep **one main configuration record** with `id: 'main'`, `configVersion: 1`, `activeDatabase`, `previousDatabase: null` and `recoveryState: null`. `configVersion` describes the configuration record format, distinct from Dexie's schema version. `activeDatabase` is a generated `solace-garden-data-<uuid>` name. The latter two fields are reserved for recovery and normally remain `null` in 8A. **Never hardcode a physical Garden data name in pages or services.**
+
+**Initialization and recovery (8A):** On a clearly fresh installation with no existing Garden data, initialize the control record and create/open a new UUID-named Garden database entirely offline. On an ordinary restart, reuse the saved pointer and preserve all data. If the control store or pointer is missing/invalid but Garden databases may already exist, or if the pointed-to database fails to open, **do not silently create a replacement or delete existing data**; show a simple actionable error/recovery screen. Database enumeration with `indexedDB.databases()` can help where supported, but is not a universally reliable basis for proving there is no data. A full repair utility is not required in 8A. Make interrupted initial creation safe to retry without leaving a misleading active pointer; never assume opening a named database guarantees it previously held valid Garden data. No network access or external configuration download is needed for V1.
 
 **Configuration principle:** V1 implements **only Dexie/IndexedDB** and synchronization disabled by default. Keep installation/deployment provider configuration distinct from gardener preferences and from the control-store pointer. Unknown or explicitly unsupported drivers are errors, not grounds for silently creating another dataset. Do not implement placeholder Laravel, MariaDB, SQLite or JSON adapters. A future API adapter can require HTTP/authentication and differs materially from local IndexedDB; future synchronization may keep Dexie as the working store instead of replacing it.
 
-**Illustrative local control-store record (not an exported JSON file):**
+**Agreed control-store record (illustrative UUID; not an exported JSON file):**
 
 ```json
 {
+  "id": "main",
   "configVersion": 1,
-  "storage": {
-    "driver": "dexie",
-    "activeDatabase": "solace-garden-data-001",
-    "previousDatabase": null
-  },
-  "sync": { "enabled": false }
+  "activeDatabase": "solace-garden-data-550e8400-e29b-41d4-a716-446655440000",
+  "previousDatabase": null,
+  "recoveryState": null
 }
 ```
+
+Gardener preferences (interface mode, theme, units and other per-user settings) belong to the Garden dataset, not the control store. The Garden `settings` store may be introduced when those preferences are persisted; it is **not one of 8A's six tables**.
 
 **Portable configuration filename:** **`solace.config.json`** is the decided name for the JSON *entry within exported Garden ZIP packages*, not a public deployment configuration file read at startup. It contains only deliberately portable preferences and version information. It cannot identify which physical database to open on another device and must not overwrite the `solace-config` control store. If a separate public deployment configuration is needed in future, name and schema are separate, uncommitted decisions.
 
 V1 can embed these defaults and run without fetching an external configuration file. Parse/validate overrides in one initialization module; missing properties use defaults, but explicitly unknown drivers/malformed settings surface an actionable error rather than opening a different empty database. Avoid treating a selected driver as authorization to change or erase stored data; any future migration must be explicit and reversible. Device credentials/tokens must never appear in public JSON or portable Garden backups.
 
 **Storage and sync are separate concerns:** A future browser client will likely **continue using Dexie as its working store** even when `sync.provider` points to hosted Laravel or a household SOS endpoint. An API is not automatically equivalent to a synchronous local repository. Native SQLite/filesystem adapters only apply in suitable native/server contexts; a web PWA cannot directly connect to MariaDB or open arbitrary native paths. Treat JSON primarily as the portable interchange/backup format, not necessarily a live transactional store.
+
+**Repository implementation policy for 8A–8F:** Use small, entity-specific repositories introduced only when each feature needs them, with shared Dexie infrastructure underneath. Start 8A with the minimal storage-neutral contract and a focused test-only repository operation/harness; do not create a universal CRUD framework or a permanent demonstration UI. Repositories should make future reads, writes and transaction boundaries possible without exposing Dexie in Preact views. Test first-run initialization, pointer reuse after reload/restart, UUID naming, six-store creation, schema version behavior, controlled invalid/missing-pointer errors, basic persistence and clean handling of database-open failures. Avoid implementing 8B–8F workflows in 8A.
 
 **Repository acceptance tests for V1:** Verify initialization creates/opens `solace-config` before resolving the active Garden database; existing valid pointers are honored; missing/invalid pointers fail safely with an explicit recovery path rather than deleting data; UI/services depend on storage-neutral repository contracts; the default works offline without a deployment config; unsupported provider settings fail clearly; app preferences stay separate. Later restore tests must prove ZIP activation switches the pointer without database renaming, leaves the old store recoverable, preserves stable record IDs, and never imports a device-specific pointer from `solace.config.json`. Keep `useLiveQuery` or equivalent reactive behavior **behind a data-source-facing hook/service**, or clearly restrict its use to an adapter-aware integration layer so views do not become permanently Dexie-bound.
 
