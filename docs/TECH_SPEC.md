@@ -170,10 +170,12 @@ flowchart TB
 
 ## 4. Candidate Dexie v1 indexes (proposed, not yet applied)
 
+**Current implementation status:** Dexie is installed and was smoke-tested, but the production database, schema and CRUD services have not been created; this section specifies future work, not tables presently available in IndexedDB.
+
 This outline shows **IndexedDB indexes only**. All other object properties can still be stored without listing them in `stores()`.
 
 ```js
-// Proposal: do not replace the temporary test database yet.
+// Proposed initial production schema for Milestone 8A; not currently initialized by the app.
 db.version(1).stores({
   locations: 'id, name',
   gardenTypes: 'id, name, sortOrder',
@@ -195,7 +197,9 @@ db.version(1).stores({
 
 The index choices should follow real UI queries and be reviewed before implementing. Dexie schema upgrades are numbered and additive: preserve old version declarations and add a new version for structural changes, with data migration when necessary. Never delete and recreate the user's real database as an upgrade strategy.
 
-**Important:** The current proof-of-concept database already uses `SolaceGardenDB` version 1 with an `items` store. Before real user data exists, either choose a distinct production database name or make the first production schema version 2 and explicitly handle the temporary store. Do not assume defining another `version(1)` will upgrade existing installations.
+**Historical Dexie smoke test (deprecated, not an active application database):** Following the initial Dexie installation, Milestone 3 temporarily exercised CRUD and reactive queries using a test `SolaceGardenDB` version 1 / `items` store. These checks validated library integration only. The temporary smoke-test source was removed, and **the current Garden skeleton does not initialize or use that database**. The current application is a Preact/HTML/JS/CSS interface scaffold without persisted Garden records; the user also inspected the current browser's IndexedDB panel and found no Garden dataset. Old test database names/schema should not be treated as production state or as an application migration requirement.
+
+**Milestone 8A production starting point:** Define a new, stable application database name (candidate `solace-garden`) and start the first real schema at version 1, with seeded reference records when implemented. No migration from `SolaceGardenDB` is planned because it was a deprecated, temporary smoke test, not a supported Garden data store. As with any browser-origin storage, isolated test data may exist in other browser profiles/origins, but there is no evidence of live application data requiring conversion. **From the first production release onward**, retain version declarations and use safe additive/transformational migrations rather than deleting users' databases.
 
 ## 5. Data access and UI boundaries (proposed)
 
