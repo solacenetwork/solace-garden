@@ -3,6 +3,7 @@ import { LocationProvider, Router, Route, useLocation } from 'preact-iso';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Header } from './components/Header.jsx';
+import { PwaUpdateNotice } from './components/PwaUpdateNotice.jsx';
 import { StandardNavigation } from './components/StandardNavigation.jsx';
 import { StorageRecoveryScreen } from './components/StorageRecoveryScreen.jsx';
 import { InterfaceModeProvider, useInterfaceMode } from './context/InterfaceModeContext.jsx';
@@ -66,13 +67,16 @@ function AppShell() {
 
 export function App({ storage }) {
 	return (
-		<LocationProvider>
-			<StorageProvider storage={storage}>
-				<InterfaceModeProvider>
-					<AppShell />
-				</InterfaceModeProvider>
-			</StorageProvider>
-		</LocationProvider>
+		<>
+			<LocationProvider>
+				<StorageProvider storage={storage}>
+					<InterfaceModeProvider>
+						<AppShell />
+					</InterfaceModeProvider>
+				</StorageProvider>
+			</LocationProvider>
+			<PwaUpdateNotice />
+		</>
 	);
 }
 
@@ -81,7 +85,13 @@ async function startApplication() {
 	const storage = await initializeStorage();
 
 	if (storage.status === 'recovery-required') {
-		render(<StorageRecoveryScreen error={storage.error} />, root);
+		render(
+			<>
+				<StorageRecoveryScreen error={storage.error} />
+				<PwaUpdateNotice />
+			</>,
+			root,
+		);
 		return;
 	}
 
