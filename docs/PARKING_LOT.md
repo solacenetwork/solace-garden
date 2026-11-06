@@ -71,3 +71,43 @@ A reusable physical-space definition is created initially and normally changes o
 - Earlier Garden Archive Fabric.js prototype: canvas with separate drawing and plant-picker toolbars, example vegetable selector, shape controls, and a simple PNG export experiment. Keep as historical reference rather than code to port directly.
 - Mondrian-like rectangular CSS compositions: https://www.mondriangenerator.io/ and https://getmondrian.com/
 - **Scope boundary:** Garden V1 uses the gardener's uploaded JPG/PNG map as reference media and implements PlantDB lookup/selection and real plant-group creation in 8G/8H. It does not implement an interactive Maps editor. Avoid speculative diagram/geometry fields in V1 storage.
+
+## Future idea: Subscribe to Garden Tasks via iCalendar (VTODO)
+
+**Status:** Proposed optional V2 online integration; parked for future design, not committed implementation. V1 remains local-first/offline and does not require an account or feed endpoint.
+
+### Purpose
+
+Allow gardeners to subscribe to their Garden tasks from compatible external task/calendar applications using the open iCalendar (`.ics`) format and `VTODO` components (RFC 5545), rather than requiring a proprietary Garden client.
+
+### Possible feed
+
+Illustrative URL: `https://garden.solace.network/u/10120203/tasks.ics` (**example only**, not an existing endpoint or a recommended public identifier). The actual feed should use authentication or an unguessable, revocable subscription token; a predictable user ID alone must not expose private task information.
+
+```ics
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//SOLACE Network//Garden Tasks//EN
+BEGIN:VTODO
+UID:garden-task-001@garden.solace.network
+DTSTAMP:20261106T170000Z
+SUMMARY:Water tomato plants
+DUE;VALUE=DATE:20261110
+PRIORITY:5
+STATUS:NEEDS-ACTION
+END:VTODO
+END:VCALENDAR
+```
+
+### Initial V2 scope to explore
+
+- **Read-only, one-way publication** of tasks synchronized to Garden's optional online service. Garden remains the authoritative task editor; subscribing applications do not write back to Garden.
+- Generate the feed from existing task data rather than designing V1 IndexedDB records around iCalendar fields. Preserve stable task IDs mapped to stable `UID` values so changes do not create duplicate tasks.
+- Map task title, description, due date/time, priority, status and completion metadata where available; distinguish all-day due dates (`DUE;VALUE=DATE`) from timestamped due dates. Use valid `DTSTAMP` and update metadata (`LAST-MODIFIED` and/or `SEQUENCE`) as appropriate.
+- Decide how completed/deleted tasks remain visible or disappear from subscription snapshots; ensure changes can be recognized by clients. Keep token rotation/revocation and feed caching in mind.
+- Test real client behavior: `VTODO` subscription support is **not universal** (some calendar clients import/display `VEVENT` events but not tasks). A separate optional `VEVENT` calendar feed could be evaluated for wider compatibility; do not misrepresent it as equivalent to editable tasks.
+- Consider CalDAV (RFC 4791) only if future requirements warrant **two-way** task editing/sync. It is not needed for a simple read-only `.ics` feed.
+
+**Standards/reference:** https://www.rfc-editor.org/rfc/rfc5545 (iCalendar); https://www.rfc-editor.org/rfc/rfc4791 (CalDAV). Review newer iCalendar task extensions if relevant at implementation time.
+
+**Version boundary:** This is a candidate V2 online service, not a V1 feature, database migration requirement, or commitment to full cloud/task synchronization.
