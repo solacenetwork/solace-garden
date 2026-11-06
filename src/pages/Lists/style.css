@@ -1,0 +1,233 @@
+.lists-page {
+	display: grid;
+	width: min(100% - 2rem, 58rem);
+	gap: 1.5rem;
+}
+
+.lists-page__header p,
+.lists-state p {
+	margin-block-end: 0;
+	color: var(--sg-color-text-muted);
+}
+
+.lists-page__eyebrow {
+	margin-block-end: 0.25rem;
+	color: var(--sg-color-primary);
+	font-size: 0.78rem;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.lists-page__header h1,
+.lists-state h2 {
+	margin-block-end: 0.4rem;
+}
+
+.lists-tabs {
+	--bs-nav-tabs-link-active-bg: var(--sg-color-background);
+	--bs-nav-tabs-link-active-border-color: var(--sg-color-border) var(--sg-color-border) var(--sg-color-background);
+}
+
+.lists-quick-add {
+	padding: 1rem;
+	background: var(--sg-color-surface);
+	border: 1px solid var(--sg-color-border);
+	border-radius: var(--sg-radius-card);
+	box-shadow: var(--sg-shadow-soft);
+}
+
+.lists-quick-add__controls {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 0.75rem;
+}
+
+.lists-quick-add__controls button,
+.lists-edit__actions button,
+.lists-item__actions button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem;
+}
+
+.lists-message {
+	display: flex;
+	padding: 0.85rem 1rem;
+	color: var(--sg-color-danger);
+	background: color-mix(in srgb, var(--sg-color-danger) 8%, var(--sg-color-surface));
+	border: 1px solid color-mix(in srgb, var(--sg-color-danger) 30%, var(--sg-color-border));
+	border-radius: 0.75rem;
+	align-items: center;
+	gap: 0.65rem;
+}
+
+.lists-message button {
+	margin-inline-start: auto;
+}
+
+.lists-state {
+	padding: 2.5rem 1rem;
+	text-align: center;
+	background: var(--sg-color-surface);
+	border: 1px dashed var(--sg-color-border);
+	border-radius: var(--sg-radius-card);
+}
+
+.lists-state > i {
+	display: block;
+	margin-block-end: 0.75rem;
+	color: var(--sg-color-primary);
+	font-size: 2rem;
+}
+
+.lists-list {
+	display: grid;
+	padding: 0;
+	margin: 0;
+	list-style: none;
+	gap: 0.75rem;
+}
+
+.lists-item {
+	display: grid;
+	grid-template-columns: auto auto minmax(0, 1fr) auto;
+	min-height: 4.5rem;
+	padding: 0.85rem;
+	background: var(--sg-color-surface);
+	border: 1px solid var(--sg-color-border);
+	border-radius: 0.85rem;
+	box-shadow: var(--sg-shadow-soft);
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.lists-item--completed .lists-item__text {
+	color: var(--sg-color-text-muted);
+	text-decoration: line-through;
+}
+
+.lists-item--dragging {
+	opacity: 0.55;
+}
+
+.lists-item__drag {
+	display: inline-grid;
+	width: 2rem;
+	height: 2.75rem;
+	color: var(--sg-color-text-muted);
+	cursor: grab;
+	place-items: center;
+}
+
+.lists-item__drag:active {
+	cursor: grabbing;
+}
+
+.lists-item__check {
+	width: 1.35rem;
+	height: 1.35rem;
+}
+
+.lists-item__content {
+	min-width: 0;
+}
+
+.lists-item__title-row,
+.lists-item__actions,
+.lists-edit__actions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.lists-item__text {
+	font-weight: 700;
+	overflow-wrap: anywhere;
+}
+
+.lists-item__details {
+	display: flex;
+	margin-block-start: 0.35rem;
+	color: var(--sg-color-text-muted);
+	font-size: 0.9rem;
+	flex-wrap: wrap;
+	gap: 0.35rem 1rem;
+}
+
+.lists-item__details a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.lists-item__actions {
+	justify-content: flex-end;
+	flex-wrap: wrap;
+}
+
+.lists-item__order {
+	width: 2.75rem;
+	min-width: 2.75rem;
+	padding-inline: 0;
+}
+
+.lists-edit {
+	display: grid;
+	grid-column: 1 / -1;
+	gap: 1rem;
+}
+
+.lists-edit__grid {
+	display: grid;
+	grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+	gap: 1rem;
+}
+
+.lists-edit .form-label span {
+	color: var(--sg-color-text-muted);
+	font-weight: 400;
+}
+
+.lists-edit__actions {
+	justify-content: flex-end;
+}
+
+.lists-page button:focus-visible,
+.lists-page a:focus-visible,
+.lists-page input:focus-visible,
+.lists-page textarea:focus-visible {
+	outline: 3px solid var(--sg-color-focus);
+	outline-offset: 2px;
+}
+
+@media (max-width: 47.999rem) {
+	.lists-page {
+		gap: 1.15rem;
+	}
+
+	.lists-quick-add__controls,
+	.lists-edit__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.lists-quick-add__controls button {
+		width: 100%;
+	}
+
+	.lists-item {
+		grid-template-columns: auto auto minmax(0, 1fr);
+	}
+
+	.lists-item__drag {
+		width: 1.5rem;
+	}
+
+	.lists-item__actions {
+		grid-column: 1 / -1;
+		justify-content: flex-end;
+		padding-block-start: 0.25rem;
+		border-block-start: 1px solid var(--sg-color-border);
+	}
+}

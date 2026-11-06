@@ -17,6 +17,7 @@ import {
 } from './gardenDatabase.js';
 import { createNotesRepository } from './notesRepository.js';
 import { createDraftsRepository } from './draftsRepository.js';
+import { createListItemsRepository } from './listItemsRepository.js';
 
 const RECOVERY_DETAILS = {
 	CONTROL_OPEN_FAILED: {
@@ -145,6 +146,7 @@ export async function initializeDexieStorage({
 	const repositories = Object.freeze({
 		notes: createNotesRepository(gardenDatabase, { randomUUID }),
 		drafts: createDraftsRepository(gardenDatabase),
+		listItems: createListItemsRepository(gardenDatabase, { randomUUID }),
 	});
 
 	return {

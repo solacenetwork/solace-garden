@@ -10,6 +10,7 @@ import { InterfaceModeProvider, useInterfaceMode } from './context/InterfaceMode
 import { StorageProvider } from './context/StorageContext.jsx';
 import { applicationRoutes, findRoute } from './navigation.js';
 import { Home } from './pages/Home/index.jsx';
+import { Lists } from './pages/Lists/index.jsx';
 import { Plants } from './pages/Plants/index.jsx';
 import { EditNote, NewNote, NewNoteDraft, Notes } from './pages/Notes/index.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
@@ -21,6 +22,7 @@ import './style.css';
 const pageComponents = {
 	home: Home,
 	plants: Plants,
+	lists: Lists,
 	notes: Notes,
 	'note-new': NewNote,
 	'note-new-draft': NewNoteDraft,

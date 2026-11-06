@@ -49,6 +49,17 @@ export const routeCatalog = [
 		description: 'Keep track of garden to-dos and shopping needs.',
 		section: 'primary',
 		navigationGroup: 'activities',
+		view: 'lists',
+	},
+	{
+		id: 'wishlist',
+		path: '/wishlist',
+		label: 'Wish List',
+		icon: 'bag-heart',
+		description: 'Track garden supplies and equipment you may want to purchase.',
+		section: 'secondary',
+		navigationGroup: 'activities',
+		view: 'lists',
 	},
 	{
 		id: 'calendar',

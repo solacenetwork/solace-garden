@@ -1,6 +1,11 @@
 import { exec } from 'preact-iso/router';
 import { describe, expect, it } from 'vitest';
-import { applicationRoutes, findRoute } from './navigation.js';
+import {
+	applicationRoutes,
+	findRoute,
+	primaryActions,
+	secondaryDestinations,
+} from './navigation.js';
 
 const NOTE_UUID = 'ad4a4e9a-1db0-4e87-8fe1-f197a9d52c01';
 
@@ -15,7 +20,32 @@ function resolveRoute(path) {
 	return null;
 }
 
-describe('Notes application routes', () => {
+describe('application routes', () => {
+	it('resolves both list URLs to the shared Lists workspace', () => {
+		expect(resolveRoute('/tasks')).toMatchObject({
+			route: { path: '/tasks', view: 'lists' },
+		});
+		expect(resolveRoute('/wishlist')).toMatchObject({
+			route: { path: '/wishlist', view: 'lists' },
+		});
+		expect(findRoute('/tasks')).toMatchObject({ id: 'tasks' });
+		expect(findRoute('/wishlist')).toMatchObject({ id: 'wishlist' });
+	});
+
+	it('keeps six Simple Mode actions while exposing Wish List elsewhere', () => {
+		expect(primaryActions.map(({ id }) => id)).toEqual([
+			'plants',
+			'harvest',
+			'photos',
+			'tasks',
+			'calendar',
+			'notes',
+		]);
+		expect(secondaryDestinations).toContainEqual(
+			expect.objectContaining({ id: 'wishlist', path: '/wishlist' }),
+		);
+	});
+
 	it('resolves the Saved Notes list route', () => {
 		expect(resolveRoute('/notes')).toMatchObject({
 			route: { path: '/notes', view: 'notes' },
