@@ -53,6 +53,7 @@ export function createHistoryNavigationGuard({
 			if (Number.isInteger(destination)) {
 				currentPosition = destination;
 			}
+			event.stopImmediatePropagation();
 			return;
 		}
 

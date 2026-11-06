@@ -97,6 +97,8 @@ describe('History navigation guard', () => {
 	let confirmNavigation;
 	let guard;
 	let routedUrl;
+	let routerEventCount;
+	let editorState;
 	let originalPushState;
 	let originalReplaceState;
 
@@ -115,15 +117,23 @@ describe('History navigation guard', () => {
 		});
 		guard.install();
 		routedUrl = history.url;
+		routerEventCount = 0;
+		editorState = { isOpen: false, draft: '' };
 		eventTarget.addEventListener('popstate', () => {
+			routerEventCount += 1;
 			routedUrl = history.url;
+			// A router-visible traversal can replace the active route tree. Model the
+			// resulting editor teardown so canceled-navigation tests cover lifecycle
+			// state, rather than only asserting the restored URL.
+			editorState = { isOpen: false, draft: '' };
 		});
 	});
 
 	it('cancels Back navigation without losing the route, draft, or history entry', () => {
 		history.pushState(null, '', '/notes');
 		routedUrl = '/notes';
-		const draft = 'Exact unsaved\nNote text  ';
+		editorState = { isOpen: true, draft: 'Exact unsaved\nNote text  ' };
+		const activeEditor = editorState;
 		guard.setBlocker(() => true);
 		confirmNavigation.mockReturnValue(false);
 		const originalLength = history.length;
@@ -133,13 +143,19 @@ describe('History navigation guard', () => {
 		expect(confirmNavigation).toHaveBeenCalledOnce();
 		expect(history.url).toBe('/notes');
 		expect(routedUrl).toBe('/notes');
-		expect(draft).toBe('Exact unsaved\nNote text  ');
+		expect(routerEventCount).toBe(0);
+		expect(editorState).toBe(activeEditor);
+		expect(editorState).toEqual({
+			isOpen: true,
+			draft: 'Exact unsaved\nNote text  ',
+		});
 		expect(history.length).toBe(originalLength);
 	});
 
 	it('allows confirmed Back navigation to reach its intended destination', () => {
 		history.pushState(null, '', '/notes');
 		routedUrl = '/notes';
+		editorState = { isOpen: true, draft: 'Discard this edit' };
 		guard.setBlocker(() => true);
 		confirmNavigation.mockReturnValue(true);
 
@@ -148,6 +164,8 @@ describe('History navigation guard', () => {
 		expect(confirmNavigation).toHaveBeenCalledOnce();
 		expect(history.url).toBe('/');
 		expect(routedUrl).toBe('/');
+		expect(routerEventCount).toBe(1);
+		expect(editorState.isOpen).toBe(false);
 	});
 
 	it('handles canceled and confirmed Forward navigation without a loop', () => {
@@ -156,6 +174,9 @@ describe('History navigation guard', () => {
 		history.back();
 		expect(history.url).toBe('/notes');
 
+		routerEventCount = 0;
+		editorState = { isOpen: true, draft: 'Forward-sensitive draft' };
+		const activeEditor = editorState;
 		guard.setBlocker(() => true);
 		confirmNavigation.mockReturnValueOnce(false).mockReturnValueOnce(true);
 		const originalLength = history.length;
@@ -163,10 +184,15 @@ describe('History navigation guard', () => {
 		history.forward();
 		expect(history.url).toBe('/notes');
 		expect(routedUrl).toBe('/notes');
+		expect(routerEventCount).toBe(0);
+		expect(editorState).toBe(activeEditor);
+		expect(editorState.draft).toBe('Forward-sensitive draft');
 
 		history.forward();
 		expect(history.url).toBe('/settings');
 		expect(routedUrl).toBe('/settings');
+		expect(routerEventCount).toBe(1);
+		expect(editorState.isOpen).toBe(false);
 		expect(confirmNavigation).toHaveBeenCalledTimes(2);
 		expect(history.length).toBe(originalLength);
 	});
@@ -180,6 +206,7 @@ describe('History navigation guard', () => {
 		expect(confirmNavigation).not.toHaveBeenCalled();
 		expect(history.url).toBe('/');
 		expect(routedUrl).toBe('/');
+		expect(routerEventCount).toBe(1);
 	});
 
 	it('restores correctly after a new route replaces the Forward branch', () => {
@@ -195,7 +222,29 @@ describe('History navigation guard', () => {
 
 		expect(history.url).toBe('/harvest');
 		expect(routedUrl).toBe('/harvest');
+		expect(routerEventCount).toBe(1);
 		expect(history.length).toBe(3);
+	});
+
+	it('preserves the same editor through repeated canceled traversals', () => {
+		history.pushState(null, '', '/notes');
+		routedUrl = '/notes';
+		editorState = { isOpen: true, draft: 'Do not reset me' };
+		const activeEditor = editorState;
+		guard.setBlocker(() => true);
+		confirmNavigation.mockReturnValue(false);
+		const originalLength = history.length;
+
+		history.back();
+		history.back();
+		history.back();
+
+		expect(confirmNavigation).toHaveBeenCalledTimes(3);
+		expect(routerEventCount).toBe(0);
+		expect(editorState).toBe(activeEditor);
+		expect(editorState.draft).toBe('Do not reset me');
+		expect(history.url).toBe('/notes');
+		expect(history.length).toBe(originalLength);
 	});
 
 	it('removes a cleared blocker and restores listeners and History methods', () => {
