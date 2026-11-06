@@ -228,6 +228,16 @@ Avoid putting business rules solely in individual click handlers. Database forei
 
 Units/theme/interface-mode are gardener preferences and must remain separate from storage-provider configuration. Interface mode is implemented in the current shell; units and theme are not yet implemented. Do not imply theme implementation, a theme default, or preference-migration behavior has been settled by listing the intended Settings controls.
 
+### 5.3 First-run informational Welcome (confirmed V1 behavior; implementation pending)
+
+- Implement Welcome as a **normal application route** (`/welcome`), not a modal, blocking overlay, or garden-creation wizard. The usual app navigation remains active.
+- At startup, after preferences are loaded, automatically navigate to `/welcome` **only** when `welcomeSeen` is absent/false and the launch is at the app's normal starting route. Never intercept a direct/deep link such as `/calendar`.
+- When the Welcome page successfully renders for the first time, persist `welcomeSeen: true` in the existing persistent application-settings mechanism (prefer the established settings store rather than a cookie; do not add a second competing preference store). This is **display-triggered**, not button-triggered; navigating away via any normal UI control requires no acknowledgment.
+- Once true, the flag stays true across app restarts and version upgrades. A manual revisit via Help/About does not clear it. Clearing browser site data may reset the flag, as with other locally stored preferences.
+- The page explains Garden's purpose, directs users to the existing Create Garden workflow (Wizard/Quick Start/Advanced), and during beta identifies beta status. Include concise local-only data and backup guidance, documentation, and a link to the repository's GitHub issue tracker. No new garden-creation flow is introduced.
+- Ensure preference reads/writes are asynchronous-safe: avoid redirect loops or flashing Welcome on every startup while settings are loading. If persistence fails, do not block navigation; handle the failure through normal application feedback.
+- Acceptance cases: new installation opens Welcome from the normal entry route; user can navigate away without clicking anything; refresh/relaunch skips automatic Welcome; deep links retain their destinations; manual revisit works; app update does not reset the flag.
+
 ## 6. Search (proposed)
 
 One search entry point with scopes: Garden (default), Lists/Notes, Calendar, Journal. Search Plant Group names, Garden names **and embedded Season Notes** locally, including completed/archived gardens. In Lists/Notes results distinguish **Note**, **Linked Note** (show the linked garden), and **Season Note** (which navigates to its Garden record). Season Notes are part of Garden scope, not separate Notes rows. Garden status and specific garden are optional filters. Exclude PlantDB's botanical reference corpus.

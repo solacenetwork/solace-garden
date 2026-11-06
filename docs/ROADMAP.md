@@ -218,6 +218,16 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 - [ ] Test IndexedDB persistence, offline startup, library compatibility and regression coverage incrementally; add deeper Gallery, Calendar and backup stress tests when those features exist.
 - [ ] Treat findings as reasons to revise mockups, component boundaries or implementation order rather than as blockers requiring the entire UI to be frozen.
 
+### V1 first-run Welcome page — planned
+
+**Status:** Agreed behavior; implementation and acceptance testing pending. Schedule within the V1 UI/navigation work before public beta; do not mark earlier milestones incomplete retroactively.
+
+- [ ] Add a normal `/welcome` route with informational beta messaging, local-data/backup explanation, concise getting-started directions, and documentation/GitHub issue links.
+- [ ] On a normal first launch with no `welcomeSeen` preference, show Welcome once and persist the flag after successful display, without requiring a button click.
+- [ ] Preserve ordinary app navigation; do not override deep links or make Welcome a prerequisite for garden creation.
+- [ ] Provide a Help/About path to reopen Welcome; reopening must not reset first-run state.
+- [ ] Test first launch, navigation away without clicking, refresh/restart, deep links, revisiting, and persistence across app updates. Test clearing site data separately as a new-install scenario.
+
 ## V1 UI detail — New interaction candidate (November 2026)
 
 - **Contextual drawer:** Use the validated optional Bootstrap 6 bottom Drawer (`.drawer-bottom` on native `<dialog>`) for secondary information, with a small accessible fixed Info/arrow tab while closed and a full-width panel when open. Approx. 40–50% viewport height is a starting point; evaluate `dvh` with `vh` fallback and mobile safe-area spacing. It is optional, not a replacement for fullscreen modal editing. Hide/show the trigger as the Drawer opens/closes.
