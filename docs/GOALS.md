@@ -308,6 +308,17 @@ Importing a photo into Garden creates a resized/optimized copy; it does not modi
 
 **Still to specify:** final schemas, numeric storage budget defaults/limits, image-format and dimension benchmarks, precise media processing configuration, and complete restore validation/recovery implementation.
 
+### Database schema stability and release policy (approved)
+
+- **Alpha development (before the first data-preserving public release):** Keep the initial Garden data schema at Dexie version 1 while the model is being built. Disposable alpha databases may be deleted and recreated rather than migrated, with clear warning that development data is not guaranteed to survive. Reset the `solace-config` active-database pointer and the UUID-named data database together through an explicit development-only procedure; never silently reset a user's database on an ordinary startup or failed open.
+- **At the first supported public beta/stable V1 release:** Establish a documented, supported persistent schema and a commitment to preserve gardener data across updates. The exact beta/stable release boundary must be declared before distributing builds that users are expected to retain data in.
+- **Within a major application release series (e.g. 1.x):** Prefer schema-compatible feature and maintenance releases. Do not routinely bump Dexie schema versions or introduce breaking structural changes in minor/patch releases. An exceptional migration for a critical data-integrity/security defect is permitted, with explicit testing and release notes.
+- **Planned major-version changes (e.g. 2.0.0-beta):** Schedule breaking schema changes as a dedicated workstream on a separate development branch. Define migration paths from supported older schemas, test them against realistic backups, and preserve existing user records. A major version is a migration window, **not** permission to erase production data.
+- **Independent version numbers:** Application semver, Dexie schema versions (including the separate `solace-config` schema), and portable ZIP/data-format versions are distinct. They need not share the same numbers or advance together.
+- **PWA compatibility:** Test service-worker activation, old open tabs, offline clients returning after long periods, IndexedDB `versionchange`/blocked upgrades, and backup/restore before shipping a breaking migration. Workbox caching does not itself migrate or protect IndexedDB data.
+
+This is a release-planning rule, not a requirement to build migrations during disposable alpha development.
+
 ## 5. Future Data Handling
 
 **Architectural direction, not a settled synchronization design:** Garden is one web application at `garden.solace.network` that compatible browsers may install as a PWA **in v1**, with local-first, offline-capable data handling. The PWA itself does not require connected storage or synchronization. In future versions, online and offline experiences may expose different amounts of historical data depending on connectivity and available storage, without requiring separate unrelated applications.
