@@ -134,6 +134,7 @@ export const routeCatalog = [
 // treated as the create view rather than as a Note ID. They are intentionally
 // separate from routeCatalog, which drives visible workspace navigation.
 export const applicationRoutes = [
+	{ path: '/notes/new/:draftId', view: 'note-new-draft' },
 	{ path: '/notes/new', view: 'note-new' },
 	{ path: '/notes/:id', view: 'note-edit' },
 	...routeCatalog,

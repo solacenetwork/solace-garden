@@ -6,12 +6,11 @@ import { Header } from './components/Header.jsx';
 import { StandardNavigation } from './components/StandardNavigation.jsx';
 import { StorageRecoveryScreen } from './components/StorageRecoveryScreen.jsx';
 import { InterfaceModeProvider, useInterfaceMode } from './context/InterfaceModeContext.jsx';
-import { NavigationGuardProvider } from './context/NavigationGuardContext.jsx';
 import { StorageProvider } from './context/StorageContext.jsx';
 import { applicationRoutes, findRoute } from './navigation.js';
 import { Home } from './pages/Home/index.jsx';
 import { Plants } from './pages/Plants/index.jsx';
-import { EditNote, NewNote, Notes } from './pages/Notes/index.jsx';
+import { EditNote, NewNote, NewNoteDraft, Notes } from './pages/Notes/index.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
 import { Settings } from './pages/Settings/index.jsx';
 import { NotFound } from './pages/_404.jsx';
@@ -23,6 +22,7 @@ const pageComponents = {
 	plants: Plants,
 	notes: Notes,
 	'note-new': NewNote,
+	'note-new-draft': NewNoteDraft,
 	'note-edit': EditNote,
 	settings: Settings,
 };
@@ -66,15 +66,13 @@ function AppShell() {
 
 export function App({ storage }) {
 	return (
-		<NavigationGuardProvider>
-			<LocationProvider>
-				<StorageProvider storage={storage}>
-					<InterfaceModeProvider>
-						<AppShell />
-					</InterfaceModeProvider>
-				</StorageProvider>
-			</LocationProvider>
-		</NavigationGuardProvider>
+		<LocationProvider>
+			<StorageProvider storage={storage}>
+				<InterfaceModeProvider>
+					<AppShell />
+				</InterfaceModeProvider>
+			</StorageProvider>
+		</LocationProvider>
 	);
 }
 

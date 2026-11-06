@@ -1,478 +1,173 @@
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { useNavigationGuard } from '../../context/NavigationGuardContext.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
-import { createNotesService } from '../../services/notes.js';
+import { createDraftAutosave } from '../../services/draftAutosave.js';
+import { createNoteDraftsService, createNotesService } from '../../services/notes.js';
 import { StorageError, ValidationError } from '../../storage/index.js';
 import './style.css';
 
-const updatedDateFormatter = new Intl.DateTimeFormat(undefined, {
-	dateStyle: 'medium',
-	timeStyle: 'short',
-});
+const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+const STATUS_TEXT = { 'all-saved': 'All changes saved', saving: 'Saving draft…', 'draft-saved': 'Draft saved locally', error: 'Unable to save draft' };
 
-function formatUpdatedDate(value) {
+function formatDate(value) {
 	const date = new Date(value);
-	return Number.isNaN(date.getTime())
-		? 'Update time unavailable'
-		: updatedDateFormatter.format(date);
+	return Number.isNaN(date.getTime()) ? 'Update time unavailable' : dateFormatter.format(date);
 }
 
-function getErrorMessage(error, action) {
-	if (error instanceof ValidationError) {
-		return error.message;
-	}
-
-	if (error instanceof StorageError) {
-		return `Your Note could not be ${action}. Your existing data has not been discarded.`;
-	}
-
+function errorMessage(error, action) {
+	if (error instanceof ValidationError) return error.message;
+	if (error instanceof StorageError) return `Your Note could not be ${action}. Your existing data has not been discarded.`;
 	return `Something unexpected prevented this Note from being ${action}.`;
 }
 
-function useUnsavedNavigationWarning(isDirty) {
-	const navigationGuard = useNavigationGuard();
-
-	useEffect(() => {
-		if (!isDirty) {
-			return undefined;
-		}
-
-		const handleBeforeUnload = (event) => {
-			event.preventDefault();
-			event.returnValue = '';
-		};
-		const handleLinkClick = (event) => {
-			const anchor = event
-				.composedPath()
-				.find((element) => element instanceof HTMLAnchorElement);
-
-			if (
-				!anchor ||
-				anchor.origin !== globalThis.location.origin ||
-				anchor.pathname === globalThis.location.pathname
-			) {
-				return;
-			}
-
-			if (!globalThis.confirm('Discard your unsaved Note and leave this page?')) {
-				event.preventDefault();
-				event.stopImmediatePropagation();
-			}
-		};
-
-		globalThis.addEventListener('beforeunload', handleBeforeUnload);
-		globalThis.addEventListener('click', handleLinkClick, true);
-		const removeHistoryBlocker = navigationGuard.setBlocker(() => true);
-
-		return () => {
-			globalThis.removeEventListener('beforeunload', handleBeforeUnload);
-			globalThis.removeEventListener('click', handleLinkClick, true);
-			removeHistoryBlocker();
-		};
-	}, [isDirty, navigationGuard]);
+function useNotesWorkspace() {
+	const storage = useStorage();
+	return useMemo(() => ({
+		notes: createNotesService(storage.repositories.notes),
+		drafts: createNoteDraftsService(storage.repositories.drafts),
+	}), [storage]);
 }
 
-function NoteEditor({ record, onCancel, onSaved, service }) {
+function NoteEditor({ record, draft, draftId, notes, drafts }) {
+	const { route } = useLocation();
 	const textarea = useRef(null);
-	const [text, setText] = useState(record?.text ?? '');
-	const [errorMessage, setErrorMessage] = useState('');
-	const [isSaving, setIsSaving] = useState(false);
-	const initialText = record?.text ?? '';
-	const isDirty = text !== initialText;
+	const baseline = record?.text ?? '';
+	const createdAt = useRef(draft?.createdAt);
+	const [text, setText] = useState(draft?.text ?? baseline);
+	const [status, setStatus] = useState(draft?.text !== undefined && draft.text !== baseline ? 'draft-saved' : 'all-saved');
+	const [error, setError] = useState('');
+	const [saving, setSaving] = useState(false);
+	const dirty = text !== baseline;
 
-	useUnsavedNavigationWarning(isDirty);
+	const autosave = useMemo(() => createDraftAutosave({
+		write: async (value) => {
+			if (value === null) {
+				await drafts.remove(draftId);
+				createdAt.current = undefined;
+				return;
+			}
+			const saved = await drafts.save({ id: draftId, noteId: record?.id ?? null, text: value, createdAt: createdAt.current });
+			createdAt.current = saved.createdAt;
+		},
+		onStatus: setStatus,
+	}), [draftId, drafts, record?.id]);
 
 	useEffect(() => {
 		textarea.current?.focus();
-	}, []);
-
-	const cancel = () => {
-		if (
-			isDirty &&
-			!globalThis.confirm('Discard the changes to this Note?')
-		) {
-			return;
-		}
-
-		onCancel();
-	};
+		return () => { void autosave.flush(); };
+	}, [autosave]);
 
 	const save = async (event) => {
 		event.preventDefault();
-		if (!isDirty || isSaving) {
-			return;
-		}
-
-		setIsSaving(true);
-		setErrorMessage('');
-
+		if (!dirty || saving) return;
+		setSaving(true);
+		setError('');
+		await autosave.stop();
 		try {
 			if (record) {
-				const savedChanges = await service.update(record.id, { text });
-				if (!savedChanges) {
-					setErrorMessage('This Note could not be found. Return to the list and reload Notes.');
-					return;
-				}
-
-				onSaved({ ...record, ...savedChanges });
+				if (!await notes.update(record.id, { text }, { draftId })) throw new Error('The Note no longer exists.');
 			} else {
-				onSaved(await service.create({ text, gardenId: null }));
+				await notes.create({ text, gardenId: null }, { draftId });
 			}
-		} catch (error) {
-			setErrorMessage(getErrorMessage(error, 'saved'));
-		} finally {
-			setIsSaving(false);
+			route('/notes', true);
+		} catch (saveError) {
+			setError(errorMessage(saveError, 'saved'));
+			autosave.schedule(text);
+			void autosave.flush();
+			setSaving(false);
 		}
 	};
 
-	return (
-		<section class="note-editor" aria-labelledby="note-editor-title">
-			<header class="note-editor__header">
-				<div>
-					<p class="notes-page__eyebrow">{record ? 'Edit Note' : 'New Note'}</p>
-					<h1 id="note-editor-title">
-						{record ? 'Update your Note' : 'Capture a Note'}
-					</h1>
-				</div>
-			</header>
+	const discard = async () => {
+		if (!globalThis.confirm('Discard this recoverable draft?')) return;
+		setError('');
+		await autosave.stop();
+		try {
+			await drafts.remove(draftId);
+			createdAt.current = undefined;
+			if (record) {
+				setText(baseline);
+				setStatus('all-saved');
+			} else route('/notes', true);
+		} catch (discardError) {
+			setError(errorMessage(discardError, 'discarded'));
+			setStatus('error');
+		}
+	};
 
-			{errorMessage && (
-				<div class="notes-message notes-message--error" role="alert">
-					<i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
-					<span>{errorMessage}</span>
-				</div>
-			)}
-
-			<form class="note-editor__form" onSubmit={save}>
-				<div class="form-field">
-					<label class="form-label" for="note-text">Note</label>
-					<textarea
-						id="note-text"
-						class="form-control note-editor__textarea"
-						ref={textarea}
-						rows="12"
-						value={text}
-						onInput={(event) => {
-							setText(event.currentTarget.value);
-							setErrorMessage('');
-						}}
-						aria-describedby="note-text-help"
-					></textarea>
-					<p class="form-text" id="note-text-help">
-						Plain text only. Line breaks and spacing are preserved.
-					</p>
-				</div>
-
-				<div class="form-field">
-					<label class="form-label" for="note-garden">Garden association</label>
-					<select
-						id="note-garden"
-						class="form-control"
-						disabled
-						aria-describedby="note-garden-help"
-					>
-						<option>
-							{record?.gardenId
-								? `Linked garden: ${record.gardenId}`
-								: 'No garden'}
-						</option>
-					</select>
-					<p class="form-text" id="note-garden-help">
-						Garden linking will become available after Gardens can be created.
-					</p>
-				</div>
-
-				<div class="note-editor__actions">
-					<button
-						class="btn-outline note-editor__button"
-						type="button"
-						onClick={cancel}
-						disabled={isSaving}
-					>
-						Cancel
-					</button>
-					<button
-						class="btn-solid theme-primary note-editor__button"
-						type="submit"
-						disabled={!isDirty || isSaving}
-					>
-						<i class="bi bi-check2" aria-hidden="true"></i>
-						{isSaving ? 'Saving…' : 'Save Note'}
-					</button>
-				</div>
-			</form>
-		</section>
-	);
+	return <div class="container notes-page notes-page--editing"><section class="note-editor" aria-labelledby="note-editor-title">
+		<header class="note-editor__header"><p class="notes-page__eyebrow">{record ? 'Edit Note' : 'New Note'}</p><h1 id="note-editor-title">{record ? 'Update your Note' : 'Capture a Note'}</h1><p class={`note-editor__draft-status note-editor__draft-status--${status}`} role="status">{STATUS_TEXT[status]}</p></header>
+		{error && <div class="notes-message notes-message--error" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{error}</span></div>}
+		<form class="note-editor__form" onSubmit={save}>
+			<div class="form-field"><label class="form-label" for="note-text">Note</label><textarea id="note-text" class="form-control note-editor__textarea" ref={textarea} rows="12" value={text} onInput={(event) => { const value = event.currentTarget.value; setText(value); setError(''); autosave.schedule(value === baseline ? null : value); }} aria-describedby="note-text-help note-draft-help"></textarea><p class="form-text" id="note-text-help">Plain text only. Line breaks and spacing are preserved.</p><p class="form-text" id="note-draft-help">Drafts stay local until you explicitly save the Note.</p></div>
+			<div class="form-field"><label class="form-label" for="note-garden">Garden association</label><select id="note-garden" class="form-control" disabled><option>{record?.gardenId ? `Linked garden: ${record.gardenId}` : 'No garden'}</option></select></div>
+			<div class="note-editor__actions note-editor__actions--split"><button class="btn-text theme-danger note-editor__button" type="button" onClick={discard} disabled={saving}>Discard draft</button><div class="note-editor__primary-actions"><button class="btn-outline note-editor__button" type="button" onClick={() => route('/notes', true)} disabled={saving}>Back to Notes</button><button class="btn-solid theme-primary note-editor__button" type="submit" disabled={!dirty || saving}><i class="bi bi-check2" aria-hidden="true"></i>{saving ? 'Saving…' : 'Save Note'}</button></div></div>
+		</form>
+	</section></div>;
 }
 
-function useNotesService() {
-	const storage = useStorage();
-	return useMemo(
-		() => createNotesService(storage.repositories.notes),
-		[storage],
-	);
-}
-
-function NotesEditorPage({ record, service }) {
-	const { route } = useLocation();
-	const returnToNotes = () => route('/notes', true);
-
-	return (
-		<div class="container notes-page notes-page--editing">
-			<NoteEditor
-				key={record?.id ?? 'new'}
-				record={record}
-				onCancel={returnToNotes}
-				onSaved={returnToNotes}
-				service={service}
-			/>
-		</div>
-	);
-}
+function LoadingNote() { return <div class="container notes-page"><div class="notes-state" role="status"><p>Loading Note…</p></div></div>; }
+function NoteLoadError({ message }) { return <div class="container notes-page"><div class="notes-state" role="alert"><h1>Note could not be opened</h1><p>{message}</p><a class="btn-solid theme-primary" href="/notes">Back to Saved Notes</a></div></div>; }
 
 export function NewNote() {
-	const service = useNotesService();
-	return <NotesEditorPage record={null} service={service} />;
+	const { route } = useLocation();
+	useEffect(() => { route(`/notes/new/${globalThis.crypto.randomUUID()}`, true); }, [route]);
+	return <LoadingNote />;
+}
+
+export function NewNoteDraft({ params }) {
+	const { drafts, notes } = useNotesWorkspace();
+	const draftId = params?.draftId;
+	const [state, setState] = useState({ status: 'loading' });
+	useEffect(() => {
+		let active = true;
+		drafts.getById(draftId).then((draft) => active && setState({ status: 'ready', draft }), (loadError) => active && setState({ status: 'error', message: errorMessage(loadError, 'opened') }));
+		return () => { active = false; };
+	}, [draftId, drafts]);
+	if (state.status === 'loading') return <LoadingNote />;
+	if (state.status === 'error') return <NoteLoadError message={state.message} />;
+	if (state.draft && !state.draft.isNew) return <NoteLoadError message="This draft does not belong to a new Note." />;
+	return <NoteEditor key={draftId} record={null} draft={state.draft} draftId={draftId} notes={notes} drafts={drafts} />;
 }
 
 export function EditNote({ params }) {
-	const service = useNotesService();
+	const { drafts, notes } = useNotesWorkspace();
 	const noteId = params?.id;
-	const [loadState, setLoadState] = useState({ status: 'loading', noteId });
-	const [loadAttempt, setLoadAttempt] = useState(0);
-
+	const [state, setState] = useState({ status: 'loading', noteId });
 	useEffect(() => {
 		let active = true;
-		setLoadState({ status: 'loading', noteId });
-
-		service.getById(noteId).then(
-			(record) => {
-				if (!active) {
-					return;
-				}
-
-				setLoadState(record
-					? { status: 'ready', noteId, record }
-					: { status: 'missing', noteId });
-			},
-			(error) => {
-				if (!active) {
-					return;
-				}
-
-				setLoadState({
-					status: 'error',
-					noteId,
-					message: error instanceof ValidationError
-						? 'This Note address is invalid.'
-						: getErrorMessage(error, 'opened'),
-				});
-			},
-		);
-
-		return () => {
-			active = false;
-		};
-	}, [loadAttempt, noteId, service]);
-
-	if (loadState.noteId === noteId && loadState.status === 'ready') {
-		return (
-			<NotesEditorPage
-				key={loadState.record.id}
-				record={loadState.record}
-				service={service}
-			/>
-		);
-	}
-
-	if (loadState.noteId !== noteId || loadState.status === 'loading') {
-		return (
-			<div class="container notes-page">
-				<div class="notes-state" role="status">
-					<i class="bi bi-hourglass-split" aria-hidden="true"></i>
-					<p>Loading Note…</p>
-				</div>
-			</div>
-		);
-	}
-
-	const isMissing = loadState.status === 'missing';
-	return (
-		<div class="container notes-page">
-			<div class="notes-state" role="alert">
-				<span class="notes-state__icon" aria-hidden="true">
-					<i class={`bi bi-${isMissing ? 'journal-x' : 'exclamation-triangle'}`}></i>
-				</span>
-				<h1>{isMissing ? 'Note not found' : 'Note could not be opened'}</h1>
-				<p>
-					{isMissing
-						? 'This Note may have been deleted or the address may be incorrect.'
-						: loadState.message}
-				</p>
-				<div class="note-editor__actions">
-					{!isMissing && (
-						<button
-							class="btn-outline note-editor__button"
-							type="button"
-							onClick={() => setLoadAttempt((attempt) => attempt + 1)}
-						>
-							Retry
-						</button>
-					)}
-					<a class="btn-solid theme-primary note-editor__button" href="/notes">
-						Back to Saved Notes
-					</a>
-				</div>
-			</div>
-		</div>
-	);
+		setState({ status: 'loading', noteId });
+		Promise.all([notes.getById(noteId), drafts.getForNote(noteId)]).then(([record, draft]) => active && setState(record ? { status: 'ready', noteId, record, draft } : { status: 'missing', noteId }), (loadError) => active && setState({ status: 'error', noteId, message: errorMessage(loadError, 'opened') }));
+		return () => { active = false; };
+	}, [drafts, noteId, notes]);
+	if (state.noteId !== noteId || state.status === 'loading') return <LoadingNote />;
+	if (state.status === 'missing') return <NoteLoadError message="This Note may have been deleted or the address may be incorrect." />;
+	if (state.status === 'error') return <NoteLoadError message={state.message} />;
+	return <NoteEditor key={noteId} record={state.record} draft={state.draft} draftId={state.draft?.id ?? noteId} notes={notes} drafts={drafts} />;
 }
 
 export function Notes() {
-	const service = useNotesService();
-	const [notes, setNotes] = useState([]);
-	const [isLoading, setIsLoading] = useState(true);
-	const [errorMessage, setErrorMessage] = useState('');
+	const { drafts, notes } = useNotesWorkspace();
+	const [state, setState] = useState({ status: 'loading', notes: [], drafts: [] });
 	const [deletingId, setDeletingId] = useState(null);
-
-	const loadNotes = async () => {
-		setIsLoading(true);
-		setErrorMessage('');
-
-		try {
-			setNotes(await service.list());
-		} catch (error) {
-			setErrorMessage(getErrorMessage(error, 'loaded'));
-		} finally {
-			setIsLoading(false);
-		}
+	const load = async () => {
+		setState((current) => ({ ...current, status: 'loading' }));
+		try { const [savedNotes, savedDrafts] = await Promise.all([notes.list(), drafts.list()]); setState({ status: 'ready', notes: savedNotes, drafts: savedDrafts }); }
+		catch (loadError) { setState((current) => ({ ...current, status: 'error', message: errorMessage(loadError, 'loaded') })); }
 	};
-
-	useEffect(() => {
-		let active = true;
-
-		service.list().then(
-			(loadedNotes) => {
-				if (active) {
-					setNotes(loadedNotes);
-					setIsLoading(false);
-				}
-			},
-			(error) => {
-				if (active) {
-					setErrorMessage(getErrorMessage(error, 'loaded'));
-					setIsLoading(false);
-				}
-			},
-		);
-
-		return () => {
-			active = false;
-		};
-	}, [service]);
-
+	useEffect(() => { void load(); }, [drafts, notes]);
 	const deleteNote = async (note) => {
-		if (!globalThis.confirm('Permanently delete this Note? This cannot be undone.')) {
-			return;
-		}
-
+		if (!globalThis.confirm('Permanently delete this Note? This cannot be undone.')) return;
 		setDeletingId(note.id);
-		setErrorMessage('');
-
-		try {
-			if (!(await service.remove(note.id))) {
-				setErrorMessage('This Note could not be found. Reload Notes before trying again.');
-				return;
-			}
-
-			setNotes((current) => current.filter(({ id }) => id !== note.id));
-		} catch (error) {
-			setErrorMessage(getErrorMessage(error, 'deleted'));
-		} finally {
-			setDeletingId(null);
-		}
+		try { await notes.remove(note.id); await load(); }
+		catch (deleteError) { setState((current) => ({ ...current, status: 'error', message: errorMessage(deleteError, 'deleted') })); }
+		finally { setDeletingId(null); }
 	};
-
-	return (
-		<section class="container notes-page" aria-labelledby="notes-title">
-			<header class="notes-page__header">
-				<div>
-					<p class="notes-page__eyebrow">Garden observations</p>
-					<h1 id="notes-title">Notes</h1>
-					<p>Keep plain-text observations together, whether linked to a garden or not.</p>
-				</div>
-				<a
-					class="btn-solid theme-primary notes-page__new"
-					href="/notes/new"
-				>
-					<i class="bi bi-plus-lg" aria-hidden="true"></i>
-					New Note
-				</a>
-			</header>
-
-			{errorMessage && (
-				<div class="notes-message notes-message--error" role="alert">
-					<i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
-					<span>{errorMessage}</span>
-					<button class="btn-outline" type="button" onClick={loadNotes}>
-						Retry
-					</button>
-				</div>
-			)}
-
-			{isLoading ? (
-				<div class="notes-state" role="status">
-					<i class="bi bi-hourglass-split" aria-hidden="true"></i>
-					<p>Loading Notes…</p>
-				</div>
-			) : notes.length === 0 ? (
-				<div class="notes-state">
-					<span class="notes-state__icon" aria-hidden="true">
-						<i class="bi bi-journal-plus"></i>
-					</span>
-					<h2>No Notes yet</h2>
-					<p>Capture an observation, reminder, or idea from your garden.</p>
-					<a
-						class="btn-solid theme-primary notes-state__action"
-						href="/notes/new"
-					>
-						Create your first Note
-					</a>
-				</div>
-			) : (
-				<div class="notes-list" aria-label="Saved Notes">
-					{notes.map((note) => (
-						<article class="note-card" key={note.id}>
-							<a
-								class="note-card__open"
-								href={`/notes/${note.id}`}
-							>
-								<span class="note-card__preview">{note.text}</span>
-								<span class="note-card__metadata">
-									<span>Updated {formatUpdatedDate(note.updatedAt)}</span>
-									{note.gardenId && (
-										<span class="note-card__garden">
-											<i class="bi bi-link-45deg" aria-hidden="true"></i>
-											Linked garden
-										</span>
-									)}
-								</span>
-							</a>
-							<button
-								class="btn-text theme-danger note-card__delete"
-								type="button"
-								onClick={() => deleteNote(note)}
-								disabled={deletingId === note.id}
-							>
-								<i class="bi bi-trash3" aria-hidden="true"></i>
-								{deletingId === note.id ? 'Deleting…' : 'Delete'}
-							</button>
-						</article>
-					))}
-				</div>
-			)}
-		</section>
-	);
+	return <section class="container notes-page" aria-labelledby="notes-title"><header class="notes-page__header"><div><p class="notes-page__eyebrow">Garden observations</p><h1 id="notes-title">Notes</h1><p>Keep plain-text observations together, whether linked to a garden or not.</p></div><a class="btn-solid theme-primary notes-page__new" href="/notes/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>New Note</a></header>
+		{state.status === 'error' && <div class="notes-message notes-message--error" role="alert"><span>{state.message}</span><button class="btn-outline" type="button" onClick={load}>Retry</button></div>}
+		{state.status === 'loading' ? <div class="notes-state" role="status"><p>Loading Notes…</p></div> : <>
+			{state.drafts.length > 0 && <section class="notes-drafts" aria-labelledby="notes-drafts-title"><h2 id="notes-drafts-title">Unfinished drafts</h2><div class="notes-list">{state.drafts.map((draft) => <a class="note-card note-card--draft note-card__open" href={draft.isNew ? `/notes/new/${draft.id}` : `/notes/${draft.subjectId}`} key={draft.id}><span class="note-card__preview">{draft.text || 'Empty draft'}</span><span class="note-card__metadata">Draft saved {formatDate(draft.updatedAt)}</span></a>)}</div></section>}
+			{state.notes.length === 0 ? <div class="notes-state"><h2>No saved Notes yet</h2><p>Start a new Note or return to an unfinished draft.</p></div> : <div class="notes-list" aria-label="Saved Notes">{state.notes.map((note) => <article class="note-card" key={note.id}><a class="note-card__open" href={`/notes/${note.id}`}><span class="note-card__preview">{note.text}</span><span class="note-card__metadata">Updated {formatDate(note.updatedAt)}</span></a><button class="btn-text theme-danger note-card__delete" type="button" onClick={() => deleteNote(note)} disabled={deletingId === note.id}><i class="bi bi-trash3" aria-hidden="true"></i>{deletingId === note.id ? 'Deleting…' : 'Delete'}</button></article>)}</div>}
+		</>}
+	</section>;
 }
-

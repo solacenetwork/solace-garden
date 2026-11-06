@@ -4,6 +4,7 @@ import {
 	GARDEN_DATABASE_VERSION,
 	GARDEN_INDEXES,
 	GARDEN_STORES,
+	GARDEN_STORES_V1,
 } from './constants.js';
 import { probeDatabaseExists } from './databaseProbe.js';
 
@@ -43,6 +44,7 @@ export function findGardenDatabaseNames(databaseNames) {
 
 export function createGardenDatabase(databaseName, dependencies) {
 	const database = new Dexie(databaseName, dependencies);
+	database.version(1).stores(GARDEN_STORES_V1);
 	database.version(GARDEN_DATABASE_VERSION).stores(GARDEN_STORES);
 	return database;
 }

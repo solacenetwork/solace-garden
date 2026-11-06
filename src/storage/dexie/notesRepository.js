@@ -24,6 +24,7 @@ export function createNotesRepository(database, {
 } = {}) {
 	const table = database.table('notes');
 	const gardens = database.table('gardens');
+	const drafts = database.table('drafts');
 
 	async function validateGardenReference(gardenId) {
 		if (gardenId === null || gardenId === undefined) {
@@ -104,7 +105,13 @@ export function createNotesRepository(database, {
 			validateRecordId(id);
 
 			try {
-				return (await table.where(':id').equals(id).delete()) === 1;
+				return await database.transaction('rw', table, drafts, async () => {
+					const removed = (await table.where(':id').equals(id).delete()) === 1;
+					if (removed) {
+						await drafts.where('[kind+subjectId]').equals(['note', id]).delete();
+					}
+					return removed;
+				});
 			} catch (error) {
 				throwStorageError('remove note', error);
 			}
@@ -113,6 +120,34 @@ export function createNotesRepository(database, {
 
 	return Object.freeze({
 		...methods,
+
+		async createFromDraft(record, draftId) {
+			validateRecordId(draftId, 'draftId');
+			try {
+				return await database.transaction('rw', table, gardens, drafts, async () => {
+					const created = await methods.create(record);
+					await drafts.delete(draftId);
+					return created;
+				});
+			} catch (error) {
+				throwStorageError('create note from draft', error);
+			}
+		},
+
+		async updateFromDraft(id, changes, draftId) {
+			validateRecordId(draftId, 'draftId');
+			try {
+				return await database.transaction('rw', table, gardens, drafts, async () => {
+					const updated = await methods.update(id, changes);
+					if (updated) {
+						await drafts.delete(draftId);
+					}
+					return updated;
+				});
+			} catch (error) {
+				throwStorageError('update note from draft', error);
+			}
+		},
 
 		// Garden reads are included so linked Notes can be validated in the same
 		// transaction. The callback still exposes only storage-neutral Note methods.
@@ -129,6 +164,7 @@ export function createNotesRepository(database, {
 					'rw',
 					table,
 					gardens,
+					drafts,
 					() => operation(methods),
 				);
 			} catch (error) {

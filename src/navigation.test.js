@@ -30,6 +30,13 @@ describe('Notes application routes', () => {
 		});
 	});
 
+	it('resolves a stable new draft URL independently of saved Note IDs', () => {
+		expect(resolveRoute(`/notes/new/${NOTE_UUID}`)).toMatchObject({
+			route: { path: '/notes/new/:draftId', view: 'note-new-draft' },
+			params: { draftId: NOTE_UUID },
+		});
+	});
+
 	it('passes the existing Note UUID through the parameter route', () => {
 		expect(resolveRoute(`/notes/${NOTE_UUID}`)).toMatchObject({
 			route: { path: '/notes/:id', view: 'note-edit' },

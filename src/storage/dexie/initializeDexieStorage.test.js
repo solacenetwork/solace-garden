@@ -6,6 +6,7 @@ import {
 	CONTROL_STORE_NAME,
 	GARDEN_INDEXES,
 	GARDEN_STORES,
+	GARDEN_STORES_V1,
 	MAIN_CONFIG_ID,
 } from './constants.js';
 import { createControlDatabase } from './controlDatabase.js';
@@ -182,7 +183,7 @@ describe('Dexie storage initialization', () => {
 		reopenedDatabase.close();
 	});
 
-	it('creates exactly the six agreed Garden stores', async () => {
+	it('creates the Garden stores including recoverable drafts', async () => {
 		const result = await initialize();
 		const database = createGardenDatabase(result.databaseName, dependencies);
 		await database.open();
@@ -198,6 +199,23 @@ describe('Dexie storage initialization', () => {
 
 		database.close();
 		result.close();
+	});
+
+	it('migrates a version 1 Garden database without changing existing Notes', async () => {
+		const databaseName = `solace-garden-data-${UUID_TWO}`;
+		createdDatabases.add(databaseName);
+		const legacy = new Dexie(databaseName, dependencies);
+		legacy.version(1).stores(GARDEN_STORES_V1);
+		await legacy.open();
+		await legacy.table('notes').add({ id: UUID_ONE, text: 'Preserve during migration', gardenId: null, updatedAt: '2026-11-05T12:00:00.000Z' });
+		legacy.close();
+
+		const migrated = createGardenDatabase(databaseName, dependencies);
+		await migrated.open();
+		expect(migrated.verno).toBe(2);
+		expect(await migrated.table('notes').get(UUID_ONE)).toMatchObject({ text: 'Preserve during migration' });
+		expect(await migrated.table('drafts').toArray()).toEqual([]);
+		migrated.close();
 	});
 
 	it('opens an existing installation when database enumeration is unavailable', async () => {

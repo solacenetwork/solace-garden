@@ -18,17 +18,20 @@ export function createNotesService(repository, {
 			return repository.getById(id);
 		},
 
-		create({ text, gardenId = null }) {
+		create({ text, gardenId = null }, { draftId } = {}) {
 			const timestamp = now();
-			return repository.create({
+			const record = {
 				text,
 				gardenId,
 				createdAt: timestamp,
 				updatedAt: timestamp,
-			});
+			};
+			return draftId
+				? repository.createFromDraft(record, draftId)
+				: repository.create(record);
 		},
 
-		async update(id, changes) {
+		async update(id, changes, { draftId } = {}) {
 			const hasText = Object.hasOwn(changes, 'text');
 			const hasGardenId = Object.hasOwn(changes, 'gardenId');
 
@@ -44,9 +47,48 @@ export function createNotesService(repository, {
 				...(hasGardenId ? { gardenId: changes.gardenId } : {}),
 				updatedAt: now(),
 			};
-			const updated = await repository.update(id, persistedChanges);
+			const updated = draftId
+				? await repository.updateFromDraft(id, persistedChanges, draftId)
+				: await repository.update(id, persistedChanges);
 
 			return updated ? persistedChanges : null;
+		},
+
+		remove(id) {
+			return repository.remove(id);
+		},
+	});
+}
+
+export function createNoteDraftsService(repository, {
+	now = () => new Date().toISOString(),
+} = {}) {
+	return Object.freeze({
+		getById(id) {
+			return repository.getById(id);
+		},
+
+		getForNote(noteId) {
+			return repository.getForSubject('note', noteId);
+		},
+
+		async list() {
+			return (await repository.listByKind('note')).sort((first, second) =>
+				second.updatedAt.localeCompare(first.updatedAt),
+			);
+		},
+
+		save({ id, noteId = null, text, createdAt }) {
+			const timestamp = now();
+			return repository.save({
+				id,
+				kind: 'note',
+				subjectId: noteId,
+				isNew: noteId === null,
+				text,
+				createdAt: createdAt ?? timestamp,
+				updatedAt: timestamp,
+			});
 		},
 
 		remove(id) {
