@@ -266,6 +266,16 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 These objectives supplement the existing V1 feature plan. They **do not introduce accounts, hosted infrastructure, Tauri, or live sync** into the current MVP.
 
+## Database schema release gates — standing policy
+
+- **Current alpha / V1 development:** Keep the Garden Dexie schema at version 1 while it is still being designed; explicitly reset disposable development databases and the `solace-config` pointer together when necessary. No alpha migration framework is required. Do not perform silent resets on ordinary startup.
+- **Before data-preserving public beta/stable V1:** Declare the supported persistent schema and data-preservation boundary; document the reset/migration policy and test upgrades and backup recovery.
+- **Routine 1.x maintenance/features:** Keep the supported schema compatible; do not introduce routine breaking schema bumps with minor releases. Critical fixes requiring a migration are exceptional and must be reviewed and tested.
+- **Future major-version planning (e.g. 2.0.0-beta):** Open a dedicated branch/workstream for proposed structural changes; specify migration and rollback/recovery behavior, supported upgrade paths, backup/restore compatibility, and release notes. Merge only after tests with existing user data.
+- **PWA update gate for schema-changing releases:** Test Workbox update detection/activation, offline old clients, multiple tabs and blocked IndexedDB upgrades. Do not equate cached app version with database schema version; ensure user data survives.
+
+**Status:** Policy agreed; future major migration work is not scheduled or implemented. Application versions, Dexie schema versions, and portable backup-format versions remain independent. See `GOALS.md` for the governing policy.
+
 ## Long-term version roadmap (exploratory ideas, not guaranteed features or release commitments)
 
 | Version | Focus | Scope boundary |
