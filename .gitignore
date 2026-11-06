@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Hostinger-specific Apache configuration
+/.htaccess
+/.htpasswd
