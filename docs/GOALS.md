@@ -263,11 +263,12 @@ The precise Standard Mode navigation, automatic breakpoint, Simple Mode home lay
 ### 2.13b First-run Welcome (confirmed V1)
 
 - Provide an **informational Welcome page** at `/welcome`, shown automatically once when the app first launches at its normal starting route on a browser/device with no `welcomeSeen` flag.
-- Briefly explain Garden's purpose, how to begin using the **existing** Create Garden workflow, local-only data storage and backup responsibility, beta status during beta releases, and links to documentation and GitHub issues for bugs or suggestions.
+- Briefly explain Garden's purpose, how to begin using Create Garden **once implemented** (do not advertise unavailable workflows), local-only data storage and backup responsibility, beta status during beta releases, and links to documentation and GitHub issues for bugs or suggestions.
 - Welcome is **not** an onboarding wizard or prerequisite for creating a garden. Normal navigation remains available; no required acknowledgment, dismissal, or Get Started button.
 - Persist `welcomeSeen` when Welcome is first successfully displayed, **not** when a button is clicked or when the user navigates away. Future launches skip automatic Welcome regardless of app version.
 - Do not interrupt direct/deep links to other routes. Allow users to revisit Welcome via Help/About without resetting the flag.
-- Keep Welcome content informational; garden creation continues through the existing Wizard, Quick Start, or Advanced flows.
+- Keep Welcome content informational; the separately planned Wizard, Quick Start, and Advanced garden-creation flows are not yet implemented and must not be presented as currently usable.
+- **V1 optional in-app installation:** Help/About offers **Install SOLACE Garden** when `beforeinstallprompt` is available, with a brief explanation/link from Welcome. This is a user-initiated native prompt, not a requirement to proceed. Provide manual installation guidance when appropriate rather than a nonfunctional button; do not depend on Chrome's toolbar icon. Detect standalone mode and `appinstalled`, but do not rely on a permanent localStorage flag as proof of current installation. Keep installation distinct from the existing **Update now/Later** flow.
 
 ### 2.14 Portable Backup and Restore
 
