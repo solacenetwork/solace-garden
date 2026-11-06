@@ -130,6 +130,15 @@ export const routeCatalog = [
 	},
 ];
 
+// Editor routes are ordered before the parameter route so "new" is always
+// treated as the create view rather than as a Note ID. They are intentionally
+// separate from routeCatalog, which drives visible workspace navigation.
+export const applicationRoutes = [
+	{ path: '/notes/new', view: 'note-new' },
+	{ path: '/notes/:id', view: 'note-edit' },
+	...routeCatalog,
+];
+
 export const navigationGroups = [
 	{ id: 'home', label: 'Home and gardens' },
 	{ id: 'activities', label: 'Garden activities' },
@@ -148,7 +157,11 @@ export const secondaryDestinations = routeCatalog.filter(
 export const workspaceRoutes = routeCatalog.filter(({ path }) => path !== '/');
 
 export function findRoute(path) {
-	return routeCatalog.find((route) => route.path === path);
+	return routeCatalog.find((route) => route.path === path) ?? (
+		path.startsWith('/notes/')
+			? routeCatalog.find((route) => route.id === 'notes')
+			: undefined
+	);
 }
 
 export function findRouteById(id) {

@@ -204,6 +204,20 @@ describe('Notes domain service', () => {
 		reopened.close();
 	});
 
+	it('loads existing and missing Note routes without writing records', async () => {
+		const storage = await initialize([NOTE_UUID_ONE]);
+		const notes = createNotesService(storage.repositories.notes, {
+			now: () => CREATED_AT,
+		});
+		const created = await notes.create({ text: 'Directly loaded Note' });
+
+		expect(await notes.getById(created.id)).toEqual(created);
+		expect(await notes.getById(NOTE_UUID_TWO)).toBeNull();
+		expect(await notes.list()).toEqual([created]);
+
+		storage.close();
+	});
+
 	it('surfaces storage failures without overwriting the saved Note', async () => {
 		const storage = await initialize([NOTE_UUID_ONE]);
 		const notes = createNotesService(storage.repositories.notes, {

@@ -1,3 +1,4 @@
+import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useNavigationGuard } from '../../context/NavigationGuardContext.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
@@ -9,12 +10,6 @@ const updatedDateFormatter = new Intl.DateTimeFormat(undefined, {
 	dateStyle: 'medium',
 	timeStyle: 'short',
 });
-
-function sortNotes(notes) {
-	return [...notes].sort((first, second) =>
-		String(second.updatedAt ?? '').localeCompare(String(first.updatedAt ?? '')),
-	);
-}
 
 function formatUpdatedDate(value) {
 	const date = new Date(value);
@@ -78,12 +73,12 @@ function useUnsavedNavigationWarning(isDirty) {
 	}, [isDirty, navigationGuard]);
 }
 
-function NoteEditor({ editor, onCancel, onSaved, service }) {
+function NoteEditor({ record, onCancel, onSaved, service }) {
 	const textarea = useRef(null);
-	const [text, setText] = useState(editor.record?.text ?? '');
+	const [text, setText] = useState(record?.text ?? '');
 	const [errorMessage, setErrorMessage] = useState('');
 	const [isSaving, setIsSaving] = useState(false);
-	const initialText = editor.record?.text ?? '';
+	const initialText = record?.text ?? '';
 	const isDirty = text !== initialText;
 
 	useUnsavedNavigationWarning(isDirty);
@@ -113,14 +108,14 @@ function NoteEditor({ editor, onCancel, onSaved, service }) {
 		setErrorMessage('');
 
 		try {
-			if (editor.record) {
-				const savedChanges = await service.update(editor.record.id, { text });
+			if (record) {
+				const savedChanges = await service.update(record.id, { text });
 				if (!savedChanges) {
 					setErrorMessage('This Note could not be found. Return to the list and reload Notes.');
 					return;
 				}
 
-				onSaved({ ...editor.record, ...savedChanges });
+				onSaved({ ...record, ...savedChanges });
 			} else {
 				onSaved(await service.create({ text, gardenId: null }));
 			}
@@ -135,9 +130,9 @@ function NoteEditor({ editor, onCancel, onSaved, service }) {
 		<section class="note-editor" aria-labelledby="note-editor-title">
 			<header class="note-editor__header">
 				<div>
-					<p class="notes-page__eyebrow">{editor.record ? 'Edit Note' : 'New Note'}</p>
+					<p class="notes-page__eyebrow">{record ? 'Edit Note' : 'New Note'}</p>
 					<h1 id="note-editor-title">
-						{editor.record ? 'Update your Note' : 'Capture a Note'}
+						{record ? 'Update your Note' : 'Capture a Note'}
 					</h1>
 				</div>
 			</header>
@@ -178,8 +173,8 @@ function NoteEditor({ editor, onCancel, onSaved, service }) {
 						aria-describedby="note-garden-help"
 					>
 						<option>
-							{editor.record?.gardenId
-								? `Linked garden: ${editor.record.gardenId}`
+							{record?.gardenId
+								? `Linked garden: ${record.gardenId}`
 								: 'No garden'}
 						</option>
 					</select>
@@ -211,17 +206,134 @@ function NoteEditor({ editor, onCancel, onSaved, service }) {
 	);
 }
 
-export function Notes() {
+function useNotesService() {
 	const storage = useStorage();
-	const service = useMemo(
+	return useMemo(
 		() => createNotesService(storage.repositories.notes),
 		[storage],
 	);
+}
+
+function NotesEditorPage({ record, service }) {
+	const { route } = useLocation();
+	const returnToNotes = () => route('/notes', true);
+
+	return (
+		<div class="container notes-page notes-page--editing">
+			<NoteEditor
+				key={record?.id ?? 'new'}
+				record={record}
+				onCancel={returnToNotes}
+				onSaved={returnToNotes}
+				service={service}
+			/>
+		</div>
+	);
+}
+
+export function NewNote() {
+	const service = useNotesService();
+	return <NotesEditorPage record={null} service={service} />;
+}
+
+export function EditNote({ params }) {
+	const service = useNotesService();
+	const noteId = params?.id;
+	const [loadState, setLoadState] = useState({ status: 'loading', noteId });
+	const [loadAttempt, setLoadAttempt] = useState(0);
+
+	useEffect(() => {
+		let active = true;
+		setLoadState({ status: 'loading', noteId });
+
+		service.getById(noteId).then(
+			(record) => {
+				if (!active) {
+					return;
+				}
+
+				setLoadState(record
+					? { status: 'ready', noteId, record }
+					: { status: 'missing', noteId });
+			},
+			(error) => {
+				if (!active) {
+					return;
+				}
+
+				setLoadState({
+					status: 'error',
+					noteId,
+					message: error instanceof ValidationError
+						? 'This Note address is invalid.'
+						: getErrorMessage(error, 'opened'),
+				});
+			},
+		);
+
+		return () => {
+			active = false;
+		};
+	}, [loadAttempt, noteId, service]);
+
+	if (loadState.noteId === noteId && loadState.status === 'ready') {
+		return (
+			<NotesEditorPage
+				key={loadState.record.id}
+				record={loadState.record}
+				service={service}
+			/>
+		);
+	}
+
+	if (loadState.noteId !== noteId || loadState.status === 'loading') {
+		return (
+			<div class="container notes-page">
+				<div class="notes-state" role="status">
+					<i class="bi bi-hourglass-split" aria-hidden="true"></i>
+					<p>Loading Note…</p>
+				</div>
+			</div>
+		);
+	}
+
+	const isMissing = loadState.status === 'missing';
+	return (
+		<div class="container notes-page">
+			<div class="notes-state" role="alert">
+				<span class="notes-state__icon" aria-hidden="true">
+					<i class={`bi bi-${isMissing ? 'journal-x' : 'exclamation-triangle'}`}></i>
+				</span>
+				<h1>{isMissing ? 'Note not found' : 'Note could not be opened'}</h1>
+				<p>
+					{isMissing
+						? 'This Note may have been deleted or the address may be incorrect.'
+						: loadState.message}
+				</p>
+				<div class="note-editor__actions">
+					{!isMissing && (
+						<button
+							class="btn-outline note-editor__button"
+							type="button"
+							onClick={() => setLoadAttempt((attempt) => attempt + 1)}
+						>
+							Retry
+						</button>
+					)}
+					<a class="btn-solid theme-primary note-editor__button" href="/notes">
+						Back to Saved Notes
+					</a>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+export function Notes() {
+	const service = useNotesService();
 	const [notes, setNotes] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [errorMessage, setErrorMessage] = useState('');
-	const [notice, setNotice] = useState('');
-	const [editor, setEditor] = useState(null);
 	const [deletingId, setDeletingId] = useState(null);
 
 	const loadNotes = async () => {
@@ -260,18 +372,6 @@ export function Notes() {
 		};
 	}, [service]);
 
-	const saveNote = (savedNote) => {
-		setNotes((current) =>
-			sortNotes([
-				savedNote,
-				...current.filter((note) => note.id !== savedNote.id),
-			]),
-		);
-		setEditor(null);
-		setNotice('Note saved.');
-		setErrorMessage('');
-	};
-
 	const deleteNote = async (note) => {
 		if (!globalThis.confirm('Permanently delete this Note? This cannot be undone.')) {
 			return;
@@ -279,7 +379,6 @@ export function Notes() {
 
 		setDeletingId(note.id);
 		setErrorMessage('');
-		setNotice('');
 
 		try {
 			if (!(await service.remove(note.id))) {
@@ -288,26 +387,12 @@ export function Notes() {
 			}
 
 			setNotes((current) => current.filter(({ id }) => id !== note.id));
-			setNotice('Note deleted.');
 		} catch (error) {
 			setErrorMessage(getErrorMessage(error, 'deleted'));
 		} finally {
 			setDeletingId(null);
 		}
 	};
-
-	if (editor) {
-		return (
-			<div class="container notes-page notes-page--editing">
-				<NoteEditor
-					editor={editor}
-					onCancel={() => setEditor(null)}
-					onSaved={saveNote}
-					service={service}
-				/>
-			</div>
-		);
-	}
 
 	return (
 		<section class="container notes-page" aria-labelledby="notes-title">
@@ -317,25 +402,15 @@ export function Notes() {
 					<h1 id="notes-title">Notes</h1>
 					<p>Keep plain-text observations together, whether linked to a garden or not.</p>
 				</div>
-				<button
+				<a
 					class="btn-solid theme-primary notes-page__new"
-					type="button"
-					onClick={() => {
-						setEditor({ record: null });
-						setNotice('');
-					}}
+					href="/notes/new"
 				>
 					<i class="bi bi-plus-lg" aria-hidden="true"></i>
 					New Note
-				</button>
+				</a>
 			</header>
 
-			{notice && (
-				<div class="notes-message notes-message--success" role="status">
-					<i class="bi bi-check-circle" aria-hidden="true"></i>
-					<span>{notice}</span>
-				</div>
-			)}
 			{errorMessage && (
 				<div class="notes-message notes-message--error" role="alert">
 					<i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
@@ -358,25 +433,20 @@ export function Notes() {
 					</span>
 					<h2>No Notes yet</h2>
 					<p>Capture an observation, reminder, or idea from your garden.</p>
-					<button
+					<a
 						class="btn-solid theme-primary notes-state__action"
-						type="button"
-						onClick={() => setEditor({ record: null })}
+						href="/notes/new"
 					>
 						Create your first Note
-					</button>
+					</a>
 				</div>
 			) : (
 				<div class="notes-list" aria-label="Saved Notes">
 					{notes.map((note) => (
 						<article class="note-card" key={note.id}>
-							<button
+							<a
 								class="note-card__open"
-								type="button"
-								onClick={() => {
-									setEditor({ record: note });
-									setNotice('');
-								}}
+								href={`/notes/${note.id}`}
 							>
 								<span class="note-card__preview">{note.text}</span>
 								<span class="note-card__metadata">
@@ -388,7 +458,7 @@ export function Notes() {
 										</span>
 									)}
 								</span>
-							</button>
+							</a>
 							<button
 								class="btn-text theme-danger note-card__delete"
 								type="button"

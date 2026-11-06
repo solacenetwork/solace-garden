@@ -8,10 +8,10 @@ import { StorageRecoveryScreen } from './components/StorageRecoveryScreen.jsx';
 import { InterfaceModeProvider, useInterfaceMode } from './context/InterfaceModeContext.jsx';
 import { NavigationGuardProvider } from './context/NavigationGuardContext.jsx';
 import { StorageProvider } from './context/StorageContext.jsx';
-import { routeCatalog } from './navigation.js';
+import { applicationRoutes, findRoute } from './navigation.js';
 import { Home } from './pages/Home/index.jsx';
 import { Plants } from './pages/Plants/index.jsx';
-import { Notes } from './pages/Notes/index.jsx';
+import { EditNote, NewNote, Notes } from './pages/Notes/index.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
 import { Settings } from './pages/Settings/index.jsx';
 import { NotFound } from './pages/_404.jsx';
@@ -22,13 +22,15 @@ const pageComponents = {
 	home: Home,
 	plants: Plants,
 	notes: Notes,
+	'note-new': NewNote,
+	'note-edit': EditNote,
 	settings: Settings,
 };
 
 function AppShell() {
 	const { preference, effectiveMode } = useInterfaceMode();
 	const { path } = useLocation();
-	const currentRoute = routeCatalog.find((route) => route.path === path);
+	const currentRoute = findRoute(path);
 
 	return (
 		<div
@@ -47,7 +49,7 @@ function AppShell() {
 						</details>
 					)}
 					<Router>
-						{routeCatalog.map((route) => (
+						{applicationRoutes.map((route) => (
 							<Route
 								key={route.path}
 								path={route.path}

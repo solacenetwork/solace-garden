@@ -1,6 +1,7 @@
 import { useLocation } from 'preact-iso';
 import { useState } from 'preact/hooks';
 import {
+	findRoute,
 	getSettingsHref,
 	navigationGroups,
 	routeCatalog,
@@ -8,6 +9,7 @@ import {
 
 export function StandardNavigation() {
 	const { path } = useLocation();
+	const currentRoute = findRoute(path);
 	const [isExpanded, setIsExpanded] = useState(false);
 
 	return (
@@ -59,7 +61,7 @@ export function StandardNavigation() {
 													? getSettingsHref(path)
 													: route.path
 											}
-											aria-current={path === route.path ? 'page' : undefined}
+											aria-current={currentRoute?.id === route.id ? 'page' : undefined}
 											onClick={() => setIsExpanded(false)}
 										>
 											<i class={`bi bi-${route.icon}`} aria-hidden="true"></i>

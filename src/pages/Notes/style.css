@@ -129,6 +129,7 @@
 	padding: 1rem 1.125rem;
 	color: var(--sg-color-text);
 	text-align: start;
+	text-decoration: none;
 	background: transparent;
 	border: 0;
 	flex-direction: column;
