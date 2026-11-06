@@ -69,6 +69,7 @@ export const routeCatalog = [
 		description: 'Capture a quick observation while it is fresh.',
 		section: 'primary',
 		navigationGroup: 'activities',
+		view: 'notes',
 	},
 	{
 		id: 'gardens',

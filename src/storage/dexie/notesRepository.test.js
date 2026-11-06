@@ -162,7 +162,7 @@ describe('Notes repository foundation', () => {
 		const original = {
 			id: NOTE_UUID_ONE,
 			text: 'Original text',
-			gardenId: NOTE_UUID_TWO,
+			gardenId: null,
 		};
 		await repository.create(original);
 
@@ -193,12 +193,12 @@ describe('Notes repository foundation', () => {
 		});
 		expect(await repository.getById(NOTE_UUID_ONE)).toEqual(original);
 
-		expect(
-			await repository.update(NOTE_UUID_ONE, { gardenId: null }),
-		).toBe(true);
+		expect(await repository.update(NOTE_UUID_ONE, {
+			updatedAt: '2026-11-05T16:00:00.000Z',
+		})).toBe(true);
 		expect(await repository.getById(NOTE_UUID_ONE)).toEqual({
 			...original,
-			gardenId: null,
+			updatedAt: '2026-11-05T16:00:00.000Z',
 		});
 
 		storage.close();

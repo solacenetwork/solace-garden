@@ -53,10 +53,10 @@ function validateRecordObject(record, operation) {
 }
 
 function validateText(text) {
-	if (typeof text !== 'string' || text.length === 0) {
+	if (typeof text !== 'string' || text.trim().length === 0) {
 		throw validationError(
 			'INVALID_NOTE_TEXT',
-			'text must be a non-empty string.',
+			'text must contain something other than whitespace.',
 			'text',
 		);
 	}

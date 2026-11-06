@@ -23,6 +23,28 @@ export function createNotesRepository(database, {
 	randomUUID = () => globalThis.crypto.randomUUID(),
 } = {}) {
 	const table = database.table('notes');
+	const gardens = database.table('gardens');
+
+	async function validateGardenReference(gardenId) {
+		if (gardenId === null || gardenId === undefined) {
+			return;
+		}
+
+		let garden;
+		try {
+			garden = await gardens.get(gardenId);
+		} catch (error) {
+			throwStorageError('validate garden association', error);
+		}
+
+		if (!garden) {
+			throw new ValidationError(
+				'GARDEN_NOT_FOUND',
+				'The selected garden does not exist.',
+				{ field: 'gardenId' },
+			);
+		}
+	}
 
 	const methods = {
 		async getById(id) {
@@ -49,6 +71,9 @@ export function createNotesRepository(database, {
 				id: record?.id ?? randomUUID(),
 			};
 			validateNewNote(note);
+			if (note.gardenId !== null && note.gardenId !== undefined) {
+				await validateGardenReference(note.gardenId);
+			}
 
 			try {
 				await table.add(note);
@@ -61,6 +86,12 @@ export function createNotesRepository(database, {
 		async update(id, changes) {
 			validateRecordId(id);
 			validateNoteChanges(changes);
+			if (
+				Object.hasOwn(changes, 'gardenId') &&
+				changes.gardenId !== null
+			) {
+				await validateGardenReference(changes.gardenId);
+			}
 
 			try {
 				return (await table.update(id, { ...changes })) === 1;
@@ -83,9 +114,8 @@ export function createNotesRepository(database, {
 	return Object.freeze({
 		...methods,
 
-		// This deliberately supports atomic work within Notes only. Future domain
-		// services can add explicit multi-store transactions when a real workflow
-		// requires them, without exposing a Dexie transaction to callers.
+		// Garden reads are included so linked Notes can be validated in the same
+		// transaction. The callback still exposes only storage-neutral Note methods.
 		async runAtomic(operation) {
 			if (typeof operation !== 'function') {
 				throw new ValidationError(
@@ -95,7 +125,12 @@ export function createNotesRepository(database, {
 			}
 
 			try {
-				return await database.transaction('rw', table, () => operation(methods));
+				return await database.transaction(
+					'rw',
+					table,
+					gardens,
+					() => operation(methods),
+				);
 			} catch (error) {
 				throwStorageError('atomic notes', error);
 			}

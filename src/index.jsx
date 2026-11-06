@@ -6,9 +6,11 @@ import { Header } from './components/Header.jsx';
 import { StandardNavigation } from './components/StandardNavigation.jsx';
 import { StorageRecoveryScreen } from './components/StorageRecoveryScreen.jsx';
 import { InterfaceModeProvider, useInterfaceMode } from './context/InterfaceModeContext.jsx';
+import { StorageProvider } from './context/StorageContext.jsx';
 import { routeCatalog } from './navigation.js';
 import { Home } from './pages/Home/index.jsx';
 import { Plants } from './pages/Plants/index.jsx';
+import { Notes } from './pages/Notes/index.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
 import { Settings } from './pages/Settings/index.jsx';
 import { NotFound } from './pages/_404.jsx';
@@ -18,6 +20,7 @@ import './style.css';
 const pageComponents = {
 	home: Home,
 	plants: Plants,
+	notes: Notes,
 	settings: Settings,
 };
 
@@ -58,12 +61,14 @@ function AppShell() {
 	);
 }
 
-export function App() {
+export function App({ storage }) {
 	return (
 		<LocationProvider>
-			<InterfaceModeProvider>
-				<AppShell />
-			</InterfaceModeProvider>
+			<StorageProvider storage={storage}>
+				<InterfaceModeProvider>
+					<AppShell />
+				</InterfaceModeProvider>
+			</StorageProvider>
 		</LocationProvider>
 	);
 }
@@ -78,7 +83,7 @@ async function startApplication() {
 	}
 
 	globalThis.addEventListener('pagehide', () => storage.close(), { once: true });
-	render(<App />, root);
+	render(<App storage={storage} />, root);
 }
 
 void startApplication();

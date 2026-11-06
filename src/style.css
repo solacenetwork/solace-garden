@@ -283,6 +283,7 @@ body {
 .app-shell--standard .standard-home,
 .app-shell--standard .placeholder-page,
 .app-shell--standard .settings-page,
+.app-shell--standard .notes-page,
 .app-shell--standard .plants-page {
 	width: 100%;
 	max-width: 72rem;
