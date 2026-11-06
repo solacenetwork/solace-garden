@@ -6,6 +6,7 @@ import { Header } from './components/Header.jsx';
 import { StandardNavigation } from './components/StandardNavigation.jsx';
 import { StorageRecoveryScreen } from './components/StorageRecoveryScreen.jsx';
 import { InterfaceModeProvider, useInterfaceMode } from './context/InterfaceModeContext.jsx';
+import { NavigationGuardProvider } from './context/NavigationGuardContext.jsx';
 import { StorageProvider } from './context/StorageContext.jsx';
 import { routeCatalog } from './navigation.js';
 import { Home } from './pages/Home/index.jsx';
@@ -63,13 +64,15 @@ function AppShell() {
 
 export function App({ storage }) {
 	return (
-		<LocationProvider>
-			<StorageProvider storage={storage}>
-				<InterfaceModeProvider>
-					<AppShell />
-				</InterfaceModeProvider>
-			</StorageProvider>
-		</LocationProvider>
+		<NavigationGuardProvider>
+			<LocationProvider>
+				<StorageProvider storage={storage}>
+					<InterfaceModeProvider>
+						<AppShell />
+					</InterfaceModeProvider>
+				</StorageProvider>
+			</LocationProvider>
+		</NavigationGuardProvider>
 	);
 }
 

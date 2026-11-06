@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useNavigationGuard } from '../../context/NavigationGuardContext.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createNotesService } from '../../services/notes.js';
 import { StorageError, ValidationError } from '../../storage/index.js';
@@ -35,6 +36,8 @@ function getErrorMessage(error, action) {
 }
 
 function useUnsavedNavigationWarning(isDirty) {
+	const navigationGuard = useNavigationGuard();
+
 	useEffect(() => {
 		if (!isDirty) {
 			return undefined;
@@ -65,12 +68,14 @@ function useUnsavedNavigationWarning(isDirty) {
 
 		globalThis.addEventListener('beforeunload', handleBeforeUnload);
 		globalThis.addEventListener('click', handleLinkClick, true);
+		const removeHistoryBlocker = navigationGuard.setBlocker(() => true);
 
 		return () => {
 			globalThis.removeEventListener('beforeunload', handleBeforeUnload);
 			globalThis.removeEventListener('click', handleLinkClick, true);
+			removeHistoryBlocker();
 		};
-	}, [isDirty]);
+	}, [isDirty, navigationGuard]);
 }
 
 function NoteEditor({ editor, onCancel, onSaved, service }) {
