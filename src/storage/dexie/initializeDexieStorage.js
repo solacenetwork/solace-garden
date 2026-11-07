@@ -19,6 +19,7 @@ import { createNotesRepository } from './notesRepository.js';
 import { createDraftsRepository } from './draftsRepository.js';
 import { createListItemsRepository } from './listItemsRepository.js';
 import { createLocationsRepository } from './locationsRepository.js';
+import { createGardenTypesRepository, seedGardenTypes } from './gardenTypesRepository.js';
 import { createLocationsService } from '../../services/locations.js';
 
 const RECOVERY_DETAILS = {
@@ -58,6 +59,10 @@ const RECOVERY_DETAILS = {
 		message: 'The required built-in Location could not be prepared safely.',
 		action: 'Retry. Existing Garden data has not been replaced or deleted.',
 	},
+	GARDEN_TYPE_INITIALIZATION_FAILED: {
+		message: 'The built-in Garden Type catalog could not be prepared safely.',
+		action: 'Retry. Existing Garden data has not been replaced or deleted.',
+	},
 };
 
 function recoveryRequired(code) {
@@ -81,6 +86,8 @@ export async function initializeDexieStorage({
 	let gardenDatabase;
 	let hasControlDatabase;
 	let locationsRepository;
+	let gardenTypesRepository;
+	let initializationStage = 'open';
 
 	try {
 		hasControlDatabase = await controlDatabaseExists(dependencies);
@@ -131,8 +138,12 @@ export async function initializeDexieStorage({
 			allowCreate: initializationInProgress,
 			dependencies,
 		});
+		initializationStage = 'locations';
 		locationsRepository = createLocationsRepository(gardenDatabase, { randomUUID });
 		await createLocationsService(locationsRepository, { now }).ensureDefault();
+		initializationStage = 'garden-types';
+		await seedGardenTypes(gardenDatabase);
+		gardenTypesRepository = createGardenTypesRepository(gardenDatabase);
 
 		if (initializationInProgress) {
 			await markInitializationComplete(controlDatabase);
@@ -147,9 +158,11 @@ export async function initializeDexieStorage({
 
 		return recoveryRequired(error?.code === 'GARDEN_DATABASE_MISSING'
 			? 'GARDEN_DATABASE_MISSING'
-			: gardenDatabase
-				? 'LOCATION_INITIALIZATION_FAILED'
-				: 'GARDEN_OPEN_FAILED');
+			: initializationStage === 'garden-types'
+				? 'GARDEN_TYPE_INITIALIZATION_FAILED'
+				: gardenDatabase
+					? 'LOCATION_INITIALIZATION_FAILED'
+					: 'GARDEN_OPEN_FAILED');
 	}
 
 	controlDatabase.close();
@@ -158,6 +171,7 @@ export async function initializeDexieStorage({
 		drafts: createDraftsRepository(gardenDatabase),
 		listItems: createListItemsRepository(gardenDatabase, { randomUUID }),
 		locations: locationsRepository,
+		gardenTypes: gardenTypesRepository,
 	});
 
 	return {
