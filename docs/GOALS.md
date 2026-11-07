@@ -33,20 +33,20 @@ The MVP should support a coherent garden-management workflow while keeping indiv
 
 - Users can create and manage gardens representing individual growing seasons or garden projects.
 - Each garden has its own identity, information, and lifecycle; historical activity remains associated with that garden record.
-- The model should accommodate gardens whose layout stays the same across years as well as gardens whose size or configuration changes significantly.
+- The model should accommodate gardens whose layout stays the same across years as well as gardens whose size or configuration changes significantly. A gardener can set up a growing area once, save its reusable configuration as a Garden Template, and start later growing projects from that template instead of repeatedly entering the same information.
 - Users can create a garden from scratch or start from a saved garden template.
 - **Default to a guided Create Garden wizard**, with a **Quick Start** shortcut and an **Advanced** single-page form using the same fields, validation and creation behavior. Switching between Wizard and Advanced must preserve entered values.
 - The wizard guides the gardener through **starting from scratch or a saved template**, **garden name/location/type**, and **review/create** (three short steps are the V1 target).
 - **Quick Start** requires only a garden name; use the built-in **Default** location and preselect **In-Ground** in the Garden Type selections, set **Planned** status, and leave optional planting/start dates, plants, layouts and other details blank. Create a valid garden immediately, not a temporary draft; gardeners complete it later.
 - **Advanced** exposes the same configuration on one form, including optional details. All paths create a new record and navigate to its garden detail page for subsequent editing and plant additions.
 
-**Scope boundary:** We are not requiring a single permanent physical-garden record containing every growing season. Reusable templates provide continuity without merging separate seasons' histories.
+**Scope boundary:** V1 does not require one permanent physical-space record containing every growing cycle. A reusable Garden Template captures the setup; each newly created Garden has independent identity and history. Gardeners can also add successive independent plant groups within an ongoing Garden when that better represents the project (for example, repeated microgreens batches); neither every harvest nor every new plant group forces a new Garden. The gardener determines when to start another Garden or complete an existing one.
 
 ### 2.2 Garden Templates
 
 Garden v1 will support **independently named, reusable garden templates**.
 
-A user may create a new garden from scratch or select an existing template in the Create Garden wizard. A template provides a starting configuration for a new garden; it is not itself a historical garden record.
+A user may create a new garden from scratch or select an existing template in the Create Garden wizard. A template provides a starting configuration for a new garden; it is not itself a historical garden record. **Define the setup once, then reuse it** for later crops or growing projects—for example, the same windowsill microgreens tray, raised bed, or in-ground area—without copying the previous plants and harvest history. V1 templates are reusable Garden *configuration snapshots*, not permanent physical growing-space records; a richer physical layout-template model remains a future Maps idea.
 
 Users should be able to:
 
@@ -68,7 +68,7 @@ Journal entries, harvest records, completed tasks, and other historical activity
 - Seed a stable built-in Location whose initial name is **Default**. It is selected for Quick Start and initially selected in new-garden forms. **The gardener may rename and edit this record**, including its optional hardiness zone, but its name cannot be blank and **the built-in record may never be deleted**. Protection is based on its stable ID/system flag, not whether its current name is “Default”. Show **Default (Location)** only when the label needs disambiguation; that is not an immutable stored name.
 - Additional named geographic Locations are supported in V1 (e.g. **Community Garden**), with create/rename/edit workflows. An unused custom Location can be deleted after confirmation; a Location referenced by any garden, including completed/archived gardens, cannot be deleted until those gardens are reassigned. Only editable gardens can be reassigned.
 - Allow an optional **manually entered USDA Hardiness Zone** on each Location, with a link to the official lookup. An address or GPS coordinates are **not required**; no geolocation permission, automatic zone lookup or network-dependent location features in V1.
-- **Garden Types are independent descriptive classifications, not exclusive categories or an enforced hierarchy.** A garden stores an array of stable predefined type identifiers (`typeIds`) and may combine types such as **Outdoor + Raised Bed + Container** or **Indoor + Outdoor**. The gardener is responsible for choosing appropriate combinations; no consistency checker or cross-type warnings are needed.
+- **Garden Types are independent descriptive classifications, not exclusive categories or an enforced hierarchy.** A garden stores an array of stable predefined type identifiers (`typeIds`) and may combine types such as **Outdoor + Raised Bed + Container** or **Indoor + Outdoor**. They describe the Garden's cultivation context; selecting **Raised Bed** does not create an individual bed, assign dimensions, or create a plant destination. Specific physical growing spaces, such as “Raised Bed A” or “Windowsill Tray,” are distinct from Garden Type identifiers. The gardener is responsible for choosing appropriate combinations; no consistency checker or cross-type warnings are needed.
 - Seed the existing **In-Ground, Raised Bed, Container, Greenhouse, Hydroponic, Other** types plus **Indoor** and **Outdoor**. The types remain fixed and undeletable in V1. Present them in a responsive **grid of independent toggle buttons** with clearly visible on/off states (accessible as multi-select controls); reuse the selection UI in Wizard and Advanced.
 - Only allow valid seeded type IDs in V1. Garden Type selections can be edited when the garden is editable; archived/closed gardens follow normal unlocking rules. **Custom user-defined types are deferred to V2/V3**, potentially held in a separate user-type store but presented alongside system types.
 - Quick Start retains its automatic built-in Location association and **In-Ground** preselection. An empty `typeIds: []` is **valid** in Wizard, Advanced and garden editing; the types are optional classifications. Store an empty array rather than `null`. Quick Start still initially preselects In-Ground.
@@ -90,9 +90,9 @@ PlantDB remains an independent project. Garden v1 will integrate a **simple plan
 
 ### 2.4 Garden Maps
 
-For v1, provide a **simple way to attach or display an existing garden layout**, such as an uploaded image or sketch, without recreating the historical drawing editor.
+For V1, allow a gardener to attach and display an externally created **JPG or PNG** garden map (for example, a photograph of a paper sketch or a drawing made in GIMP). It is reference media only: Garden does not interpret shapes, recognize growing spaces, or link positions within the image to plant groups.
 
-Interactive scaled maps, drag-and-drop placement, and calculations of available growing space are post-MVP capabilities.
+A potential V2/V3 interactive editor would separately define reusable physical growing spaces and visually assign plants to them using simple labeled, colored rectangles/squares. These represent a garden plan **not to scale**. Measured-space calculations, collision rules, and enforced planting capacity are *not* part of that initial editor concept; see `PARKING_LOT.md`.
 
 ### 2.5 Growing Season Tracking
 
@@ -190,7 +190,7 @@ Garden v1 will provide **four gardener-selected statuses** for each garden:
 - Closing a garden makes it read-only without deleting its records; reopening restores edit access.
 - Selecting **Archived** automatically closes the garden and makes it read-only. An explicit **Unarchive Garden** action unlocks it and returns the status to **Completed**, preserving the garden's data.
 - Current Gardens contains Planned and Active gardens; Previous Gardens contains Completed and Archived gardens, including closed records that remain viewable.
-- A garden is a distinct planting project or group of plants for a particular growing cycle, **not a permanent physical location**. A new planting cycle creates a separate garden record and history; gardeners are not required to enter a formal season identifier or use a dedicated “New Season” action.
+- A garden is a distinct planting project or group of plants, **not a permanent physical location**. When the gardener chooses to start a new Garden for another crop or season, it receives its own record and history; gardeners are not required to enter a formal season identifier or use a dedicated “New Season” action. Not every planting or harvest is a new Garden: repeated or overlapping plant groups can be managed within an existing ongoing Garden. Long-lived projects such as orchards can remain active across years.
 - To reuse a physical layout or configuration, the gardener uses the existing **Create New Garden** workflow and can select a previously saved garden template (see [Garden Templates](#22-garden-templates)). Historical activity is not copied into the new record.
 - The gardener controls how long a growing cycle lasts; perennial or overwintering projects need not end at the calendar-year boundary.
 - Each Garden record has an optional embedded **Season Note** (`notes`, initially `null`): a plain-text, short seasonal summary, independent of the Notes workspace and Linked Notes. Limit it to **1,000 characters**, show a remaining-character countdown, and offer optional editing during Close Garden as well as during ordinary editable garden management. Preserve it through completion, closure, archiving and reopening; include it in archived-garden search results. Do not automatically copy it into a template or a future season.
@@ -303,7 +303,7 @@ Settings is the gardener-facing home for **Location**, the selected Location's o
 
 These are **future directions, not v1 commitments**; version numbers are illustrative targets rather than finalized delivery milestones.
 
-- **Interactive Garden Map (possible v2/v3):** scaled growing areas and containers; drag plants from a floating PlantDB selector; evaluate plant footprints and available space; reject placements that do not fit, with a clear explanation.
+- **Interactive Garden Maps (possible V2/V3):** initial setup defines reusable physical growing spaces (individual beds, containers, plots), which gardeners can reuse for many seasons or plantings. A simple Mondrian-inspired, not-to-scale visual editor may let gardeners assign and rearrange labeled plant-group rectangles in those spaces while retaining the independent lifetimes of permanent/perennial plants and rapidly replaced crops. Scale-aware fit/spacing enforcement is explicitly deferred; any much later AI-assisted advice would require separate measurements and reliable reference data.
 - **Plant-compatibility guidance (possible v4):** advisory information about neighboring plants, supported by PlantDB references and appropriate caution about varying horticultural evidence.
 - **Cloud backup (possible v2/v3):** user-configured backup destinations and automatic transfer of portable packages to supported services.
 - **Connected Garden/archive (possible v3):** one Garden application available from the website and installable as a PWA; full historical access when connected, a smaller offline working set, and optional remote archival of older photographs.
