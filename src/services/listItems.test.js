@@ -143,6 +143,37 @@ describe('Tasks and Wish List service', () => {
 		storage.close();
 	});
 
+	it('persists independent completion states after reopening storage', async () => {
+		const storage = await initialize([TASK_ONE, TASK_TWO, WISH_ONE]);
+		const lists = createService(storage, [
+			CREATED_AT,
+			CREATED_AT,
+			CREATED_AT,
+			UPDATED_AT,
+			UPDATED_AT,
+			UPDATED_AT,
+		]);
+		await lists.create('task', { text: 'First task' });
+		await lists.create('task', { text: 'Second task' });
+		await lists.create('wishlist', { text: 'Row cover' });
+		await lists.setCompleted(TASK_ONE, true);
+		await lists.setCompleted(TASK_TWO, true);
+		await lists.setCompleted(TASK_ONE, false);
+		await lists.setCompleted(WISH_ONE, true);
+
+		const databaseName = storage.databaseName;
+		storage.close();
+
+		const reopened = await initializeDexieStorage({ dependencies });
+		createdDatabases.add(reopened.databaseName);
+		expect(reopened.databaseName).toBe(databaseName);
+		const reopenedLists = createListItemsService(reopened.repositories.listItems);
+		expect(await reopenedLists.getById(TASK_ONE)).toMatchObject({ completed: false });
+		expect(await reopenedLists.getById(TASK_TWO)).toMatchObject({ completed: true });
+		expect(await reopenedLists.getById(WISH_ONE)).toMatchObject({ completed: true });
+		reopened.close();
+	});
+
 	it('rejects malformed Wish List fields without changing persisted data', async () => {
 		const storage = await initialize([WISH_ONE, WISH_TWO]);
 		const lists = createService(storage, [CREATED_AT, UPDATED_AT]);

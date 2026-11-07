@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createListItemsService, resolveListKind } from '../../services/listItems.js';
 import { StorageError, ValidationError } from '../../storage/index.js';
+import { updateItemCompletion } from './completionState.js';
 import './style.css';
 
 const LISTS = {
@@ -175,6 +176,16 @@ export function Lists() {
 		setState({ kind, status: 'ready', items });
 	}
 
+	function setItemCompletion(id, completed) {
+		setState((current) => current.kind === kind
+			? {
+				...current,
+				items: updateItemCompletion(current.items, id, completed),
+			}
+			: current
+		);
+	}
+
 	async function addItem(event) {
 		event.preventDefault();
 		if (adding) {
@@ -198,14 +209,13 @@ export function Lists() {
 	async function toggleCompleted(item, completed) {
 		setPendingId(item.id);
 		setMessage('');
+		setItemCompletion(item.id, completed);
 		try {
 			if (!await lists.setCompleted(item.id, completed)) {
 				throw new Error('The list item no longer exists.');
 			}
-			setItemsState(state.items.map((current) =>
-				current.id === item.id ? { ...current, completed } : current
-			));
 		} catch (error) {
+			setItemCompletion(item.id, item.completed);
 			setMessage(errorMessage(error, 'updated'));
 		} finally {
 			setPendingId(null);
