@@ -15,6 +15,7 @@ import {
 	findGardenDatabaseNames,
 	openGardenDatabase,
 } from './gardenDatabase.js';
+import { createGardensRepository } from './gardensRepository.js';
 import { createNotesRepository } from './notesRepository.js';
 import { createDraftsRepository } from './draftsRepository.js';
 import { createListItemsRepository } from './listItemsRepository.js';
@@ -167,6 +168,7 @@ export async function initializeDexieStorage({
 
 	controlDatabase.close();
 	const repositories = Object.freeze({
+		gardens: createGardensRepository(gardenDatabase, { randomUUID }),
 		notes: createNotesRepository(gardenDatabase, { randomUUID }),
 		drafts: createDraftsRepository(gardenDatabase),
 		listItems: createListItemsRepository(gardenDatabase, { randomUUID }),

@@ -1,0 +1,170 @@
+import Dexie from 'dexie';
+import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createGardensService } from './gardens.js';
+import { initializeDexieStorage } from '../storage/dexie/initializeDexieStorage.js';
+import { createGardenDatabase } from '../storage/dexie/gardenDatabase.js';
+import { DEFAULT_LOCATION_ID } from '../storage/locationValidation.js';
+import { StorageError, ValidationError } from '../storage/errors.js';
+
+const CREATED = '2026-11-07T12:00:00.000Z';
+const UPDATED = '2026-11-07T13:00:00.000Z';
+const MISSING = '550e8400-e29b-41d4-a716-446655440099';
+const input = { name: '  Tomatoes  ', locationId: DEFAULT_LOCATION_ID };
+
+describe('Garden data foundation', () => {
+	let dependencies, storage, gardens, raw;
+	beforeEach(async () => {
+		dependencies = { indexedDB: new IDBFactory(), IDBKeyRange };
+		storage = await initializeDexieStorage({ dependencies });
+		gardens = createGardensService(storage.repositories.gardens, { now: () => CREATED });
+		raw = createGardenDatabase(storage.databaseName, dependencies);
+		await raw.open();
+	});
+	afterEach(async () => {
+		raw.close();
+		storage.close();
+		for (const { name } of await dependencies.indexedDB.databases()) {
+			await new Dexie(name, dependencies).delete();
+		}
+	});
+
+	it('creates the exact default contract, allows identical labels and returns safe copies', async () => {
+		const first = await gardens.create({ ...input, subtitle: ' South Garden ' });
+		const second = await gardens.create({ ...input, subtitle: 'South Garden' });
+		expect(first).toEqual({
+			id: expect.stringMatching(/^[\da-f-]{36}$/), name: 'Tomatoes', subtitle: 'South Garden',
+			description: null, locationId: DEFAULT_LOCATION_ID, typeIds: [], status: 'planned',
+			isClosed: false, startDate: null, endDate: null, notes: null, icon: null, color: null,
+			thumbnailMediaId: null, layoutMediaId: null, createdAt: CREATED, updatedAt: CREATED,
+		});
+		expect(second.id).not.toBe(first.id);
+		first.typeIds.push('outdoor');
+		const listed = await gardens.list();
+		expect(listed).toHaveLength(2);
+		listed[0].typeIds.push('indoor');
+		expect((await gardens.getById(first.id)).typeIds).toEqual([]);
+		expect(gardens.remove).toBeUndefined();
+		expect(storage.repositories.gardens.remove).toBeUndefined();
+	});
+
+	it('updates without losing fields and persists across database reopening', async () => {
+		await storage.repositories.locations.update(DEFAULT_LOCATION_ID, { name: 'Home' });
+		const created = await gardens.create({ ...input, description: ' Details ', typeIds: ['indoor', 'outdoor'] });
+		const editor = createGardensService(storage.repositories.gardens, { now: () => UPDATED });
+		expect(await editor.update(created.id, { subtitle: ' New ', notes: 'Summary' })).toBe(true);
+		expect(await editor.update(MISSING, { name: 'Missing' })).toBe(false);
+		expect(await gardens.getById(MISSING)).toBeNull();
+		storage.close();
+		storage = await initializeDexieStorage({ dependencies });
+		expect(await storage.repositories.gardens.getById(created.id)).toEqual({
+			...created, subtitle: 'New', notes: 'Summary', updatedAt: UPDATED,
+		});
+	});
+
+	it.each([undefined, '', ' \n ', null, 12])('rejects invalid names: %s', async (name) => {
+		await expect(gardens.create({ ...input, name })).rejects.toMatchObject({ code: 'INVALID_GARDEN_NAME' });
+		expect(await gardens.list()).toEqual([]);
+	});
+
+	it('normalizes nullable text and enforces the Notes boundary', async () => {
+		const created = await gardens.create({ ...input, subtitle: ' ', description: '\n', notes: 'x'.repeat(1000) });
+		expect(created).toMatchObject({ subtitle: null, description: null, notes: 'x'.repeat(1000) });
+		await expect(gardens.update(created.id, { notes: 'x'.repeat(1001) })).rejects.toMatchObject({ code: 'GARDEN_NOTES_TOO_LONG' });
+		expect(await gardens.getById(created.id)).toEqual(created);
+		await gardens.update(created.id, { notes: '  ' });
+		expect((await gardens.getById(created.id)).notes).toBeNull();
+	});
+
+	it.each([
+		[{ typeIds: ['unknown'] }, 'UNKNOWN_GARDEN_TYPE'],
+		[{ typeIds: ['outdoor', 'outdoor'] }, 'DUPLICATE_GARDEN_TYPE'],
+		[{ typeIds: null }, 'INVALID_GARDEN_TYPE_SELECTION'],
+		[{ locationId: MISSING }, 'LOCATION_NOT_FOUND'],
+		[{ locationId: undefined }, 'INVALID_RECORD_ID'],
+		[{ startDate: '2026-02-29' }, 'INVALID_GARDEN_DATE'],
+		[{ endDate: '2024-04-31' }, 'INVALID_GARDEN_DATE'],
+		[{ startDate: '2024-13-01' }, 'INVALID_GARDEN_DATE'],
+		[{ startDate: '2024-01-00' }, 'INVALID_GARDEN_DATE'],
+		[{ startDate: '2024-1-01' }, 'INVALID_GARDEN_DATE'],
+		[{ startDate: '2024-03-01', endDate: '2024-02-29' }, 'INVALID_GARDEN_DATE_ORDER'],
+	])('rejects invalid creation and updates atomically: %j', async (changes, code) => {
+		await expect(gardens.create({ ...input, ...changes })).rejects.toMatchObject({ code });
+		const existing = await gardens.create(input);
+		await expect(gardens.update(existing.id, { name: 'Must not save', ...changes })).rejects.toMatchObject({ code });
+		expect(await gardens.getById(existing.id)).toEqual(existing);
+	});
+
+	it('accepts real leap dates, independent dates, and equal endpoints without lifecycle changes', async () => {
+		const created = await gardens.create({ ...input, endDate: '2024-02-29' });
+		await gardens.update(created.id, { startDate: '2024-02-29' });
+		expect(await gardens.getById(created.id)).toMatchObject({ startDate: '2024-02-29', endDate: '2024-02-29', status: 'planned' });
+		await gardens.update(created.id, { endDate: null });
+	});
+
+	it.each(['id', 'createdAt', 'updatedAt', 'status', 'isClosed', 'icon', 'color', 'thumbnailMediaId', 'layoutMediaId', 'unknown'])(
+		'rejects caller-managed field %s', async (field) => {
+			const created = await gardens.create(input);
+			await expect(gardens.create({ ...input, [field]: 'override' })).rejects.toBeInstanceOf(ValidationError);
+			await expect(gardens.update(created.id, { [field]: 'override' })).rejects.toBeInstanceOf(ValidationError);
+			if (field !== 'updatedAt') {
+				await expect(storage.repositories.gardens.update(created.id, { [field]: 'override' })).rejects.toBeInstanceOf(ValidationError);
+			}
+			expect(await gardens.getById(created.id)).toEqual(created);
+		},
+	);
+
+	it.each([{ isClosed: true }, { status: 'archived', isClosed: false }])('enforces read-only rules in storage: %j', async (state) => {
+		const created = await gardens.create(input);
+		await raw.table('gardens').update(created.id, state);
+		await expect(gardens.update(created.id, { name: 'Blocked' })).rejects.toMatchObject({ code: 'GARDEN_READ_ONLY' });
+		await expect(storage.repositories.gardens.update(created.id, { name: 'Blocked' })).rejects.toMatchObject({ code: 'GARDEN_READ_ONLY' });
+		expect(await gardens.getById(created.id)).toEqual({ ...created, ...state });
+	});
+
+	it('checks actual stored type references and protects referenced custom Locations', async () => {
+		const location = await storage.repositories.locations.create({ name: 'Site', hardinessZone: null, isSystemDefault: false, createdAt: CREATED, updatedAt: CREATED });
+		const created = await gardens.create({ ...input, locationId: location.id });
+		await expect(storage.repositories.locations.remove(location.id)).rejects.toMatchObject({ code: 'LOCATION_IN_USE' });
+		await raw.table('gardenTypes').delete('outdoor');
+		await expect(gardens.update(created.id, { typeIds: ['outdoor'] })).rejects.toMatchObject({ code: 'INCOMPLETE_GARDEN_TYPE_CATALOG' });
+		expect(await gardens.getById(created.id)).toEqual(created);
+	});
+
+	it('rolls back a failing write and normalizes storage errors', async () => {
+		const created = await gardens.create(input);
+		const fail = vi.fn(() => { throw new Error('simulated disk error'); });
+		// Hook the adapter connection so failure happens during persistence.
+		const hooked = await initializeDexieStorage({ dependencies, openGarden: async () => {
+			const db = createGardenDatabase(storage.databaseName, dependencies);
+			await db.open();
+			db.table('gardens').hook('updating', fail);
+			return db;
+		} });
+		try {
+			await expect(createGardensService(hooked.repositories.gardens).update(created.id, { name: 'Lost' })).rejects.toBeInstanceOf(StorageError);
+			expect(fail).toHaveBeenCalled();
+			expect(await gardens.getById(created.id)).toEqual(created);
+		} finally { hooked.close(); }
+		storage.close();
+		await expect(gardens.list()).rejects.toBeInstanceOf(StorageError);
+	});
+
+	it('keeps service normalization storage-neutral', async () => {
+		const repository = { create: vi.fn(async (record) => record), update: vi.fn() };
+		const service = createGardensService(repository, { now: () => CREATED });
+		await expect(service.create({ locationId: DEFAULT_LOCATION_ID })).rejects.toMatchObject({ code: 'INVALID_GARDEN_NAME' });
+		await expect(service.create({ name: 'Garden' })).rejects.toMatchObject({ code: 'INVALID_RECORD_ID' });
+		expect(repository.create).not.toHaveBeenCalled();
+		const result = await service.create({ ...input, subtitle: ' Label ', typeIds: ['outdoor'] });
+		expect(result).toMatchObject({ name: 'Tomatoes', subtitle: 'Label', status: 'planned', typeIds: ['outdoor'] });
+	});
+
+	it('rejects malformed input and empty updates', async () => {
+		for (const value of [null, [], 'text']) {
+			await expect(gardens.create(value)).rejects.toBeInstanceOf(ValidationError);
+			await expect(gardens.update(MISSING, value)).rejects.toBeInstanceOf(ValidationError);
+		}
+		await expect(gardens.update(MISSING, {})).rejects.toMatchObject({ code: 'EMPTY_CHANGES' });
+	});
+});
