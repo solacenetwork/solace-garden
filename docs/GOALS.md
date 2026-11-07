@@ -14,6 +14,17 @@ Its purpose is to help gardeners **plan, organize, document, maintain, and evalu
 
 The application should remain practical and approachable without requiring specialized equipment, advanced technical knowledge, or participation in optional community features.
 
+### Guiding principle: growing-space and planting lifecycles
+
+Garden should support very different growing rhythms without assuming that a physical space, its current plants, and a calendar-year season all begin or end together.
+
+- **Growing spaces can outlive many plantings.** A raised bed, container, windowsill tray or in-ground plot may be used repeatedly over years; the physical setup need not be recreated for every planting or season.
+- **Plant lifetimes vary greatly.** A fruit orchard may retain individual trees for decades, perennial crops can span many years, seasonal vegetables are replanted periodically, and microgreens may be harvested and replanted in days or weeks.
+- **Preserve continuity and history.** Recording a harvest, finishing a plant group, or beginning a new planting cycle should not by itself erase or reset an existing growing space or force long-lived plants to be reassigned. Gardeners may also change a physical space or replace an individual plant when needed.
+- **Do not impose one annual cycle on everyone.** Support seasonal growing as well as continuous, overlapping, perennial, and short repeat plantings. The gardener controls when a Garden or plant group is finished according to its normal lifecycle.
+
+**Scope:** These are product goals, not a decision to add a dedicated growing-space or planting-cycle entity in V1. V1 continues to use independent Gardens and plant groups, reusable Garden Templates, and an optionally uploaded map image. Reusable *physical-space* maps with season-specific assignments remain a future feature (see `PARKING_LOT.md`).
+
 ## 2. MVP
 
 The MVP should support a coherent garden-management workflow while keeping individual features as simple as possible. A feature's historical presence in the JavaScript or PHP prototypes does not automatically make its full historical implementation a v1 requirement.
