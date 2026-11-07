@@ -327,7 +327,7 @@ export function Lists() {
 				</ul>
 			</nav>
 
-			<form class="lists-quick-add" onSubmit={addItem}>
+			<form class="lists-quick-add" autoComplete="off" onSubmit={addItem}>
 				<label class="form-label" for="lists-quick-text">
 					{config.quickLabel}
 				</label>
@@ -336,6 +336,7 @@ export function Lists() {
 						id="lists-quick-text"
 						class="form-control"
 						type="text"
+						autoComplete="off"
 						maxlength="200"
 						placeholder={config.quickPlaceholder}
 						value={routePending ? '' : quickText}
@@ -389,6 +390,7 @@ export function Lists() {
 							{editingId === item.id ? (
 								<form
 									class="lists-edit"
+									autoComplete="off"
 									onSubmit={(event) => saveEdit(event, item)}
 								>
 									<div class="form-field">
@@ -399,6 +401,7 @@ export function Lists() {
 											id={`list-text-${item.id}`}
 											class="form-control"
 											type="text"
+											autoComplete="off"
 											maxlength="200"
 											value={fields.text}
 											onInput={(event) => setFields({
@@ -418,6 +421,7 @@ export function Lists() {
 														id={`list-quantity-${item.id}`}
 														class="form-control"
 														type="text"
+														autoComplete="off"
 														maxlength="100"
 														value={fields.quantity}
 														onInput={(event) => setFields({
@@ -434,6 +438,7 @@ export function Lists() {
 														id={`list-url-${item.id}`}
 														class="form-control"
 														type="url"
+														autoComplete="off"
 														maxlength="2048"
 														placeholder="https://example.com/item"
 														value={fields.url}
@@ -451,6 +456,7 @@ export function Lists() {
 												<textarea
 													id={`list-notes-${item.id}`}
 													class="form-control"
+													autoComplete="off"
 													rows="3"
 													maxlength="1000"
 													value={fields.notes}
