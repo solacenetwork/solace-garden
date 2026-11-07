@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
 	applicationRoutes,
 	findRoute,
+	getSettingsHref,
+	getSettingsReturnPath,
 	primaryActions,
 	secondaryDestinations,
 } from './navigation.js';
@@ -21,6 +23,20 @@ function resolveRoute(path) {
 }
 
 describe('application routes', () => {
+	it('resolves Garden overview and UUID detail routes without shadowing static workspaces', () => {
+		expect(resolveRoute('/gardens')).toMatchObject({ route: { view: 'gardens' }, params: {} });
+		expect(resolveRoute(`/gardens/${NOTE_UUID}`)).toMatchObject({
+			route: { view: 'garden-detail' }, params: { id: NOTE_UUID },
+		});
+		expect(findRoute(`/gardens/${NOTE_UUID}`)).toMatchObject({ id: 'gardens' });
+		expect(getSettingsHref(`/gardens/${NOTE_UUID}`)).toBe('/settings?ref=gardens');
+		expect(getSettingsReturnPath('gardens')).toBe('/gardens');
+		for (const path of ['/gardens/one/extra', '/gardenstuff', '/unknown']) {
+			expect(resolveRoute(path)).toBeNull();
+			expect(findRoute(path)).toBeUndefined();
+		}
+	});
+
 	it('resolves both list URLs to the shared Lists workspace', () => {
 		expect(resolveRoute('/tasks')).toMatchObject({
 			route: { path: '/tasks', view: 'lists' },

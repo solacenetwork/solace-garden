@@ -11,6 +11,7 @@ import { StorageProvider } from './context/StorageContext.jsx';
 import { applicationRoutes, findRoute } from './navigation.js';
 import { Home } from './pages/Home/index.jsx';
 import { Lists } from './pages/Lists/index.jsx';
+import { Gardens, GardenDetail } from './pages/Gardens/index.jsx';
 import { Locations } from './pages/Locations/index.jsx';
 import { Plants } from './pages/Plants/index.jsx';
 import { EditNote, NewNote, NewNoteDraft, Notes } from './pages/Notes/index.jsx';
@@ -25,6 +26,8 @@ const pageComponents = {
 	plants: Plants,
 	lists: Lists,
 	locations: Locations,
+	gardens: Gardens,
+	'garden-detail': GardenDetail,
 	notes: Notes,
 	'note-new': NewNote,
 	'note-new-draft': NewNoteDraft,

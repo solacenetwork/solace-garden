@@ -88,6 +88,7 @@ export const routeCatalog = [
 		label: 'Gardens',
 		icon: 'tree',
 		description: 'Manage current and previous gardens and growing projects.',
+		view: 'gardens',
 		section: 'secondary',
 		navigationGroup: 'home',
 	},
@@ -149,6 +150,7 @@ export const applicationRoutes = [
 	{ path: '/notes/new/:draftId', view: 'note-new-draft' },
 	{ path: '/notes/new', view: 'note-new' },
 	{ path: '/notes/:id', view: 'note-edit' },
+	{ path: '/gardens/:id', view: 'garden-detail' },
 	...routeCatalog,
 ];
 
@@ -173,7 +175,9 @@ export function findRoute(path) {
 	return routeCatalog.find((route) => route.path === path) ?? (
 		path.startsWith('/notes/')
 			? routeCatalog.find((route) => route.id === 'notes')
-			: undefined
+			: /^\/gardens\/[^/]+\/?$/.test(path)
+				? routeCatalog.find((route) => route.id === 'gardens')
+				: undefined
 	);
 }
 
