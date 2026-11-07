@@ -9,6 +9,14 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future idea: Prefill Garden creation forms from URLs
+
+**Status:** Parked enhancement; not part of the committed V1 milestones or 8E4 implementation.
+
+A bookmarkable creation route such as `/gardens/new` could eventually accept optional URL query parameters to **prefill** the creation form. For example, `/gardens/new?name=My%20New%20Garden` might suggest the Garden name. This could support links from other SOLACE Garden features or external tools without requiring new navigation routes.
+
+**Important distinction:** Opening the link must never automatically create a Garden. The gardener should review the prefilled values and explicitly confirm creation using the existing validated creation service. Treat URL parameters as untrusted input, not as authority to override defaults or bypass validation. Exact supported parameters, encoding, interaction with Quick Start/Wizard/Advanced and security/privacy details remain undecided. Do not implement this yet.
+
 ## Future idea: Garden Maps — visual plant-group layouts (not to scale)
 
 **Status:** V1 uses an uploaded image as a garden map; an in-app layout editor is a tentative V2/V3 direction, not a committed milestone. This refines an earlier Garden Archive / Fabric.js prototype.
