@@ -9,6 +9,25 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Long-term idea (tentative V4/V5): Configurable dashboard preview widgets
+
+**Status:** Speculative concept only; **not committed for V1, the post-8F UI Tweaks pass, or any particular future release**. V4/V5 is an illustrative horizon, not a schedule or roadmap promise. Inspired loosely by WordPress blocks, but **do not build a WordPress-like editor or arbitrary page builder**.
+
+**Concept:** Give gardeners a curated menu of small, representational **widgets/blocks** that preview existing app features and link into the corresponding full-feature screens. A gardener could choose which widgets appear on a home/dashboard page and arrange their order. One person might display only one Current Gardens widget; another might enable the entire available set. This accommodates minimalists, action-oriented users, and gardeners who want a comprehensive dashboard without creating separate underlying workflows.
+
+**Illustrative preview widgets (not committed features):** Current Gardens, Planned Gardens, Unfinished Garden Drafts, Tasks, Recent Journal Entries, Calendar/upcoming activities, and Quick Actions. Each widget shows a limited, purposeful subset (e.g. a few records plus **View All**), not an entire copy of its destination page. Widgets should route to the established full views and share their underlying data/services.
+
+**Bounded customization, not free-form editing:**
+- The application defines the **allowed widget types** and their presentations; users select which to display, hide, and reorder.
+- Pages may have **constrained regions/slots** (e.g. main content and sidebar); only supported categories/types of widgets can appear in a given region, much like WordPress block-area restrictions.
+- Initial customization could be just an available-widgets list with visibility controls and **Move Up / Move Down** ordering, with optional drag-to-reorder only if helpful and accessible. A full spatial layout editor, custom markup, arbitrary widget scripts, and per-widget visual builders are outside this idea.
+- A sensible default layout works without customization. The user's selected layout could be saved with local UI preferences in the offline-first app; exact preference contract, persistence/versioning, fallback for missing/renamed widgets, and any multi-device sync remain future design questions.
+- Keep **widget choice/order** separate from **widget content configuration**. First explore visibility and order; do not assume users need customizable internals, sizes, or data queries.
+
+**Architectural note for today:** Continue favoring reusable Preact display components and independent view/service layers where practical, but **do not prematurely build a widget registry, configuration framework, or editor into V1**. The immediate post-8F Gardens hub/filmstrip idea (documented separately below) can remain fixed and simple; it is not automatically a V4/V5 block system.
+
+**Revisit only if user demand or future design work justifies it.**
+
 ## Future UI Tweaks pass (after 8F): Gardens hub, browsing and creation UX
 
 **Status:** Brainstorming from hands-on 8E4 browser testing (November 7, 2026). **No route, UI, workflow, or milestone changes approved yet.** All six 8E4 functional checks passed; confusing presentation and expectations are deferred for the post-8F UI Tweaks pass. Revisit the **whole `/gardens` experience together**, rather than patching individual symptoms before its overall structure is chosen.
