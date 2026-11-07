@@ -28,7 +28,7 @@ describe('Garden read-only views', () => {
 		expect(text(tree)).toContain('Previous Gardens');
 		expect(text(tree)).toContain('Home Farm');
 		expect(text(tree)).toContain('Active');
-		expect(nodes(tree).filter((node) => node.type === 'a').map(({ props }) => props.href)).toEqual([garden.href, second.href]);
+		expect(nodes(tree).filter((node) => node.props?.class === 'garden-card').map(({ props }) => props.href)).toEqual([garden.href, second.href]);
 		expect(nodes(tree).filter((node) => node.type === 'li').map(({ key }) => key)).toEqual([garden.id, second.id]);
 	});
 
@@ -53,6 +53,7 @@ describe('Garden read-only views', () => {
 		expect(nodes(tree).some((node) => node.type === 'time')).toBe(false);
 		const overview = GardensOverviewView({ state: { status: 'ready', current: [], previous: [] } });
 		expect(text(overview)).toContain('No Gardens saved yet');
+		expect(nodes(overview).find((node) => node.props?.href === '/gardens/new')).toBeTruthy();
 		expect(nodes(overview).some((node) => node.type === 'form')).toBe(false);
 	});
 

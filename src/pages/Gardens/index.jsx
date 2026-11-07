@@ -69,9 +69,14 @@ function GardenSection({ title, id, items, emptyMessage }) {
 export function GardensOverviewView({ state, onRetry }) {
 	return (
 		<section class="container gardens-page" aria-labelledby="gardens-title">
-			<header class="gardens-header">
-				<h1 id="gardens-title">Gardens</h1>
-				<p>Browse your current growing projects and revisit previous Gardens.</p>
+			<header class="gardens-header gardens-header--overview">
+				<div>
+					<h1 id="gardens-title">Gardens</h1>
+					<p>Browse your current growing projects and revisit previous Gardens.</p>
+				</div>
+				<a class="btn-solid theme-primary gardens-create-action" href="/gardens/new">
+					<i class="bi bi-plus-lg" aria-hidden="true"></i> Create Garden
+				</a>
 			</header>
 			{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (
 				<>

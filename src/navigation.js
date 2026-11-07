@@ -143,13 +143,14 @@ export const routeCatalog = [
 	},
 ];
 
-// Editor routes are ordered before the parameter route so "new" is always
-// treated as the create view rather than as a Note ID. They are intentionally
+// Create/editor routes are ordered before parameter routes so "new" is always
+// treated as a create view rather than as a record ID. They are intentionally
 // separate from routeCatalog, which drives visible workspace navigation.
 export const applicationRoutes = [
 	{ path: '/notes/new/:draftId', view: 'note-new-draft' },
 	{ path: '/notes/new', view: 'note-new' },
 	{ path: '/notes/:id', view: 'note-edit' },
+	{ path: '/gardens/new', view: 'garden-new' },
 	{ path: '/gardens/:id', view: 'garden-detail' },
 	...routeCatalog,
 ];
