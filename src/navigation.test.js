@@ -32,11 +32,15 @@ describe('application routes', () => {
 		expect(resolveRoute(`/gardens/${NOTE_UUID}`)).toMatchObject({
 			route: { view: 'garden-detail' }, params: { id: NOTE_UUID },
 		});
+		expect(resolveRoute(`/gardens/${NOTE_UUID}/edit`)).toMatchObject({
+			route: { view: 'garden-edit' }, params: { id: NOTE_UUID },
+		});
 		expect(findRoute(`/gardens/${NOTE_UUID}`)).toMatchObject({ id: 'gardens' });
+		expect(findRoute(`/gardens/${NOTE_UUID}/edit`)).toMatchObject({ id: 'gardens' });
 		expect(findRoute('/gardens/new')).toMatchObject({ id: 'gardens' });
 		expect(getSettingsHref(`/gardens/${NOTE_UUID}`)).toBe('/settings?ref=gardens');
 		expect(getSettingsReturnPath('gardens')).toBe('/gardens');
-		for (const path of ['/gardens/one/extra', '/gardenstuff', '/unknown']) {
+		for (const path of ['/gardens/one/extra', '/gardens/one/edit/extra', '/gardenstuff', '/unknown']) {
 			expect(resolveRoute(path)).toBeNull();
 			expect(findRoute(path)).toBeUndefined();
 		}

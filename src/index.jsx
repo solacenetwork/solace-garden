@@ -14,6 +14,7 @@ import { Lists } from './pages/Lists/index.jsx';
 import { Gardens, GardenDetail } from './pages/Gardens/index.jsx';
 import { CreateGarden } from './pages/Gardens/CreateGarden.jsx';
 import { GardenDraftRoute, NewGardenDraftRoute } from './pages/Gardens/FullGardenCreation.jsx';
+import { EditGarden } from './pages/Gardens/EditGarden.jsx';
 import { Locations } from './pages/Locations/index.jsx';
 import { Plants } from './pages/Plants/index.jsx';
 import { EditNote, NewNote, NewNoteDraft, Notes } from './pages/Notes/index.jsx';
@@ -34,6 +35,7 @@ const pageComponents = {
 	'garden-advanced-new': () => <NewGardenDraftRoute mode="advanced" />,
 	'garden-wizard': (props) => <GardenDraftRoute {...props} mode="wizard" />,
 	'garden-advanced': (props) => <GardenDraftRoute {...props} mode="advanced" />,
+	'garden-edit': EditGarden,
 	'garden-detail': GardenDetail,
 	notes: Notes,
 	'note-new': NewNote,

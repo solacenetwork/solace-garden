@@ -38,6 +38,7 @@ describe('Garden read-only views', () => {
 			expect(text(tree)).toContain(value);
 		}
 		expect(nodes(tree).filter((node) => node.type === 'time').map(({ props }) => props.dateTime)).toEqual([garden.startDate, garden.endDate]);
+		expect(nodes(tree).find((node) => node.props?.href === `/gardens/${garden.id}/edit`)).toBeTruthy();
 		expect(text(tree)).not.toContain(garden.id);
 		expect(nodes(tree).some((node) => node.type === 'form' || node.type === 'button')).toBe(false);
 	});
@@ -51,6 +52,7 @@ describe('Garden read-only views', () => {
 		expect(text(tree)).not.toContain('Description');
 		expect(text(tree)).not.toContain('Garden Notes');
 		expect(nodes(tree).some((node) => node.type === 'time')).toBe(false);
+		expect(nodes(tree).some((node) => node.props?.href === `/gardens/${garden.id}/edit`)).toBe(false);
 		const overview = GardensOverviewView({ state: { status: 'ready', current: [], previous: [] } });
 		expect(text(overview)).toContain('No Gardens saved yet');
 		expect(nodes(overview).find((node) => node.props?.href === '/gardens/new')).toBeTruthy();

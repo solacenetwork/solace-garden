@@ -1,6 +1,6 @@
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { GardenTypeSelector } from '../../components/GardenTypeSelector.jsx';
+import { GardenFields } from '../../components/GardenFields.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createDraftAutosave } from '../../services/draftAutosave.js';
 import {
@@ -64,53 +64,6 @@ export function GardenStepper({ stage }) {
 					</li>
 				))}
 			</ol>
-		</div>
-	);
-}
-
-function FieldError({ id, message }) {
-	return message ? <div id={id} class="invalid-feedback">{message}</div> : null;
-}
-
-function GardenDetailsFields({ fields, errors, locations, types, onChange, disabled }) {
-	return (
-		<div class="garden-fields">
-			<div class="form-field garden-fields__wide">
-				<label class="form-label" for="full-garden-name">Garden name</label>
-				<input id="full-garden-name" class={`form-control${errors.name ? ' is-invalid' : ''}`} type="text" required value={fields.name} disabled={disabled} aria-invalid={errors.name ? 'true' : undefined} aria-describedby={errors.name ? 'garden-name-error' : undefined} onInput={(event) => onChange('name', event.currentTarget.value)} />
-				<FieldError id="garden-name-error" message={errors.name} />
-			</div>
-			<div class="form-field garden-fields__wide">
-				<label class="form-label" for="garden-subtitle">Subtitle <span>(optional)</span></label>
-				<input id="garden-subtitle" class={`form-control${errors.subtitle ? ' is-invalid' : ''}`} type="text" value={fields.subtitle} disabled={disabled} aria-invalid={errors.subtitle ? 'true' : undefined} aria-describedby={errors.subtitle ? 'garden-subtitle-error' : undefined} onInput={(event) => onChange('subtitle', event.currentTarget.value)} />
-				<FieldError id="garden-subtitle-error" message={errors.subtitle} />
-			</div>
-			<div class="form-field garden-fields__wide">
-				<label class="form-label" for="garden-description">Description <span>(optional)</span></label>
-				<textarea id="garden-description" class={`form-control${errors.description ? ' is-invalid' : ''}`} rows="4" value={fields.description} disabled={disabled} aria-invalid={errors.description ? 'true' : undefined} aria-describedby={errors.description ? 'garden-description-error' : undefined} onInput={(event) => onChange('description', event.currentTarget.value)}></textarea>
-				<FieldError id="garden-description-error" message={errors.description} />
-			</div>
-			<div class="form-field garden-fields__wide">
-				<label class="form-label" for="garden-location">Location</label>
-				<select id="garden-location" class={`form-control${errors.locationId ? ' is-invalid' : ''}`} required value={fields.locationId} disabled={disabled} aria-invalid={errors.locationId ? 'true' : undefined} aria-describedby={errors.locationId ? 'garden-location-error' : undefined} onChange={(event) => onChange('locationId', event.currentTarget.value)}>
-					{locations.map((location) => <option value={location.id} key={location.id}>{location.name}</option>)}
-				</select>
-				<FieldError id="garden-location-error" message={errors.locationId} />
-			</div>
-			<div class="garden-fields__wide">
-				<GardenTypeSelector types={types} selectedIds={fields.typeIds} onChange={(value) => onChange('typeIds', value)} disabled={disabled} />
-				{errors.typeIds && <p class="garden-fields__error" role="alert">{errors.typeIds}</p>}
-			</div>
-			<div class="form-field">
-				<label class="form-label" for="garden-start-date">Start date <span>(optional)</span></label>
-				<input id="garden-start-date" class={`form-control${errors.startDate ? ' is-invalid' : ''}`} type="date" value={fields.startDate} disabled={disabled} aria-invalid={errors.startDate ? 'true' : undefined} aria-describedby={errors.startDate ? 'garden-start-date-error' : undefined} onInput={(event) => onChange('startDate', event.currentTarget.value)} />
-				<FieldError id="garden-start-date-error" message={errors.startDate} />
-			</div>
-			<div class="form-field">
-				<label class="form-label" for="garden-end-date">End date <span>(optional)</span></label>
-				<input id="garden-end-date" class={`form-control${errors.endDate ? ' is-invalid' : ''}`} type="date" value={fields.endDate} disabled={disabled} aria-invalid={errors.endDate ? 'true' : undefined} aria-describedby={errors.endDate ? 'garden-end-date-error' : undefined} onInput={(event) => onChange('endDate', event.currentTarget.value)} />
-				<FieldError id="garden-end-date-error" message={errors.endDate} />
-			</div>
 		</div>
 	);
 }
@@ -264,14 +217,14 @@ function GardenDraftEditor({ draft, references, mode, workspace }) {
 				{mode === 'wizard' ? <>
 					<GardenStepper stage={stage} />
 					{stage === 0 && <section class="garden-wizard__stage" aria-labelledby="start-stage-title"><h2 id="start-stage-title">Start from scratch</h2><p>Create an independent Planned Garden using the details you choose.</p><div class="garden-start-option"><i class="bi bi-flower1" aria-hidden="true"></i><div><strong>Start from Scratch</strong><span>Selected for this draft</span></div></div><p class="garden-template-future"><i class="bi bi-lock" aria-hidden="true"></i> Saved Garden Templates arrive in Milestone 8F.</p></section>}
-					{stage === 1 && <section class="garden-wizard__stage" aria-labelledby="details-stage-title"><h2 id="details-stage-title">Garden details</h2><GardenDetailsFields fields={fields} errors={errors} locations={references.locations} types={references.types} onChange={changeField} disabled={busy} /></section>}
+					{stage === 1 && <section class="garden-wizard__stage" aria-labelledby="details-stage-title"><h2 id="details-stage-title">Garden details</h2><GardenFields fields={fields} errors={errors} locations={references.locations} types={references.types} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>}
 					{stage === 2 && <section class="garden-wizard__stage"><GardenReview fields={fields} locations={references.locations} types={references.types} /></section>}
 					<div class="garden-full-create__actions">
 						<button class="btn-outline" type="button" disabled={busy} onClick={() => stage === 0 ? navigatePreservingDraft('/gardens') : setStage((value) => value - 1)}>{stage === 0 ? 'Back to Gardens' : 'Back'}</button>
 						{stage < 2 ? <button class="btn-solid theme-primary" type="button" disabled={busy} onClick={() => stage === 1 ? review() : setStage(1)}>Continue</button> : <button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button>}
 					</div>
 				</> : <>
-					<section aria-labelledby="advanced-details-title"><h2 id="advanced-details-title">Garden details</h2><GardenDetailsFields fields={fields} errors={errors} locations={references.locations} types={references.types} onChange={changeField} disabled={busy} /></section>
+					<section aria-labelledby="advanced-details-title"><h2 id="advanced-details-title">Garden details</h2><GardenFields fields={fields} errors={errors} locations={references.locations} types={references.types} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>
 					<div class="garden-full-create__actions"><button class="btn-outline" type="button" disabled={busy} onClick={() => navigatePreservingDraft('/gardens')}>Back to Gardens</button><button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button></div>
 				</>}
 			</form>

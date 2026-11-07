@@ -107,9 +107,16 @@ export function GardenDetailView({ state, onRetry }) {
 			</a>
 			{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (
 				<>
-					<header class="gardens-header">
-						<h1>{garden.name}</h1>
-						{garden.subtitle && <p class="garden-subtitle">{garden.subtitle}</p>}
+					<header class="gardens-header garden-detail__header">
+						<div>
+							<h1>{garden.name}</h1>
+							{garden.subtitle && <p class="garden-subtitle">{garden.subtitle}</p>}
+						</div>
+						{!garden.isClosed && garden.status !== 'archived' && (
+							<a class="btn-solid theme-primary garden-detail__edit" href={`/gardens/${garden.id}/edit`}>
+								<i class="bi bi-pencil" aria-hidden="true"></i> Edit Garden
+							</a>
+						)}
 					</header>
 					<dl class="garden-facts">
 						<div><dt>Status</dt><dd>{garden.statusLabel}</dd></div>

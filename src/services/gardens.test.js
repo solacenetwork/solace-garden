@@ -2,6 +2,7 @@ import Dexie from 'dexie';
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createGardensService } from './gardens.js';
+import { createNotesService } from './notes.js';
 import { initializeDexieStorage } from '../storage/dexie/initializeDexieStorage.js';
 import { createGardenDatabase } from '../storage/dexie/gardenDatabase.js';
 import { DEFAULT_LOCATION_ID } from '../storage/locationValidation.js';
@@ -60,6 +61,29 @@ describe('Garden data foundation', () => {
 		expect(await storage.repositories.gardens.getById(created.id)).toEqual({
 			...created, subtitle: 'New', notes: 'Summary', updatedAt: UPDATED,
 		});
+	});
+
+	it('edits every supported field while preserving identity, audit history, and independent Notes', async () => {
+		const otherLocation = await storage.repositories.locations.create({
+			name: 'Community Plot', hardinessZone: null, isSystemDefault: false,
+			createdAt: CREATED, updatedAt: CREATED,
+		});
+		const created = await gardens.create({ ...input, subtitle: 'Original' });
+		const notes = createNotesService(storage.repositories.notes, { now: () => CREATED });
+		const independentNote = await notes.create({ text: 'Standalone observation', gardenId: created.id });
+		const editor = createGardensService(storage.repositories.gardens, { now: () => UPDATED });
+		const changes = {
+			name: 'Tomatoes', subtitle: 'South plot', description: 'Full sun',
+			locationId: otherLocation.id, typeIds: ['outdoor', 'raised-bed'],
+			startDate: '2026-03-01', endDate: '2026-10-31', notes: 'Embedded Garden Notes',
+		};
+		expect(await editor.update(created.id, changes)).toBe(true);
+		expect(await gardens.getById(created.id)).toEqual({
+			...created, ...changes, id: created.id, createdAt: CREATED, updatedAt: UPDATED,
+		});
+		expect(await notes.getById(independentNote.id)).toEqual(independentNote);
+		const duplicate = await gardens.create({ ...input, name: 'Tomatoes', subtitle: 'South plot' });
+		expect(duplicate.id).not.toBe(created.id);
 	});
 
 	it.each([undefined, '', ' \n ', null, 12])('rejects invalid names: %s', async (name) => {
