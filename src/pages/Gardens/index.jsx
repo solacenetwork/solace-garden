@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createGardenReaders, loadGardenDetail, loadGardenOverview } from './viewModel.js';
+import { GardenLifecycle } from './GardenLifecycle.jsx';
 import './style.css';
 
 function useGardenRead(load) {
@@ -98,7 +99,7 @@ export function GardensOverviewView({ state, onRetry, onDiscard = () => {}, disc
 	);
 }
 
-export function GardenDetailView({ state, onRetry }) {
+export function GardenDetailView({ state, onRetry, lifecycle = null }) {
 	const garden = state.garden;
 	return (
 		<section class="container gardens-page" aria-label="Garden details">
@@ -126,6 +127,7 @@ export function GardenDetailView({ state, onRetry }) {
 						{garden.startDate && <div><dt>Start date</dt><dd><time dateTime={garden.startDate}>{garden.startDate}</time></dd></div>}
 						{garden.endDate && <div><dt>End date</dt><dd><time dateTime={garden.endDate}>{garden.endDate}</time></dd></div>}
 					</dl>
+					{lifecycle}
 					{garden.description && (
 						<section class="garden-text" aria-labelledby="garden-description">
 							<h2 id="garden-description">Description</h2>
@@ -176,7 +178,10 @@ function GardenDetailRecord({ id }) {
 		return () => loadGardenDetail(readers, id);
 	}, [repositories, id]);
 	const [state, retry] = useGardenRead(load);
-	return <GardenDetailView state={state} onRetry={retry} />;
+	const lifecycle = state.status === 'ready' ? (
+		<GardenLifecycle garden={state.garden} repository={repositories.gardens} onChanged={retry} />
+	) : null;
+	return <GardenDetailView state={state} onRetry={retry} lifecycle={lifecycle} />;
 }
 
 export function GardenDetail({ id }) {

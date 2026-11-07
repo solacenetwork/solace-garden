@@ -2,6 +2,7 @@ import Dexie from 'dexie';
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createGardensService } from './gardens.js';
+import { createGardenLifecycleService } from './gardenLifecycle.js';
 import { createNotesService } from './notes.js';
 import { initializeDexieStorage } from '../storage/dexie/initializeDexieStorage.js';
 import { createGardenDatabase } from '../storage/dexie/gardenDatabase.js';
@@ -190,5 +191,110 @@ describe('Garden data foundation', () => {
 			await expect(gardens.update(MISSING, value)).rejects.toBeInstanceOf(ValidationError);
 		}
 		await expect(gardens.update(MISSING, {})).rejects.toMatchObject({ code: 'EMPTY_CHANGES' });
+	});
+});
+
+describe('Garden lifecycle', () => {
+	let dependencies, storage, gardens, lifecycle, raw;
+	beforeEach(async () => {
+		dependencies = { indexedDB: new IDBFactory(), IDBKeyRange };
+		storage = await initializeDexieStorage({ dependencies });
+		gardens = createGardensService(storage.repositories.gardens, { now: () => CREATED });
+		lifecycle = createGardenLifecycleService(storage.repositories.gardens, { now: () => UPDATED });
+		raw = createGardenDatabase(storage.databaseName, dependencies);
+		await raw.open();
+	});
+	afterEach(async () => {
+		raw.close();
+		storage.close();
+		for (const { name } of await dependencies.indexedDB.databases()) {
+			await new Dexie(name, dependencies).delete();
+		}
+	});
+
+	function expected(garden) {
+		return { status: garden.status, isClosed: garden.isClosed };
+	}
+
+	it('moves open Gardens manually while keeping Completed open and editable', async () => {
+		const created = await gardens.create({ ...input, startDate: '2020-01-01', endDate: '2020-02-01' });
+		expect(await lifecycle.setStatus(created.id, 'active', expected(created))).toBe(true);
+		const active = await gardens.getById(created.id);
+		expect(active).toEqual({ ...created, status: 'active', updatedAt: UPDATED });
+		expect(await lifecycle.complete(active.id, {}, expected(active))).toBe(true);
+		const completed = await gardens.getById(created.id);
+		expect(completed).toMatchObject({ status: 'completed', isClosed: false, startDate: '2020-01-01', endDate: '2020-02-01' });
+		expect(await createGardensService(storage.repositories.gardens, { now: () => '2026-11-07T14:00:00.000Z' })
+			.update(created.id, { subtitle: 'Still editable' })).toBe(true);
+	});
+
+	it('optionally completes and closes with normalized Garden Notes in one write', async () => {
+		const created = await gardens.create(input);
+		await lifecycle.complete(created.id, { close: true, notes: '  Season summary  ' }, expected(created));
+		expect(await gardens.getById(created.id)).toEqual({
+			...created, status: 'completed', isClosed: true, notes: 'Season summary', updatedAt: UPDATED,
+		});
+		expect(() => lifecycle.complete(created.id, { close: true, notes: 'x'.repeat(1001) }, expected(created)))
+			.toThrow(expect.objectContaining({ code: 'GARDEN_NOTES_TOO_LONG' }));
+	});
+
+	it('closes and reopens without changing status, and ordinary edits remain blocked while closed', async () => {
+		const created = await gardens.create(input);
+		await lifecycle.setStatus(created.id, 'active', expected(created));
+		const active = await gardens.getById(created.id);
+		await lifecycle.close(active.id, { notes: 'At close' }, expected(active));
+		const closed = await gardens.getById(created.id);
+		expect(closed).toMatchObject({ status: 'active', isClosed: true, notes: 'At close' });
+		await expect(gardens.update(created.id, { name: 'Blocked' })).rejects.toMatchObject({ code: 'GARDEN_READ_ONLY' });
+		await lifecycle.reopen(closed.id, expected(closed));
+		expect(await gardens.getById(created.id)).toMatchObject({ status: 'active', isClosed: false, notes: 'At close' });
+	});
+
+	it('archives atomically and unarchives to an open Completed Garden', async () => {
+		const created = await gardens.create(input);
+		await lifecycle.archive(created.id, expected(created));
+		const archived = await gardens.getById(created.id);
+		expect(archived).toMatchObject({ status: 'archived', isClosed: true, updatedAt: UPDATED });
+		await expect(gardens.update(created.id, { name: 'Blocked' })).rejects.toMatchObject({ code: 'GARDEN_READ_ONLY' });
+		await lifecycle.unarchive(archived.id, expected(archived));
+		expect(await gardens.getById(created.id)).toMatchObject({ status: 'completed', isClosed: false });
+	});
+
+	it('rejects missing, invalid, stale, duplicate, and unsupported transitions without partial writes', async () => {
+		const created = await gardens.create(input);
+		expect(await lifecycle.archive(MISSING, { status: 'planned', isClosed: false })).toBe(false);
+		expect(() => lifecycle.setStatus(created.id, 'completed', expected(created)))
+			.toThrow(expect.objectContaining({ code: 'INVALID_GARDEN_TRANSITION' }));
+		await expect(lifecycle.reopen(created.id, expected(created))).rejects.toMatchObject({ code: 'INVALID_GARDEN_TRANSITION' });
+		await lifecycle.setStatus(created.id, 'active', expected(created));
+		await expect(lifecycle.archive(created.id, expected(created))).rejects.toMatchObject({ code: 'STALE_GARDEN_LIFECYCLE' });
+		const active = await gardens.getById(created.id);
+		await expect(lifecycle.setStatus(created.id, 'active', expected(active))).rejects.toMatchObject({ code: 'INVALID_GARDEN_TRANSITION' });
+		expect(await gardens.getById(created.id)).toEqual(active);
+	});
+
+	it('rolls back lifecycle writes on storage failure and guards concurrent requests', async () => {
+		const created = await gardens.create(input);
+		const first = createGardenLifecycleService(storage.repositories.gardens, { now: () => UPDATED });
+		const second = createGardenLifecycleService(storage.repositories.gardens, { now: () => '2026-11-07T14:00:00.000Z' });
+		await first.setStatus(created.id, 'active', expected(created));
+		await expect(second.archive(created.id, expected(created))).rejects.toMatchObject({ code: 'STALE_GARDEN_LIFECYCLE' });
+
+		const active = await gardens.getById(created.id);
+		const fail = vi.fn(() => { throw new Error('simulated disk error'); });
+		const hooked = await initializeDexieStorage({ dependencies, openGarden: async () => {
+			const db = createGardenDatabase(storage.databaseName, dependencies);
+			await db.open();
+			db.table('gardens').hook('updating', fail);
+			return db;
+		} });
+		try {
+			const failingLifecycle = createGardenLifecycleService(hooked.repositories.gardens, { now: () => UPDATED });
+			await expect(failingLifecycle.close(active.id, {}, expected(active))).rejects.toBeInstanceOf(StorageError);
+			expect(fail).toHaveBeenCalled();
+		} finally {
+			hooked.close();
+		}
+		expect(await gardens.getById(created.id)).toEqual(active);
 	});
 });

@@ -149,6 +149,53 @@
 	white-space: pre-wrap;
 }
 
+.garden-lifecycle {
+	display: grid;
+	padding: clamp(1rem, 4vw, 1.5rem);
+	margin-block-start: 1rem;
+	background: var(--sg-color-surface);
+	border: 1px solid var(--sg-color-border);
+	border-radius: var(--sg-radius-card);
+	gap: 1rem;
+}
+
+.garden-lifecycle h2,
+.garden-lifecycle p {
+	margin: 0;
+}
+
+.garden-lifecycle__status {
+	display: grid;
+	grid-template-columns: minmax(10rem, 1fr) auto;
+	align-items: end;
+	gap: 0.75rem;
+}
+
+.garden-lifecycle__status label {
+	grid-column: 1 / -1;
+	font-weight: 650;
+}
+
+.garden-lifecycle__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+}
+
+.garden-lifecycle__error {
+	color: var(--sg-color-danger, #a82020);
+}
+
+.garden-lifecycle-dialog textarea {
+	margin-block-start: 0.5rem;
+}
+
+@media (max-width: 36rem) {
+	.garden-lifecycle__status {
+		grid-template-columns: 1fr;
+	}
+}
+
 .garden-create {
 	max-width: 42rem;
 }

@@ -9,6 +9,7 @@ export const GARDEN_EDITABLE_FIELDS = Object.freeze([
 const VISUAL_FIELDS = ['icon', 'color', 'thumbnailMediaId', 'layoutMediaId'];
 const RECORD_FIELDS = [...GARDEN_EDITABLE_FIELDS, ...VISUAL_FIELDS,
 	'id', 'status', 'isClosed', 'createdAt', 'updatedAt'];
+export const GARDEN_STATUSES = Object.freeze(['planned', 'active', 'completed', 'archived']);
 
 export function gardenError(code, message, field = 'garden') {
 	return new ValidationError(code, message, { field });
@@ -81,6 +82,19 @@ export function validateGardenDateOrder(record) {
 	}
 }
 
+export function validateGardenLifecycle(value, field = 'lifecycle') {
+	if (!value || Object.getPrototypeOf(value) !== Object.prototype ||
+		!GARDEN_STATUSES.includes(value.status) || typeof value.isClosed !== 'boolean' ||
+		Object.keys(value).some((key) => !['status', 'isClosed'].includes(key))) {
+		throw gardenError('INVALID_GARDEN_LIFECYCLE',
+			'Garden lifecycle must include a valid status and closed state.', field);
+	}
+	if (value.status === 'archived' && !value.isClosed) {
+		throw gardenError('INVALID_GARDEN_LIFECYCLE', 'Archived Gardens must be closed.', field);
+	}
+	return value;
+}
+
 export function validateGardenRecord(record, { creating = false } = {}) {
 	validateGardenFields(record, RECORD_FIELDS);
 	validateRecordId(record.id);
@@ -93,8 +107,8 @@ export function validateGardenRecord(record, { creating = false } = {}) {
 		}
 	}
 	validateGardenDateOrder(record);
-	if (!['planned', 'active', 'completed', 'archived'].includes(record.status) ||
-		typeof record.isClosed !== 'boolean' ||
+	validateGardenLifecycle({ status: record.status, isClosed: record.isClosed });
+	if (
 		(creating && (record.status !== 'planned' || record.isClosed))) {
 		throw gardenError('INVALID_GARDEN_LIFECYCLE', 'New Gardens must be Planned and open.');
 	}

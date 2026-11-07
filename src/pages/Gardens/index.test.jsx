@@ -1,4 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
+
 import { GardensOverviewView, GardenDetailView } from './index.jsx';
 
 // Inspect the rendered view tree without a browser or additional DOM dependency.
