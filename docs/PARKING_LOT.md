@@ -28,6 +28,19 @@ After the current A–F implementation work, we could do a documentation cleanup
 
 **Revisit only if user demand or future design work justifies it.**
 
+## Future UI Review (after 8F): Long Garden names and card layout
+
+**Status:** Browser-testing observation from 8E5 on November 7, 2026; deferred UX/data-contract decision, **not an 8E5 blocker or an approved implementation change**. All seven 8E5 manual acceptance checks were reported as passing. A deliberately verbose Garden name, including the opening of *A Tale of Two Cities* (“It was the best of times. It was the worst of times”), demonstrated how a long title expands a Garden card and makes the grid uneven. The record remains usable; the concern is presentation and future-proofing.
+
+**Proposed approach to evaluate in the post-8F UI Review:**
+- Consider a **generous maximum Garden name length around 200 characters** (preferred over the earlier 120-character suggestion; final number not yet committed). Support descriptive or whimsical names rather than imposing an unnecessarily short limit.
+- If adopting a maximum, add native HTML `maxlength` to **all Garden name entry paths**, including Quick Start, Wizard, Advanced and Edit, and enforce the same limit in shared **domain/service validation**; browser attributes alone are not sufficient. Define safe behavior for pre-existing or imported names longer than the new maximum, never silently truncate on read or save. Consider whether the shared `CharacterCounter` is useful for names, but do not require additional UI clutter.
+- **Independently of any storage limit**, constrain Garden card title presentation so one verbose name cannot create an unusually tall card or distort the grid. Prefer a sensible **two-line visual clamp / truncation** with wrapping safeguards, using Bootstrap utilities where suitable and minimal CSS if necessary (Bootstrap single-line `.text-truncate` alone may be too aggressive). Apply the same policy thoughtfully to future Garden list/preview widgets. Preserve the full underlying string and accessible identification.
+- On the **Garden detail page**, allow the full wordy Garden name to wrap and remain visible; no display truncation required there.
+- Test long words, spaces, mobile widths, keyboard/screen-reader accessibility, and the availability of the full Garden name from a card (e.g., accessible label or detail page).
+
+**Do not implement during 8E5; review alongside the larger Gardens hub/card redesign after 8F.**
+
 ## Future UI Tweaks pass (after 8F): Gardens hub, browsing and creation UX
 
 **Status:** Brainstorming from hands-on 8E4 browser testing (November 7, 2026). **No route, UI, workflow, or milestone changes approved yet.** All six 8E4 functional checks passed; confusing presentation and expectations are deferred for the post-8F UI Tweaks pass. Revisit the **whole `/gardens` experience together**, rather than patching individual symptoms before its overall structure is chosen.
