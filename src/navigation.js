@@ -127,6 +127,7 @@ export const routeCatalog = [
 		description: 'Manage the physical locations associated with your gardens.',
 		section: 'secondary',
 		navigationGroup: 'workspaces',
+		view: 'locations',
 	},
 	{
 		id: 'settings',

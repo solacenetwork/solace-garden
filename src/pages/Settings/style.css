@@ -128,3 +128,41 @@
 	align-items: flex-start;
 	gap: 0.6rem;
 }
+
+.settings-locations {
+	display: flex;
+	margin-block-start: 1rem;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.settings-locations h2 {
+	margin-block-end: 0.35rem;
+	font-size: 1.35rem;
+	font-weight: 700;
+}
+
+.settings-locations p {
+	margin: 0;
+}
+
+.settings-locations a {
+	display: inline-flex;
+	min-height: 3rem;
+	text-decoration: none;
+	align-items: center;
+	gap: 0.5rem;
+	flex: 0 0 auto;
+}
+
+@media (max-width: 35.999rem) {
+	.settings-locations {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.settings-locations a {
+		justify-content: center;
+	}
+}

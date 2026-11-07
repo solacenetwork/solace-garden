@@ -11,6 +11,7 @@ import { StorageProvider } from './context/StorageContext.jsx';
 import { applicationRoutes, findRoute } from './navigation.js';
 import { Home } from './pages/Home/index.jsx';
 import { Lists } from './pages/Lists/index.jsx';
+import { Locations } from './pages/Locations/index.jsx';
 import { Plants } from './pages/Plants/index.jsx';
 import { EditNote, NewNote, NewNoteDraft, Notes } from './pages/Notes/index.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
@@ -23,6 +24,7 @@ const pageComponents = {
 	home: Home,
 	plants: Plants,
 	lists: Lists,
+	locations: Locations,
 	notes: Notes,
 	'note-new': NewNote,
 	'note-new-draft': NewNoteDraft,

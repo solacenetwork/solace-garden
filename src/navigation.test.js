@@ -78,4 +78,10 @@ describe('application routes', () => {
 		expect(findRoute('/notes/new')).toMatchObject({ id: 'notes' });
 		expect(findRoute(`/notes/${NOTE_UUID}`)).toMatchObject({ id: 'notes' });
 	});
+
+	it('resolves the Locations workspace route', () => {
+		expect(resolveRoute('/locations')).toMatchObject({
+			route: { path: '/locations', view: 'locations' },
+		});
+	});
 });

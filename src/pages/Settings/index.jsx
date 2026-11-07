@@ -90,6 +90,19 @@ export function Settings() {
 					</p>
 				)}
 			</fieldset>
+
+			<section class="settings-card settings-locations" aria-labelledby="settings-locations-title">
+				<div>
+					<h2 id="settings-locations-title">Geographic Locations</h2>
+					<p class="settings-card__help">
+						Manage growing sites and their optional USDA Hardiness Zones.
+					</p>
+				</div>
+				<a class="btn-outline" href="/locations">
+					<i class="bi bi-geo-alt" aria-hidden="true"></i>
+					Manage Locations
+				</a>
+			</section>
 		</section>
 	);
 }
