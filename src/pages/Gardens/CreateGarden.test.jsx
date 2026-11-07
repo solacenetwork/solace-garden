@@ -58,6 +58,7 @@ describe('Quick Start Garden creation', () => {
 			updatedAt: CREATED,
 		});
 		expect(await gardens.getById(garden.id)).toEqual(garden);
+		expect(await storage.repositories.drafts.listByKind('garden')).toEqual([]);
 		expect(navigate).toHaveBeenCalledOnce();
 		expect(navigate).toHaveBeenCalledWith(`/gardens/${garden.id}`);
 		expect(QUICK_START_TYPE_IDS).toEqual(['in-ground']);

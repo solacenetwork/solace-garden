@@ -15,6 +15,7 @@ export function createGardensRepository(database, {
 	const gardens = database.table('gardens');
 	const locations = database.table('locations');
 	const types = database.table('gardenTypes');
+	const drafts = database.table('drafts');
 	async function run(operation, action) {
 		try { return await action(); } catch (error) {
 			if (error instanceof ValidationError || error instanceof StorageError) throw error;
@@ -27,6 +28,18 @@ export function createGardensRepository(database, {
 		}
 		validateGardenTypeSelection(record.typeIds, await types.toArray());
 	}
+	function prepareCreate(record) {
+		validateGardenFields(record, [...GARDEN_EDITABLE_FIELDS, 'status', 'isClosed',
+			'icon', 'color', 'thumbnailMediaId', 'layoutMediaId', 'createdAt', 'updatedAt']);
+		const garden = { ...record, typeIds: Array.isArray(record.typeIds) ? [...record.typeIds] : record.typeIds, id: randomUUID() };
+		validateGardenRecord(garden, { creating: true });
+		return garden;
+	}
+	async function persistCreate(garden) {
+		await checkReferences(garden);
+		await gardens.add(garden);
+		return copy(garden);
+	}
 	return Object.freeze({
 		async list() {
 			return run('list Gardens', async () => (await gardens.toArray()).map(copy));
@@ -36,15 +49,28 @@ export function createGardensRepository(database, {
 			return run('get Garden', async () => copy(await gardens.get(id)));
 		},
 		async create(record) {
-			validateGardenFields(record, [...GARDEN_EDITABLE_FIELDS, 'status', 'isClosed',
-				'icon', 'color', 'thumbnailMediaId', 'layoutMediaId', 'createdAt', 'updatedAt']);
-			const garden = { ...record, typeIds: Array.isArray(record.typeIds) ? [...record.typeIds] : record.typeIds, id: randomUUID() };
-			validateGardenRecord(garden, { creating: true });
+			const garden = prepareCreate(record);
 			return run('create Garden', () => database.transaction('rw', gardens, locations, types, async () => {
-				await checkReferences(garden);
-				await gardens.add(garden);
-				return copy(garden);
+				return persistCreate(garden);
 			}));
+		},
+		async createFromDraft(record, draftId) {
+			validateRecordId(draftId, 'draftId');
+			const garden = prepareCreate(record);
+			return run('create Garden from draft', () => database.transaction(
+				'rw', gardens, locations, types, drafts, async () => {
+					const draft = await drafts.get(draftId);
+					if (!draft) {
+						throw gardenError('GARDEN_DRAFT_NOT_FOUND', 'This Garden draft is no longer available.', 'draftId');
+					}
+					if (draft.kind !== 'garden' || draft.subjectId !== null || draft.isNew !== true) {
+						throw gardenError('WRONG_DRAFT_KIND', 'This draft cannot create a Garden.', 'draftId');
+					}
+					const created = await persistCreate(garden);
+					await drafts.delete(draftId);
+					return created;
+				},
+			));
 		},
 		async update(id, changes) {
 			validateRecordId(id);

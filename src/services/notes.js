@@ -64,8 +64,12 @@ export function createNoteDraftsService(repository, {
 	now = () => new Date().toISOString(),
 } = {}) {
 	return Object.freeze({
-		getById(id) {
-			return repository.getById(id);
+		async getById(id) {
+			const draft = await repository.getById(id);
+			if (draft && draft.kind !== 'note') {
+				throw new ValidationError('WRONG_DRAFT_KIND', 'This is not a Note draft.', { field: 'kind' });
+			}
+			return draft;
 		},
 
 		getForNote(noteId) {
@@ -80,7 +84,7 @@ export function createNoteDraftsService(repository, {
 
 		save({ id, noteId = null, text, createdAt }) {
 			const timestamp = now();
-			return repository.save({
+			return repository.saveForKind({
 				id,
 				kind: 'note',
 				subjectId: noteId,
@@ -88,11 +92,11 @@ export function createNoteDraftsService(repository, {
 				text,
 				createdAt: createdAt ?? timestamp,
 				updatedAt: timestamp,
-			});
+			}, 'note');
 		},
 
 		remove(id) {
-			return repository.remove(id);
+			return repository.remove(id, 'note');
 		},
 	});
 }

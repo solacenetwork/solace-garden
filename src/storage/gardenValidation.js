@@ -75,6 +75,12 @@ export function normalizeGardenFields(input) {
 	return result;
 }
 
+export function validateGardenDateOrder(record) {
+	if (record.startDate && record.endDate && record.endDate < record.startDate) {
+		throw gardenError('INVALID_GARDEN_DATE_ORDER', 'End date cannot precede start date.', 'endDate');
+	}
+}
+
 export function validateGardenRecord(record, { creating = false } = {}) {
 	validateGardenFields(record, RECORD_FIELDS);
 	validateRecordId(record.id);
@@ -86,9 +92,7 @@ export function validateGardenRecord(record, { creating = false } = {}) {
 			throw gardenError('INVALID_GARDEN', `${field} must be normalized before persistence.`, field);
 		}
 	}
-	if (record.startDate && record.endDate && record.endDate < record.startDate) {
-		throw gardenError('INVALID_GARDEN_DATE_ORDER', 'End date cannot precede start date.', 'endDate');
-	}
+	validateGardenDateOrder(record);
 	if (!['planned', 'active', 'completed', 'archived'].includes(record.status) ||
 		typeof record.isClosed !== 'boolean' ||
 		(creating && (record.status !== 'planned' || record.isClosed))) {

@@ -1,6 +1,7 @@
 import { createGardensService } from '../../services/gardens.js';
 import { createLocationsService } from '../../services/locations.js';
 import { createGardenTypesService } from '../../services/gardenTypes.js';
+import { createGardenDraftsService } from '../../services/gardenDrafts.js';
 import { ValidationError } from '../../storage/errors.js';
 
 const STATUS_LABELS = {
@@ -12,6 +13,7 @@ export function createGardenReaders(repositories) {
 		gardens: createGardensService(repositories.gardens),
 		locations: createLocationsService(repositories.locations),
 		types: createGardenTypesService(repositories.gardenTypes),
+		drafts: createGardenDraftsService(repositories.drafts),
 	};
 }
 
@@ -25,9 +27,9 @@ function gardenView(record, locations, types = []) {
 	};
 }
 
-export async function loadGardenOverview({ gardens, locations }) {
+export async function loadGardenOverview({ gardens, locations, drafts }) {
 	try {
-		const [records, sites] = await Promise.all([gardens.list(), locations.list()]);
+		const [records, sites, unfinished] = await Promise.all([gardens.list(), locations.list(), drafts.list()]);
 		const items = [...records].sort((a, b) =>
 			b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id),
 		).map((record) => gardenView(record, sites));
@@ -35,6 +37,11 @@ export async function loadGardenOverview({ gardens, locations }) {
 			status: 'ready',
 			current: items.filter(({ status }) => status === 'planned' || status === 'active'),
 			previous: items.filter(({ status }) => status === 'completed' || status === 'archived'),
+			drafts: unfinished.map((draft) => ({
+				...draft,
+				label: draft.fields.name.trim() || 'Untitled Garden',
+				href: `/gardens/new/wizard/${draft.id}`,
+			})),
 		};
 	} catch {
 		return { status: 'error' };

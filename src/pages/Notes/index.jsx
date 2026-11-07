@@ -62,6 +62,7 @@ function NoteEditor({ record, draft, draftId, notes, drafts }) {
 		if (!dirty || saving) return;
 		setSaving(true);
 		setError('');
+		await autosave.flush();
 		await autosave.stop();
 		try {
 			if (record) {

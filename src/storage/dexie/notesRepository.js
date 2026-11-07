@@ -47,6 +47,16 @@ export function createNotesRepository(database, {
 		}
 	}
 
+	async function requireNoteDraft(draftId, subjectId) {
+		const draft = await drafts.get(draftId);
+		if (!draft) {
+			throw new ValidationError('NOTE_DRAFT_NOT_FOUND', 'This Note draft is no longer available.', { field: 'draftId' });
+		}
+		if (draft.kind !== 'note' || draft.subjectId !== subjectId || draft.isNew !== (subjectId === null)) {
+			throw new ValidationError('WRONG_DRAFT_KIND', 'This draft cannot save a Note.', { field: 'draftId' });
+		}
+	}
+
 	const methods = {
 		async getById(id) {
 			validateRecordId(id);
@@ -125,6 +135,7 @@ export function createNotesRepository(database, {
 			validateRecordId(draftId, 'draftId');
 			try {
 				return await database.transaction('rw', table, gardens, drafts, async () => {
+					await requireNoteDraft(draftId, null);
 					const created = await methods.create(record);
 					await drafts.delete(draftId);
 					return created;
@@ -138,6 +149,7 @@ export function createNotesRepository(database, {
 			validateRecordId(draftId, 'draftId');
 			try {
 				return await database.transaction('rw', table, gardens, drafts, async () => {
+					await requireNoteDraft(draftId, id);
 					const updated = await methods.update(id, changes);
 					if (updated) {
 						await drafts.delete(draftId);

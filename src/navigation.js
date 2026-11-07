@@ -150,6 +150,10 @@ export const applicationRoutes = [
 	{ path: '/notes/new/:draftId', view: 'note-new-draft' },
 	{ path: '/notes/new', view: 'note-new' },
 	{ path: '/notes/:id', view: 'note-edit' },
+	{ path: '/gardens/new/wizard/:draftId', view: 'garden-wizard' },
+	{ path: '/gardens/new/advanced/:draftId', view: 'garden-advanced' },
+	{ path: '/gardens/new/wizard', view: 'garden-wizard-new' },
+	{ path: '/gardens/new/advanced', view: 'garden-advanced-new' },
 	{ path: '/gardens/new', view: 'garden-new' },
 	{ path: '/gardens/:id', view: 'garden-detail' },
 	...routeCatalog,
@@ -176,7 +180,7 @@ export function findRoute(path) {
 	return routeCatalog.find((route) => route.path === path) ?? (
 		path.startsWith('/notes/')
 			? routeCatalog.find((route) => route.id === 'notes')
-			: /^\/gardens\/[^/]+\/?$/.test(path)
+			: /^\/gardens\/new(?:\/|$)/.test(path) || /^\/gardens\/[^/]+\/?$/.test(path)
 				? routeCatalog.find((route) => route.id === 'gardens')
 				: undefined
 	);

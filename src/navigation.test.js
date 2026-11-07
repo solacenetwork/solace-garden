@@ -26,6 +26,9 @@ describe('application routes', () => {
 	it('resolves Garden overview and UUID detail routes without shadowing static workspaces', () => {
 		expect(resolveRoute('/gardens')).toMatchObject({ route: { view: 'gardens' }, params: {} });
 		expect(resolveRoute('/gardens/new')).toMatchObject({ route: { view: 'garden-new' }, params: {} });
+		expect(resolveRoute('/gardens/new/wizard')).toMatchObject({ route: { view: 'garden-wizard-new' }, params: {} });
+		expect(resolveRoute(`/gardens/new/wizard/${NOTE_UUID}`)).toMatchObject({ route: { view: 'garden-wizard' }, params: { draftId: NOTE_UUID } });
+		expect(resolveRoute(`/gardens/new/advanced/${NOTE_UUID}`)).toMatchObject({ route: { view: 'garden-advanced' }, params: { draftId: NOTE_UUID } });
 		expect(resolveRoute(`/gardens/${NOTE_UUID}`)).toMatchObject({
 			route: { view: 'garden-detail' }, params: { id: NOTE_UUID },
 		});

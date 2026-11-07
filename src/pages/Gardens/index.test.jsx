@@ -73,4 +73,17 @@ describe('Garden read-only views', () => {
 		expect(text(missing)).toContain('Garden not found');
 		expect(nodes(missing).find((node) => node.type === 'a').props.href).toBe('/gardens');
 	});
+
+	it('offers resume and targeted discard actions for unfinished Garden drafts', () => {
+		const onDiscard = vi.fn();
+		const draft = { id: 'draft-id', label: 'Untitled Garden', href: '/gardens/new/wizard/draft-id' };
+		const tree = GardensOverviewView({
+			state: { status: 'ready', current: [], previous: [], drafts: [draft] },
+			onDiscard,
+		});
+		expect(text(tree)).toContain('Unfinished Gardens');
+		expect(nodes(tree).find((node) => node.props?.href === draft.href)).toBeTruthy();
+		nodes(tree).find((node) => node.type === 'button').props.onClick();
+		expect(onDiscard).toHaveBeenCalledWith(draft);
+	});
 });

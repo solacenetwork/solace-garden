@@ -121,6 +121,10 @@ export function CreateGarden() {
 					Quick Start uses your protected default Location, the In-Ground Garden Type,
 					and Planned status.
 				</p>
+				<div class="garden-create__full-options">
+					<p>Want to choose more details before creating?</p>
+					<div><a class="btn-outline" href="/gardens/new/wizard">Guided Wizard</a><a class="btn-text" href="/gardens/new/advanced">Advanced Form</a></div>
+				</div>
 
 				{saveError && (
 					<div class="garden-create__error" role="alert">

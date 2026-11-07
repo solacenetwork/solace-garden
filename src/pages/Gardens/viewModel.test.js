@@ -64,8 +64,18 @@ describe('Garden browsing data', () => {
 			typeNames: [], startDate: null, endDate: null, notes: null, description: null,
 		} });
 		expect(await loadGardenOverview({ ...readers, gardens: { list: async () => [] } })).toEqual({
-			status: 'ready', current: [], previous: [],
+			status: 'ready', current: [], previous: [], drafts: [],
 		});
+	});
+
+	it('lists recoverable Garden drafts with useful resume labels', async () => {
+		const untitled = await readers.drafts.create();
+		const result = await loadGardenOverview(readers);
+		expect(result.drafts).toContainEqual(expect.objectContaining({
+			id: untitled.id,
+			label: 'Untitled Garden',
+			href: `/gardens/new/wizard/${untitled.id}`,
+		}));
 	});
 
 	it.each(['invalid-id', MISSING_ID])('returns not-found for missing or invalid IDs: %s', async (id) => {
