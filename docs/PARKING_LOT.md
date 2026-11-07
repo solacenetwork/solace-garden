@@ -9,6 +9,20 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future UI Tweaks pass (after 8F): Modular, smaller-step Garden Wizard
+
+**Status:** Deferred UI/architecture refinement to revisit **after 8F** during the planned UI Tweaks pass. **Do not alter the current 8E4 implementation or hold up 8E4 acceptance for this.** The existing three-stage Bootstrap 6 Stepper Wizard and Advanced form are functional first implementations; the Wizard's current Start screen has little to configure, while Details presents almost the entire Advanced form on one screen. The desired long-term difference is that **Wizard offers a guided succession of manageable decisions, while Advanced displays all fields together**.
+
+**Historical concept (illustrative, not a fixed six-step contract):** (1) Name and subtitle; (2) Icon, color and thumbnail; (3) Garden Type(s); (4) Plant choices; (5) Other information (contents not yet defined, potentially Location, dates and description); (6) Review. The exact number, grouping, sequence, labels and fields can change as Garden evolves. Appearance fields are reserved but UI isn't implemented; plant selection and Gallery thumbnails depend on later functionality. Don't prematurely require those steps or bypass existing create-first/add-plants-afterward boundaries.
+
+**Design goal:** Make adding, removing, reordering, or changing Wizard screens require **minimal changes to its orchestration**, rather than continually rewriting one monolithic JSX component. Prefer separate, descriptively named components (e.g. `src/components/wizard/steps/IdentityStep.jsx`, `GardenTypesStep.jsx`, `AppearanceStep.jsx`, `PlantSelectionStep.jsx`, `DetailsStep.jsx`, `ReviewStep.jsx`) rather than `step1.jsx`, `step2.jsx`, etc., because order can change. A small step registry could define stable step IDs, labels, components, and optional per-step validation; the Wizard shell and Bootstrap 6 Stepper derive their sequence and progress indicators from that registry. This is a design direction, **not** an agreed exact folder structure or an instruction to build generic frameworks now.
+
+**Keep responsibilities distinct:** The reusable Garden draft/autosave service and UUID should be independent of screens and their order; Preact owns step navigation, per-step validation and rendering; existing Garden service remains authoritative for final validation and atomic creation/draft cleanup. Shared controls such as `GardenTypeSelector` belong outside individual Wizard steps so Advanced creation and future Garden editing reuse them. Reorganizing existing fields should be easy; genuinely adding persistent fields still requires explicit changes to Garden/draft contracts and validation, and may require planned schema work. Consider recording a stable **current-step ID** in draft metadata so a resumed Wizard can reopen the last stage; currently the 8E4 implementation restores field data but starts at Stage 1. Avoid hard-coded numeric step identities.
+
+**Earlier prototypes for review:** The user has an older JavaScript wizard prototype (`wizard.zip`, supplied during November 7, 2026 discussion) with separate `index.html` template screens, `thewiz.js` navigation, and `steps.js` step behavior and localStorage-based resume. The archived PHP placeholder uses a URL `?step=N` switch: [garden-archive/new-garden.php](https://github.com/solacenetwork/garden-archive/blob/main/app/garden/new-garden.php). Treat both as historical design references, not code or data contracts to port verbatim; current Preact/Dexie architecture supersedes their storage and Garden identity assumptions.
+
+**Timing:** Discuss and scope the UX/component refactor after 8F. No new milestone, schema changes, or 8E4 code changes are authorized by this parked idea.
+
 ## Future idea: Prefill Garden creation forms from URLs
 
 **Status:** Parked enhancement; not part of the committed V1 milestones or 8E4 implementation.
