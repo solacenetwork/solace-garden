@@ -145,6 +145,22 @@ function validateUrl(url) {
 			'url',
 		);
 	}
+
+	const hostnameLabels = parsedUrl.hostname.replace(/\.$/, '').split('.');
+	const suffix = hostnameLabels.at(-1);
+	const hasPublicHostname =
+		hostnameLabels.length >= 2 &&
+		hostnameLabels.every((label) => label.length > 0) &&
+		suffix.length >= 2 &&
+		/[a-z]/i.test(suffix);
+
+	if (!hasPublicHostname) {
+		throw validationError(
+			'INVALID_LIST_ITEM_URL',
+			'Product URL must include a complete public hostname, such as example.com.',
+			'url',
+		);
+	}
 }
 
 function validateTimestamp(value, field) {

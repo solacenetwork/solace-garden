@@ -179,7 +179,14 @@ describe('Tasks and Wish List service', () => {
 		const lists = createService(storage, [CREATED_AT, UPDATED_AT]);
 		const original = await lists.create('wishlist', { text: 'Seed trays' });
 
-		for (const url of ['not a URL', 'javascript:alert(1)', undefined]) {
+		for (const url of [
+			'not a URL',
+			'ttp://www.google.com',
+			'http://google',
+			'http://localhost',
+			'javascript:alert(1)',
+			undefined,
+		]) {
 			await expect(
 				lists.update(original.id, 'wishlist', { url }),
 			).rejects.toMatchObject({
@@ -192,6 +199,26 @@ describe('Tasks and Wish List service', () => {
 			lists.create('wishlist', { text: 'Bad quantity', quantity: '' }),
 		).rejects.toBeInstanceOf(ValidationError);
 		expect(await lists.getById(original.id)).toEqual(original);
+
+		storage.close();
+	});
+
+	it('accepts complete public product URLs and an empty optional URL', async () => {
+		const storage = await initialize([WISH_ONE]);
+		const lists = createService(storage, [CREATED_AT]);
+		const wish = await lists.create('wishlist', { text: 'Seed trays' });
+
+		for (const url of [
+			'https://google.com',
+			'https://example.technology/product/123',
+			'https://example.com/item?id=123#details',
+		]) {
+			expect(await lists.update(wish.id, 'wishlist', { url })).toBe(true);
+			expect((await lists.getById(wish.id)).url).toBe(url);
+		}
+
+		expect(await lists.update(wish.id, 'wishlist', { url: null })).toBe(true);
+		expect((await lists.getById(wish.id)).url).toBeNull();
 
 		storage.close();
 	});
