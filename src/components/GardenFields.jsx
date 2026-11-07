@@ -1,3 +1,4 @@
+import { CharacterCounter } from './CharacterCounter.jsx';
 import { GardenTypeSelector } from './GardenTypeSelector.jsx';
 
 export const GARDEN_NOTES_MAX_LENGTH = 1000;
@@ -8,12 +9,6 @@ function FieldError({ id, message }) {
 
 function describedBy(...ids) {
 	return ids.filter(Boolean).join(' ') || undefined;
-}
-
-function notesCountText(remaining) {
-	if (remaining >= 0) return `${remaining} characters remaining`;
-	const over = Math.abs(remaining);
-	return `${over} ${over === 1 ? 'character' : 'characters'} over the limit`;
 }
 
 export function GardenFields({
@@ -29,8 +24,6 @@ export function GardenFields({
 	const availableTypeIds = new Set(types.map(({ id }) => id));
 	const missingTypeIds = fields.typeIds.filter((id) => !availableTypeIds.has(id));
 	const locationAvailable = locations.some(({ id }) => id === fields.locationId);
-	const notesLength = includeNotes ? fields.notes.length : 0;
-	const notesRemaining = GARDEN_NOTES_MAX_LENGTH - notesLength;
 	const id = (field) => `${idPrefix}-${field}`;
 
 	return (
@@ -81,10 +74,8 @@ export function GardenFields({
 			{includeNotes && (
 				<div class="form-field garden-fields__wide">
 					<label class="form-label" for={id('notes')}>Garden Notes <span>(optional)</span></label>
-					<textarea id={id('notes')} class={`form-control${errors.notes ? ' is-invalid' : ''}`} rows="7" value={fields.notes} disabled={disabled} aria-invalid={errors.notes ? 'true' : undefined} aria-describedby={describedBy(id('notes-count'), errors.notes && id('notes-error'))} onInput={(event) => onChange('notes', event.currentTarget.value)}></textarea>
-					<p id={id('notes-count')} class={`garden-fields__counter${notesRemaining < 0 ? ' garden-fields__counter--over' : ''}`}>
-						{notesCountText(notesRemaining)}
-					</p>
+					<textarea id={id('notes')} class={`form-control${errors.notes ? ' is-invalid' : ''}`} rows="7" maxLength={GARDEN_NOTES_MAX_LENGTH} value={fields.notes} disabled={disabled} aria-invalid={errors.notes ? 'true' : undefined} aria-describedby={describedBy(id('notes-count'), errors.notes && id('notes-error'))} onInput={(event) => onChange('notes', event.currentTarget.value)}></textarea>
+					<CharacterCounter value={fields.notes} maxChars={GARDEN_NOTES_MAX_LENGTH} id={id('notes-count')} />
 					<FieldError id={id('notes-error')} message={errors.notes} />
 				</div>
 			)}

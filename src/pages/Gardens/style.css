@@ -381,27 +381,18 @@
 	font-size: 0.875rem;
 }
 
-.garden-fields__warning,
-.garden-fields__counter {
-	margin-block: 0.65rem 0;
-	color: var(--sg-color-text-muted);
-	font-size: 0.875rem;
-}
-
 .garden-fields__warning {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 0.75rem;
+	margin-block: 0.65rem 0;
+	color: var(--sg-color-text-muted);
+	font-size: 0.875rem;
 }
 
 .garden-fields__warning .btn-text {
 	flex: 0 0 auto;
-}
-
-.garden-fields__counter--over {
-	color: var(--sg-color-danger);
-	font-weight: 650;
 }
 
 .garden-edit {

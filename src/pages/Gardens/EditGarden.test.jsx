@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { CharacterCounter } from '../../components/CharacterCounter.jsx';
 import { GardenFields } from '../../components/GardenFields.jsx';
 import { createGardensService } from '../../services/gardens.js';
 import { ValidationError } from '../../storage/index.js';
@@ -16,6 +17,12 @@ function nodes(node) {
 
 function text(tree) {
 	return nodes(tree).filter((node) => typeof node === 'string').join(' ');
+}
+
+function vnodes(node) {
+	if (node === null || node === undefined || typeof node !== 'object') return [];
+	if (Array.isArray(node)) return node.flatMap(vnodes);
+	return [node, ...vnodes(node.props.children)];
 }
 
 const ID = 'ad4a4e9a-1db0-4e87-8fe1-f197a9d52c01';
@@ -56,12 +63,33 @@ describe('Garden editing UI', () => {
 		}
 	});
 
-	it('shows the Garden Notes counter without silently truncating over-limit text', () => {
+	it('uses CharacterCounter and native maxlength while preserving accessible descriptions', () => {
 		const exact = GardenFields({ fields: { ...fields, notes: 'x'.repeat(1000) }, locations: references.locations, types: references.types, onChange: vi.fn(), includeNotes: true, idPrefix: 'test' });
-		expect(text(exact)).toContain('0 characters remaining');
+		const textarea = nodes(exact).find((node) => node.type === 'textarea' && node.props.id === 'test-notes');
+		const sharedCounter = vnodes(exact).find((node) => node.type === CharacterCounter);
+		expect(textarea.props.maxLength).toBe(1000);
+		expect(textarea.props['aria-describedby']).toBe('test-notes-count');
+		expect(sharedCounter.props).toMatchObject({
+			value: 'x'.repeat(1000), maxChars: 1000, id: 'test-notes-count',
+		});
+		expect(text(exact)).toContain('1,000 / 1,000 characters');
+
+		const withError = GardenFields({ fields, errors: { notes: 'Correct Garden Notes.' }, locations: references.locations, types: references.types, onChange: vi.fn(), includeNotes: true, idPrefix: 'test' });
+		expect(nodes(withError).find((node) => node.type === 'textarea' && node.props.id === 'test-notes').props['aria-describedby']).toBe('test-notes-count test-notes-error');
+	});
+
+	it('keeps programmatic over-limit Garden Notes intact and visible', () => {
 		const over = GardenFields({ fields: { ...fields, notes: 'x'.repeat(1001) }, locations: references.locations, types: references.types, onChange: vi.fn(), includeNotes: true, idPrefix: 'test' });
-		expect(text(over)).toContain('1 character over the limit');
+		expect(text(over)).toContain('1,001 / 1,000 characters — 1 over limit');
 		expect(nodes(over).find((node) => node.type === 'textarea' && node.props.id === 'test-notes').props.value).toHaveLength(1001);
+	});
+
+	it('keeps Garden Notes opt-in so creation field sets remain unchanged', () => {
+		const creationFields = { ...fields };
+		delete creationFields.notes;
+		const tree = GardenFields({ fields: creationFields, locations: references.locations, types: references.types, onChange: vi.fn(), idPrefix: 'create-test' });
+		expect(vnodes(tree).some((node) => node.type === CharacterCounter)).toBe(false);
+		expect(nodes(tree).some((node) => node.props?.id === 'create-test-notes')).toBe(false);
 	});
 
 	it('keeps stale references visible and lets a selection change remove stale type IDs', () => {
