@@ -42,6 +42,14 @@ After the current A–F implementation work, we could do a documentation cleanup
 
 **Revisit only if user demand or future design work justifies it.**
 
+## Future UI Review (after 8F): Template IDs as optional details
+
+**Status:** Parked visual/UX refinement; 8F2 accepted, no change needed during 8F3/8F4.
+
+The `/templates` management page currently prints a full UUID (e.g. `Template ID: ...`) on each Template card. Stable internal IDs are useful during development, diagnostics, and for distinguishing duplicate-named Templates, but are not meaningful to typical gardeners and clutter the primary presentation.
+
+**Proposed UI review direction:** Hide raw UUIDs from the default card view, while retaining a discoverable optional details/info affordance (for example, an info icon with an accessible label and details panel) for advanced users and support troubleshooting. Preserve UUID-based internal identity and duplicate-name handling; do not replace IDs with names as identifiers. Evaluate the final presentation during the scheduled post-8F UI review.
+
 ## Future UI Review (after 8F): Page types and informational navigation
 
 **Status:** Deferred navigation/architecture refinement identified during 8E8 integrated acceptance on November 8, 2026, following commit `c144f80`. **Do not start a navigation redesign or change 8E8 acceptance scope.** Help, About, and Welcome placeholders may remain unfinished while integrated Garden workflows are tested.
