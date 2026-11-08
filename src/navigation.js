@@ -141,6 +141,28 @@ export const routeCatalog = [
 		navigationGroup: 'settings',
 		view: 'settings',
 	},
+	{
+		id: 'help',
+		path: '/help',
+		label: 'Help',
+		icon: 'question-circle',
+		description:
+			'Get help for the SOLACE Garden application',
+		section: 'secondary',
+		navigationGroup: 'other',
+		view: 'help',
+	},
+	{
+		id: 'about',
+		path: '/about',
+		label: 'About',
+		icon: 'emoji-smile',
+		description:
+			'About the SOLACE Garden application',
+		section: 'secondary',
+		navigationGroup: 'other',
+		view: 'about',
+	},
 ];
 
 // Create/editor routes are ordered before parameter routes so "new" is always
@@ -165,6 +187,7 @@ export const navigationGroups = [
 	{ id: 'activities', label: 'Garden activities' },
 	{ id: 'workspaces', label: 'Other workspaces' },
 	{ id: 'settings', label: 'Settings' },
+	{ id: 'other', label: 'Other Links' }
 ];
 
 export const primaryActions = routeCatalog.filter(
