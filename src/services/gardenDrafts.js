@@ -15,6 +15,36 @@ export function copyGardenDraftFields(fields = EMPTY_GARDEN_DRAFT_FIELDS) {
 	return { ...fields, typeIds: [...fields.typeIds] };
 }
 
+export function gardenDraftFieldsFromTemplate(configuration, currentFields = EMPTY_GARDEN_DRAFT_FIELDS) {
+	return {
+		...copyGardenDraftFields(currentFields),
+		name: configuration.name,
+		description: configuration.description ?? '',
+		locationId: configuration.locationId,
+		typeIds: [...configuration.typeIds],
+	};
+}
+
+export function gardenTemplateWouldOverwriteDraft(currentFields, templateFields) {
+	const currentTypeIds = currentFields.typeIds ?? [];
+	const templateTypeIds = templateFields.typeIds ?? [];
+	return (
+		(currentFields.name.trim() !== '' && currentFields.name !== templateFields.name)
+		|| (currentFields.description.trim() !== '' && currentFields.description !== templateFields.description)
+		|| (
+			currentFields.locationId !== DEFAULT_LOCATION_ID
+			&& currentFields.locationId !== templateFields.locationId
+		)
+		|| (
+			currentTypeIds.length > 0
+			&& (
+				currentTypeIds.length !== templateTypeIds.length
+				|| currentTypeIds.some((id, index) => id !== templateTypeIds[index])
+			)
+		)
+	);
+}
+
 export function gardenInputFromDraftFields(fields) {
 	return {
 		name: fields.name,

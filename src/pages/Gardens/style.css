@@ -314,6 +314,18 @@
 	gap: 0.65rem;
 }
 
+.garden-template-notice {
+	display: flex;
+	padding: 0.9rem 1rem;
+	margin-block-end: 1rem;
+	color: var(--sg-color-text);
+	background: var(--sg-color-primary-soft);
+	border: 1px solid var(--sg-color-primary);
+	border-radius: 0.75rem;
+	align-items: flex-start;
+	gap: 0.65rem;
+}
+
 .garden-create__actions {
 	display: flex;
 	justify-content: flex-end;
@@ -440,6 +452,84 @@
 .garden-full-create__form section > h2,
 .garden-review > h2 {
 	font-size: 1.35rem;
+}
+
+.garden-template-selection {
+	display: grid;
+	gap: 1rem;
+}
+
+.garden-template-selection__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.garden-template-selection__header h2,
+.garden-template-selection__header p {
+	margin-block-end: 0.35rem;
+}
+
+.garden-template-selection__choices {
+	display: grid;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	gap: 0.75rem;
+}
+
+.garden-template-choice {
+	display: grid;
+	grid-template-columns: auto auto minmax(0, 1fr);
+	padding: 1rem;
+	background: var(--sg-color-background);
+	border: 1px solid var(--sg-color-border);
+	border-radius: 0.8rem;
+	align-items: center;
+	cursor: pointer;
+	gap: 0.8rem;
+}
+
+.garden-template-choice--selected {
+	background: var(--sg-color-primary-soft);
+	border-color: var(--sg-color-primary);
+	box-shadow: inset 0 0 0 1px var(--sg-color-primary);
+}
+
+.garden-template-choice > i {
+	color: var(--sg-color-primary);
+	font-size: 1.5rem;
+}
+
+.garden-template-choice > span {
+	display: grid;
+	gap: 0.15rem;
+}
+
+.garden-template-choice small {
+	color: var(--sg-color-text-muted);
+}
+
+.garden-template-selection__state {
+	display: flex;
+	padding: 0.9rem 1rem;
+	color: var(--sg-color-text-muted);
+	background: var(--sg-color-background);
+	border: 1px dashed var(--sg-color-border);
+	border-radius: 0.8rem;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+}
+
+.garden-template-selection__apply {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.garden-template-selection__apply > button {
+	min-height: 3rem;
 }
 
 .garden-start-option {
@@ -581,6 +671,7 @@
 
 	.garden-full-create__header,
 	.garden-full-create__toolbar,
+	.garden-template-selection__header,
 	.garden-draft-card {
 		align-items: stretch;
 		flex-direction: column;
@@ -605,6 +696,11 @@
 
 	.garden-full-create__actions > * {
 		flex: 1;
+	}
+
+	.garden-template-selection__state {
+		align-items: flex-start;
+		flex-direction: column;
 	}
 }
 .garden-associations,
