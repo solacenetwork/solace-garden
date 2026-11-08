@@ -28,6 +28,14 @@ After the current A–F implementation work, we could do a documentation cleanup
 
 **Revisit only if user demand or future design work justifies it.**
 
+## Future UI Review (after 8F): Linked Garden indicator on Notes cards
+
+**Status:** UX observation from the 8E7 manual browser test on November 7, 2026. **8E7 test 1 passed**: a newly created Note linked to a Garden appeared on that Garden's detail page and the association survived reload. The gardener-wide `/notes` listing, however, shows linked and unlinked Notes identically, so users cannot tell which Notes are associated with a Garden without opening them. This is **not a functional test failure**; defer the display improvement to the post-8F UI refinement pass and the gardener's separate UI observation notes.
+
+**Candidate:** Show a small Bootstrap Icons **link indicator** on a Note card only when `gardenId` is present. A Bootstrap 6 **click/tap-triggered popover** is preferred over a hover-only tooltip: identify the linked Garden by readable name (and useful context if names are duplicated), allow a link to the Garden detail page, and support long names. The indicator should be keyboard-accessible and carry a meaningful accessible label (e.g. “Linked to Test Garden”). It should **not** change the association or unexpectedly open Note editing. Unlinked Notes need no icon. Evaluate using the same visual convention on Tasks and Wish List entries for consistency; do not introduce a broad component framework merely for this.
+
+**Timing:** No code changes during focused 8E7 acceptance; revisit in the UI Review after 8F.
+
 ## Future UI Review (after 8F): Long Garden names and card layout
 
 **Status:** Browser-testing observation from 8E5 on November 7, 2026; deferred UX/data-contract decision, **not an 8E5 blocker or an approved implementation change**. All seven 8E5 manual acceptance checks were reported as passing. A deliberately verbose Garden name, including the opening of *A Tale of Two Cities* (“It was the best of times. It was the worst of times”), demonstrated how a long title expands a Garden card and makes the grid uneven. The record remains usable; the concern is presentation and future-proofing.
