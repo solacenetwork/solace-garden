@@ -20,6 +20,7 @@ import { Plants } from './pages/Plants/index.jsx';
 import { EditNote, NewNote, NewNoteDraft, Notes } from './pages/Notes/index.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
 import { Settings } from './pages/Settings/index.jsx';
+import { Templates } from './pages/Templates/index.jsx';
 import { NotFound } from './pages/_404.jsx';
 import { initializeStorage } from './storage/index.js';
 import './style.css';
@@ -42,6 +43,7 @@ const pageComponents = {
 	'note-new-draft': NewNoteDraft,
 	'note-edit': EditNote,
 	settings: Settings,
+	templates: Templates,
 };
 
 function AppShell() {

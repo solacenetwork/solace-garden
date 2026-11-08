@@ -37,7 +37,8 @@ describe('Garden read-only views', () => {
 	});
 
 	it('shows saved detail fields, embedded Garden Notes and local date-only values', () => {
-		const tree = GardenDetailView({ state: { status: 'ready', garden } });
+		const saveTemplate = { type: 'button', props: { children: 'Save as Template' } };
+		const tree = GardenDetailView({ state: { status: 'ready', garden }, saveTemplate });
 		for (const value of ['Tomatoes', 'Patio', 'Active', 'No', 'Home Farm', 'Container, Outdoor', garden.description, garden.notes]) {
 			expect(text(tree)).toContain(value);
 		}
@@ -46,6 +47,7 @@ describe('Garden read-only views', () => {
 		expect(text(tree)).not.toContain(garden.id);
 		expect(nodes(tree).some((node) => node.type === 'form')).toBe(false);
 		expect(text(tree)).toContain('Associated items');
+		expect(nodes(tree)).toContain(saveTemplate);
 		expect(text(tree)).toContain('No Notes are associated with this Garden.');
 	});
 

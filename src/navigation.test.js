@@ -109,4 +109,12 @@ describe('application routes', () => {
 			route: { path: '/locations', view: 'locations' },
 		});
 	});
+
+	it('resolves the Templates workspace to its management page', () => {
+		expect(resolveRoute('/templates')).toMatchObject({
+			route: { path: '/templates', view: 'templates' },
+			params: {},
+		});
+		expect(findRoute('/templates')).toMatchObject({ id: 'templates' });
+	});
 });

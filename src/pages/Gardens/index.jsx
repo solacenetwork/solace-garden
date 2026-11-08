@@ -4,6 +4,7 @@ import { useStorage } from '../../context/StorageContext.jsx';
 import { createGardenReaders, loadGardenDetail, loadGardenOverview } from './viewModel.js';
 import { GardenLifecycle } from './GardenLifecycle.jsx';
 import { GardenDeletion } from './GardenDeletion.jsx';
+import { GardenSaveTemplate } from './GardenSaveTemplate.jsx';
 import './style.css';
 
 function useGardenRead(load) {
@@ -119,7 +120,7 @@ function AssociatedRecords({ associations, onRefresh }) {
 	</section>;
 }
 
-export function GardenDetailView({ state, onRetry, lifecycle = null, deletion = null }) {
+export function GardenDetailView({ state, onRetry, lifecycle = null, deletion = null, saveTemplate = null }) {
 	const garden = state.garden;
 	return (
 		<section class="container gardens-page" aria-label="Garden details">
@@ -133,11 +134,14 @@ export function GardenDetailView({ state, onRetry, lifecycle = null, deletion = 
 							<h1>{garden.name}</h1>
 							{garden.subtitle && <p class="garden-subtitle">{garden.subtitle}</p>}
 						</div>
-						{!garden.isClosed && garden.status !== 'archived' && (
-							<a class="btn-solid theme-primary garden-detail__edit" href={`/gardens/${garden.id}/edit`}>
-								<i class="bi bi-pencil" aria-hidden="true"></i> Edit Garden
-							</a>
-						)}
+						<div class="garden-detail__actions">
+							{!garden.isClosed && garden.status !== 'archived' && (
+								<a class="btn-solid theme-primary garden-detail__edit" href={`/gardens/${garden.id}/edit`}>
+									<i class="bi bi-pencil" aria-hidden="true"></i> Edit Garden
+								</a>
+							)}
+							{saveTemplate}
+						</div>
 					</header>
 					<dl class="garden-facts">
 						<div><dt>Status</dt><dd>{garden.statusLabel}</dd></div>
@@ -207,7 +211,10 @@ function GardenDetailRecord({ id }) {
 	const deletion = state.status === 'ready' ? (
 		<GardenDeletion garden={state.garden} repository={repositories.gardens} onDeleted={() => route('/gardens', true)} />
 	) : null;
-	return <GardenDetailView state={state} onRetry={retry} lifecycle={lifecycle} deletion={deletion} />;
+	const saveTemplate = state.status === 'ready' ? (
+		<GardenSaveTemplate garden={state.garden} repository={repositories.gardenTemplates} />
+	) : null;
+	return <GardenDetailView state={state} onRetry={retry} lifecycle={lifecycle} deletion={deletion} saveTemplate={saveTemplate} />;
 }
 
 export function GardenDetail({ id }) {

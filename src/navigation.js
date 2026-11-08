@@ -119,6 +119,7 @@ export const routeCatalog = [
 		description: 'Manage reusable starting points for new gardens.',
 		section: 'secondary',
 		navigationGroup: 'workspaces',
+		view: 'templates',
 	},
 	{
 		id: 'locations',
