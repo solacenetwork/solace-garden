@@ -9,6 +9,20 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## V1 release preparation: Consolidated license and third-party notices page
+
+**Status:** Parked release-preparation idea; not an immediate implementation task. Revisit during the V1 distribution and license-compliance review.
+
+**Concept:** Provide a single offline-accessible `/license` page where users can read SOLACE Garden's software license and the required third-party notices/license texts, without navigating to GitHub. A scrollable, selectable text presentation (such as a read-only `<textarea>` or `<pre>`) is sufficient; prefer accessible formatting and clickable links where useful.
+
+- Keep the repository's primary `LICENSE` file distinct from `THIRD_PARTY_NOTICES.md`. Garden's own software license does not automatically apply to bundled Pexels photographs or other third-party assets.
+- Continue expanding `THIRD_PARTY_NOTICES.md` during development with appropriate project, copyright, license and attribution details; Pexels is already acknowledged there.
+- For the final distribution, audit actual bundled dependencies and assets for required notices and full license texts. Do not assume a short acknowledgment satisfies every license or that every npm package requires a manually written entry.
+- Consider generating a consolidated distribution-ready notice/text artifact from maintained sources at build or release time, rather than editing duplicate lists by hand. Include it with the PWA's offline assets so `/license` works without an Internet connection.
+- Decide the exact file name, generation method, format, and page presentation when preparing V1. Do not replace the top-level `LICENSE` with a mixture of unrelated licenses.
+
+**Timing:** V1 release checklist / distribution polish; no immediate code or schema changes.
+
 ## Long-term idea (tentative V4/V5): Configurable dashboard preview widgets
 
 **Status:** Speculative concept only; **not committed for V1, the post-8F UI Tweaks pass, or any particular future release**. V4/V5 is an illustrative horizon, not a schedule or roadmap promise. Inspired loosely by WordPress blocks, but **do not build a WordPress-like editor or arbitrary page builder**.
