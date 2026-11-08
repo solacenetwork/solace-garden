@@ -9,6 +9,24 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future UI Review (after 8F): Garden-grouped Notes navigation
+
+**Status:** Parked UX concept from November 8, 2026; evaluate during the app-wide post-8F UI sweep, not during 8F3/8F4. No implementation or data-contract change approved yet.
+
+**Goal:** Make it easy to browse Notes and understand which Gardens they are associated with, without suggesting that Notes are physical files or are stored inside Gardens.
+
+**Candidate interaction:**
+- Present a tree-like *grouped view* using **Bootstrap 6 accordion** sections named for Gardens, plus an **Unassigned Notes** section. Expand/collapse to reveal Note entries; use Note terminology and appropriate icons rather than filesystem folders/files.
+- Provide **live filtering as the gardener types** to find Notes quickly. During UI design, decide whether search filters the current Garden group, all Notes, or offers a clear scope choice; make matching items discoverable even when their group was collapsed.
+- Select a Note to open the existing Notes reader/editor. The grouped view is navigation over the **existing Dexie/IndexedDB Note records and Garden associations**, not a new storage hierarchy, file manager, or duplicated data.
+- **No drag-and-drop.** Moving a Note between displayed Garden groups would imply changing its association, so any reassociation should happen through explicit existing or future Note controls, not by dragging virtual items.
+- Keep the display understandable and touch/keyboard accessible on **phones and desktops**, including when many Gardens and Notes exist (test with roughly 50 example Notes or more).
+- Use existing **Preact, Bootstrap 6 and Bootstrap Icons** where practical; do not introduce `js-fileexplorer` or require SortableJS for this browsing interaction.
+
+**Mental model:** These are **Notes associated with a Garden**, not files physically contained in a folder or stored in a device's filesystem. Garden-specific groups are filtered views; the underlying Notes remain independent records. Coordinate this concept with the separately parked linked-Garden indicator on Note cards.
+
+**Timing:** Prototype/evaluate as part of the cohesive post-8F app-wide UI review. Do not interrupt current Garden Template development.
+
 ## V1 release preparation: Consolidated license and third-party notices page
 
 **Status:** Parked release-preparation idea; not an immediate implementation task. Revisit during the V1 distribution and license-compliance review.
