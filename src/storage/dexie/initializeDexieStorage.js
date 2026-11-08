@@ -21,6 +21,7 @@ import { createDraftsRepository } from './draftsRepository.js';
 import { createListItemsRepository } from './listItemsRepository.js';
 import { createLocationsRepository } from './locationsRepository.js';
 import { createGardenTypesRepository, seedGardenTypes } from './gardenTypesRepository.js';
+import { createGardenTemplatesRepository } from './gardenTemplatesRepository.js';
 import { createLocationsService } from '../../services/locations.js';
 
 const RECOVERY_DETAILS = {
@@ -174,6 +175,7 @@ export async function initializeDexieStorage({
 		listItems: createListItemsRepository(gardenDatabase, { randomUUID }),
 		locations: locationsRepository,
 		gardenTypes: gardenTypesRepository,
+		gardenTemplates: createGardenTemplatesRepository(gardenDatabase, { randomUUID }),
 	});
 
 	return {
