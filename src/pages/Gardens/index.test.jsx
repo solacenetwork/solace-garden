@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
 
 import { GardensOverviewView, GardenDetailView } from './index.jsx';
+import { GardenDeletionDialog } from './GardenDeletion.jsx';
 
 // Inspect the rendered view tree without a browser or additional DOM dependency.
 function nodes(node) {
@@ -43,7 +44,9 @@ describe('Garden read-only views', () => {
 		expect(nodes(tree).filter((node) => node.type === 'time').map(({ props }) => props.dateTime)).toEqual([garden.startDate, garden.endDate]);
 		expect(nodes(tree).find((node) => node.props?.href === `/gardens/${garden.id}/edit`)).toBeTruthy();
 		expect(text(tree)).not.toContain(garden.id);
-		expect(nodes(tree).some((node) => node.type === 'form' || node.type === 'button')).toBe(false);
+		expect(nodes(tree).some((node) => node.type === 'form')).toBe(false);
+		expect(text(tree)).toContain('Associated items');
+		expect(text(tree)).toContain('No Notes are associated with this Garden.');
 	});
 
 	it('handles empty optional fields and types without rendering empty sections', () => {
@@ -90,5 +93,37 @@ describe('Garden read-only views', () => {
 		expect(nodes(tree).find((node) => node.props?.href === draft.href)).toBeTruthy();
 		nodes(tree).find((node) => node.type === 'button').props.onClick();
 		expect(onDiscard).toHaveBeenCalledWith(draft);
+	});
+
+	it('shows associated independent records and links to their existing workflows', () => {
+		const tree = GardenDetailView({
+			state: {
+				status: 'ready', garden,
+				associations: {
+					notes: [{ id: 'note', text: 'Observation' }],
+					tasks: [{ id: 'task', text: 'Water', completed: true }],
+					wishlist: [{ id: 'wish', text: 'Twine', completed: false }],
+				},
+			},
+			onRetry: vi.fn(),
+		});
+		expect(text(tree)).toContain('Observation');
+		expect(text(tree)).toContain('Completed');
+		expect(nodes(tree).find((node) => node.props?.href === '/notes/note')).toBeTruthy();
+		expect(nodes(tree).find((node) => node.props?.href === '/tasks')).toBeTruthy();
+		expect(nodes(tree).find((node) => node.props?.href === '/wishlist')).toBeTruthy();
+	});
+
+	it('explains every permanent deletion consequence in a destructive dialog', () => {
+		const tree = GardenDeletionDialog({
+			garden, busy: false, error: '', onCancel: vi.fn(), onConfirm: vi.fn(),
+		});
+		const copy = text(tree);
+		expect(copy).toContain('permanently deleted');
+		expect(copy).toContain('Garden Notes and Garden-specific fields');
+		expect(copy).toContain('Independent Notes, Tasks, and Wish List items will be preserved');
+		expect(copy).toContain('associations with this Garden will be cleared');
+		expect(copy).toContain('cannot be undone without restoring a backup');
+		expect(nodes(tree).find((node) => node.type === 'dialog')).toBeTruthy();
 	});
 });

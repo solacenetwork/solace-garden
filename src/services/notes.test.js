@@ -13,6 +13,7 @@ const NOTE_UUID_TWO = '3d18c8af-06ea-4b7d-8bd8-c450f3e2bd4d';
 const NOTE_UUID_THREE = '38c2bed1-0e03-4187-aefd-233ca7b037c2';
 const NOTE_UUID_FOUR = 'fe1cbe08-4384-4dfa-9357-4ed87eea0398';
 const GARDEN_UUID = '210b8b0f-030c-4220-9374-8b78f461b474';
+const OTHER_GARDEN_UUID = '38c2bed1-0e03-4187-aefd-233ca7b037c2';
 const MISSING_GARDEN_UUID = '6934b241-739d-45a6-840b-ea2461fae984';
 const CREATED_AT = '2026-11-05T14:00:00.000Z';
 const UPDATED_AT = '2026-11-05T15:30:00.000Z';
@@ -142,8 +143,13 @@ describe('Notes domain service', () => {
 		});
 
 		expect(linked.gardenId).toBe(GARDEN_UUID);
+		const database = createGardenDatabase(storage.databaseName, dependencies);
+		await database.open();
+		await database.table('gardens').add({ id: OTHER_GARDEN_UUID, name: 'Other Garden', status: 'planned' });
+		database.close();
+		expect(await notes.update(linked.id, { gardenId: OTHER_GARDEN_UUID })).toMatchObject({ gardenId: OTHER_GARDEN_UUID });
 		await notes.update(linked.id, { text: 'Updated linked observation' });
-		expect((await notes.getById(linked.id)).gardenId).toBe(GARDEN_UUID);
+		expect((await notes.getById(linked.id)).gardenId).toBe(OTHER_GARDEN_UUID);
 		await expect(notes.create({
 			text: 'Invalid link',
 			gardenId: MISSING_GARDEN_UUID,

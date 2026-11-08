@@ -32,5 +32,8 @@ export function createGardensService(repository, {
 			validateGardenFields(changes, GARDEN_EDITABLE_FIELDS, { requireChanges: true });
 			return repository.update(id, { ...normalizeGardenFields(changes), updatedAt: now() });
 		},
+		removePermanently(id) {
+			return repository.removePermanently(id, now());
+		},
 	});
 }

@@ -1,7 +1,10 @@
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useStorage } from '../../context/StorageContext.jsx';
+import { GardenAssociationSelector } from '../../components/GardenAssociationSelector.jsx';
 import { createDraftAutosave } from '../../services/draftAutosave.js';
+import { createGardensService } from '../../services/gardens.js';
+import { createLocationsService } from '../../services/locations.js';
 import { createNoteDraftsService, createNotesService } from '../../services/notes.js';
 import { StorageError, ValidationError } from '../../storage/index.js';
 import './style.css';
@@ -25,19 +28,25 @@ function useNotesWorkspace() {
 	return useMemo(() => ({
 		notes: createNotesService(storage.repositories.notes),
 		drafts: createNoteDraftsService(storage.repositories.drafts),
+		gardens: createGardensService(storage.repositories.gardens),
+		locations: createLocationsService(storage.repositories.locations),
 	}), [storage]);
 }
 
-function NoteEditor({ record, draft, draftId, notes, drafts }) {
+function NoteEditor({ record, draft, draftId, notes, drafts, gardens, locations }) {
 	const { route } = useLocation();
 	const textarea = useRef(null);
 	const baseline = record?.text ?? '';
 	const createdAt = useRef(draft?.createdAt);
 	const [text, setText] = useState(draft?.text ?? baseline);
+	const [gardenId, setGardenId] = useState(record?.gardenId ?? null);
 	const [status, setStatus] = useState(draft?.text !== undefined && draft.text !== baseline ? 'draft-saved' : 'all-saved');
 	const [error, setError] = useState('');
 	const [saving, setSaving] = useState(false);
-	const dirty = text !== baseline;
+	const textDirty = text !== baseline;
+	const associationDirty = gardenId !== (record?.gardenId ?? null);
+	const dirty = textDirty || associationDirty;
+	const canSave = dirty && (record !== null || text.trim().length > 0);
 
 	const autosave = useMemo(() => createDraftAutosave({
 		write: async (value) => {
@@ -59,16 +68,20 @@ function NoteEditor({ record, draft, draftId, notes, drafts }) {
 
 	const save = async (event) => {
 		event.preventDefault();
-		if (!dirty || saving) return;
+		if (!canSave || saving) return;
 		setSaving(true);
 		setError('');
 		await autosave.flush();
 		await autosave.stop();
 		try {
 			if (record) {
-				if (!await notes.update(record.id, { text }, { draftId })) throw new Error('The Note no longer exists.');
+				const changes = {
+					...(textDirty ? { text } : {}),
+					...(associationDirty ? { gardenId } : {}),
+				};
+				if (!await notes.update(record.id, changes, textDirty ? { draftId } : {})) throw new Error('The Note no longer exists.');
 			} else {
-				await notes.create({ text, gardenId: null }, { draftId });
+				await notes.create({ text, gardenId }, { draftId });
 			}
 			route('/notes', true);
 		} catch (saveError) {
@@ -101,8 +114,8 @@ function NoteEditor({ record, draft, draftId, notes, drafts }) {
 		{error && <div class="notes-message notes-message--error" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{error}</span></div>}
 		<form class="note-editor__form" onSubmit={save}>
 			<div class="form-field"><label class="form-label" for="note-text">Note</label><textarea id="note-text" class="form-control note-editor__textarea" ref={textarea} rows="12" value={text} onInput={(event) => { const value = event.currentTarget.value; setText(value); setError(''); autosave.schedule(value === baseline ? null : value); }} aria-describedby="note-text-help note-draft-help"></textarea><p class="form-text" id="note-text-help">Plain text only. Line breaks and spacing are preserved.</p><p class="form-text" id="note-draft-help">Drafts stay local until you explicitly save the Note.</p></div>
-			<div class="form-field"><label class="form-label" for="note-garden">Garden association</label><select id="note-garden" class="form-control" disabled><option>{record?.gardenId ? `Linked garden: ${record.gardenId}` : 'No garden'}</option></select></div>
-			<div class="note-editor__actions note-editor__actions--split"><button class="btn-text theme-danger note-editor__button" type="button" onClick={discard} disabled={saving}>Discard draft</button><div class="note-editor__primary-actions"><button class="btn-outline note-editor__button" type="button" onClick={() => route('/notes', true)} disabled={saving}>Back to Notes</button><button class="btn-solid theme-primary note-editor__button" type="submit" disabled={!dirty || saving}><i class="bi bi-check2" aria-hidden="true"></i>{saving ? 'Saving…' : 'Save Note'}</button></div></div>
+			<GardenAssociationSelector id="note-garden" value={gardenId} gardens={gardens} locations={locations} onChange={(value) => { setGardenId(value); setError(''); }} disabled={saving} />
+			<div class="note-editor__actions note-editor__actions--split"><button class="btn-text theme-danger note-editor__button" type="button" onClick={discard} disabled={saving}>Discard draft</button><div class="note-editor__primary-actions"><button class="btn-outline note-editor__button" type="button" onClick={() => route('/notes', true)} disabled={saving}>Back to Notes</button><button class="btn-solid theme-primary note-editor__button" type="submit" disabled={!canSave || saving}><i class="bi bi-check2" aria-hidden="true"></i>{saving ? 'Saving…' : 'Save Note'}</button></div></div>
 		</form>
 	</section></div>;
 }
@@ -117,34 +130,34 @@ export function NewNote() {
 }
 
 export function NewNoteDraft({ params }) {
-	const { drafts, notes } = useNotesWorkspace();
+	const { drafts, notes, gardens, locations } = useNotesWorkspace();
 	const draftId = params?.draftId;
 	const [state, setState] = useState({ status: 'loading' });
 	useEffect(() => {
 		let active = true;
-		drafts.getById(draftId).then((draft) => active && setState({ status: 'ready', draft }), (loadError) => active && setState({ status: 'error', message: errorMessage(loadError, 'opened') }));
+		Promise.all([drafts.getById(draftId), gardens.list(), locations.list()]).then(([draft, gardenRecords, locationRecords]) => active && setState({ status: 'ready', draft, gardens: gardenRecords, locations: locationRecords }), (loadError) => active && setState({ status: 'error', message: errorMessage(loadError, 'opened') }));
 		return () => { active = false; };
-	}, [draftId, drafts]);
+	}, [draftId, drafts, gardens, locations]);
 	if (state.status === 'loading') return <LoadingNote />;
 	if (state.status === 'error') return <NoteLoadError message={state.message} />;
 	if (state.draft && !state.draft.isNew) return <NoteLoadError message="This draft does not belong to a new Note." />;
-	return <NoteEditor key={draftId} record={null} draft={state.draft} draftId={draftId} notes={notes} drafts={drafts} />;
+	return <NoteEditor key={draftId} record={null} draft={state.draft} draftId={draftId} notes={notes} drafts={drafts} gardens={state.gardens} locations={state.locations} />;
 }
 
 export function EditNote({ params }) {
-	const { drafts, notes } = useNotesWorkspace();
+	const { drafts, notes, gardens, locations } = useNotesWorkspace();
 	const noteId = params?.id;
 	const [state, setState] = useState({ status: 'loading', noteId });
 	useEffect(() => {
 		let active = true;
 		setState({ status: 'loading', noteId });
-		Promise.all([notes.getById(noteId), drafts.getForNote(noteId)]).then(([record, draft]) => active && setState(record ? { status: 'ready', noteId, record, draft } : { status: 'missing', noteId }), (loadError) => active && setState({ status: 'error', noteId, message: errorMessage(loadError, 'opened') }));
+		Promise.all([notes.getById(noteId), drafts.getForNote(noteId), gardens.list(), locations.list()]).then(([record, draft, gardenRecords, locationRecords]) => active && setState(record ? { status: 'ready', noteId, record, draft, gardens: gardenRecords, locations: locationRecords } : { status: 'missing', noteId }), (loadError) => active && setState({ status: 'error', noteId, message: errorMessage(loadError, 'opened') }));
 		return () => { active = false; };
-	}, [drafts, noteId, notes]);
+	}, [drafts, gardens, locations, noteId, notes]);
 	if (state.noteId !== noteId || state.status === 'loading') return <LoadingNote />;
 	if (state.status === 'missing') return <NoteLoadError message="This Note may have been deleted or the address may be incorrect." />;
 	if (state.status === 'error') return <NoteLoadError message={state.message} />;
-	return <NoteEditor key={noteId} record={state.record} draft={state.draft} draftId={state.draft?.id ?? noteId} notes={notes} drafts={drafts} />;
+	return <NoteEditor key={noteId} record={state.record} draft={state.draft} draftId={state.draft?.id ?? noteId} notes={notes} drafts={drafts} gardens={state.gardens} locations={state.locations} />;
 }
 
 export function Notes() {

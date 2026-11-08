@@ -79,10 +79,11 @@ export function createListItemsRepository(database, {
 				id: record?.id ?? randomUUID(),
 			};
 			validateNewListItem(listItem);
-			await validateGardenReference(listItem.gardenId);
-
 			try {
-				await table.add(listItem);
+				await database.transaction('rw', table, gardens, async () => {
+					await validateGardenReference(listItem.gardenId);
+					await table.add(listItem);
+				});
 				return copyRecord(listItem);
 			} catch (error) {
 				throwStorageError('create list item', error);

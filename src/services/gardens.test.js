@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createGardensService } from './gardens.js';
 import { createGardenLifecycleService } from './gardenLifecycle.js';
 import { createNotesService } from './notes.js';
+import { createListItemsService } from './listItems.js';
 import { initializeDexieStorage } from '../storage/dexie/initializeDexieStorage.js';
 import { createGardenDatabase } from '../storage/dexie/gardenDatabase.js';
 import { DEFAULT_LOCATION_ID } from '../storage/locationValidation.js';
@@ -192,6 +193,90 @@ describe('Garden data foundation', () => {
 		}
 		await expect(gardens.update(MISSING, {})).rejects.toMatchObject({ code: 'EMPTY_CHANGES' });
 	});
+
+	it('permanently deletes a Garden and atomically clears independent associations', async () => {
+		const garden = await gardens.create(input);
+		const other = await gardens.create({ ...input, name: 'Other Garden' });
+		const notes = createNotesService(storage.repositories.notes, { now: () => CREATED });
+		const lists = createListItemsService(storage.repositories.listItems, { now: () => CREATED });
+		const linkedNote = await notes.create({ text: 'Keep note', gardenId: garden.id });
+		const otherNote = await notes.create({ text: 'Other note', gardenId: other.id });
+		const task = await lists.create('task', { text: 'Keep task', gardenId: garden.id });
+		const wish = await lists.create('wishlist', {
+			text: 'Keep wish', gardenId: garden.id, quantity: '2', notes: 'Details', url: 'https://example.com/item',
+		});
+		await lists.setCompleted(task.id, true);
+		await lists.setCompleted(wish.id, true);
+
+		const deletion = createGardensService(storage.repositories.gardens, { now: () => UPDATED });
+		expect(await deletion.removePermanently(garden.id)).toBe(true);
+		expect(await deletion.removePermanently(garden.id)).toBe(false);
+		expect(await gardens.getById(garden.id)).toBeNull();
+		expect(await gardens.getById(other.id)).toEqual(other);
+		expect(await notes.getById(linkedNote.id)).toEqual({ ...linkedNote, gardenId: null, updatedAt: UPDATED });
+		expect(await notes.getById(otherNote.id)).toEqual(otherNote);
+		expect(await lists.getById(task.id)).toMatchObject({
+			id: task.id, text: task.text, gardenId: null, completed: true, sortOrder: task.sortOrder,
+			createdAt: task.createdAt, updatedAt: UPDATED,
+		});
+		expect(await lists.getById(wish.id)).toMatchObject({
+			id: wish.id, text: wish.text, gardenId: null, completed: true,
+			quantity: '2', notes: 'Details', url: 'https://example.com/item', updatedAt: UPDATED,
+		});
+	});
+
+	it('rolls back deletion and association clearing after an injected storage failure', async () => {
+		const garden = await gardens.create(input);
+		const notes = createNotesService(storage.repositories.notes, { now: () => CREATED });
+		const lists = createListItemsService(storage.repositories.listItems, { now: () => CREATED });
+		const note = await notes.create({ text: 'Still linked', gardenId: garden.id });
+		const task = await lists.create('task', { text: 'Still linked task', gardenId: garden.id });
+		const fail = vi.fn(() => { throw new Error('simulated disk error'); });
+		const hooked = await initializeDexieStorage({ dependencies, openGarden: async () => {
+			const db = createGardenDatabase(storage.databaseName, dependencies);
+			await db.open();
+			db.table('listItems').hook('updating', fail);
+			return db;
+		} });
+		try {
+			const deletion = createGardensService(hooked.repositories.gardens, { now: () => UPDATED });
+			await expect(deletion.removePermanently(garden.id)).rejects.toBeInstanceOf(StorageError);
+			expect(fail).toHaveBeenCalled();
+		} finally {
+			hooked.close();
+		}
+		expect(await gardens.getById(garden.id)).toEqual(garden);
+		expect(await notes.getById(note.id)).toEqual(note);
+		expect(await lists.getById(task.id)).toEqual(task);
+	});
+
+	it('serializes concurrent deletion and association writes without dangling references', async () => {
+		const garden = await gardens.create(input);
+		const notes = createNotesService(storage.repositories.notes, { now: () => UPDATED });
+		const deletion = createGardensService(storage.repositories.gardens, { now: () => UPDATED });
+		const [deleteResult, linkResult] = await Promise.allSettled([
+			deletion.removePermanently(garden.id),
+			notes.create({ text: 'Racing association', gardenId: garden.id }),
+		]);
+		expect(deleteResult.status).toBe('fulfilled');
+		expect(await gardens.getById(garden.id)).toBeNull();
+		if (linkResult.status === 'fulfilled') {
+			expect((await notes.getById(linkResult.value.id)).gardenId).toBeNull();
+		} else {
+			expect(linkResult.reason).toMatchObject({ code: 'GARDEN_NOT_FOUND' });
+		}
+	});
+
+	it('allows a formerly referenced custom Location to be deleted after Garden removal', async () => {
+		const location = await storage.repositories.locations.create({
+			name: 'Temporary Site', hardinessZone: null, isSystemDefault: false,
+			createdAt: CREATED, updatedAt: CREATED,
+		});
+		const garden = await gardens.create({ ...input, locationId: location.id });
+		await expect(storage.repositories.locations.remove(location.id)).rejects.toMatchObject({ code: 'LOCATION_IN_USE' });
+		await createGardensService(storage.repositories.gardens, { now: () => UPDATED }).removePermanently(garden.id);
+		expect(await storage.repositories.locations.remove(location.id)).toBe(true);
+	});
 });
 
 describe('Garden lifecycle', () => {
@@ -258,6 +343,23 @@ describe('Garden lifecycle', () => {
 		await expect(gardens.update(created.id, { name: 'Blocked' })).rejects.toMatchObject({ code: 'GARDEN_READ_ONLY' });
 		await lifecycle.unarchive(archived.id, expected(archived));
 		expect(await gardens.getById(created.id)).toMatchObject({ status: 'completed', isClosed: false });
+	});
+
+	it('preserves independent Note and list associations across lifecycle changes', async () => {
+		const created = await gardens.create(input);
+		const notes = createNotesService(storage.repositories.notes, { now: () => CREATED });
+		const lists = createListItemsService(storage.repositories.listItems, { now: () => CREATED });
+		const note = await notes.create({ text: 'Linked note', gardenId: created.id });
+		const task = await lists.create('task', { text: 'Linked task', gardenId: created.id });
+		await lifecycle.complete(created.id, { close: true }, expected(created));
+		const completed = await gardens.getById(created.id);
+		expect((await notes.getById(note.id)).gardenId).toBe(created.id);
+		expect((await lists.getById(task.id)).gardenId).toBe(created.id);
+		await lifecycle.reopen(completed.id, expected(completed));
+		const reopened = await gardens.getById(created.id);
+		await lifecycle.archive(reopened.id, expected(reopened));
+		expect((await notes.getById(note.id)).gardenId).toBe(created.id);
+		expect((await lists.getById(task.id)).gardenId).toBe(created.id);
 	});
 
 	it('rejects missing, invalid, stale, duplicate, and unsupported transitions without partial writes', async () => {

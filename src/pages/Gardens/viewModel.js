@@ -2,6 +2,8 @@ import { createGardensService } from '../../services/gardens.js';
 import { createLocationsService } from '../../services/locations.js';
 import { createGardenTypesService } from '../../services/gardenTypes.js';
 import { createGardenDraftsService } from '../../services/gardenDrafts.js';
+import { createNotesService } from '../../services/notes.js';
+import { createListItemsService } from '../../services/listItems.js';
 import { ValidationError } from '../../storage/errors.js';
 
 const STATUS_LABELS = {
@@ -14,6 +16,8 @@ export function createGardenReaders(repositories) {
 		locations: createLocationsService(repositories.locations),
 		types: createGardenTypesService(repositories.gardenTypes),
 		drafts: createGardenDraftsService(repositories.drafts),
+		notes: createNotesService(repositories.notes),
+		lists: createListItemsService(repositories.listItems),
 	};
 }
 
@@ -48,7 +52,7 @@ export async function loadGardenOverview({ gardens, locations, drafts }) {
 	}
 }
 
-export async function loadGardenDetail({ gardens, locations, types }, id) {
+export async function loadGardenDetail({ gardens, locations, types, notes, lists }, id) {
 	try {
 		let record;
 		try {
@@ -60,10 +64,19 @@ export async function loadGardenDetail({ gardens, locations, types }, id) {
 			throw error;
 		}
 		if (!record) return { status: 'not-found' };
-		const [site, definitions] = await Promise.all([
-			locations.getById(record.locationId), types.list(),
+		const [site, definitions, noteRecords, tasks, wishlist] = await Promise.all([
+			locations.getById(record.locationId), types.list(), notes.list(),
+			lists.list('task'), lists.list('wishlist'),
 		]);
-		return { status: 'ready', garden: gardenView(record, site ? [site] : [], definitions) };
+		return {
+			status: 'ready',
+			garden: gardenView(record, site ? [site] : [], definitions),
+			associations: {
+				notes: noteRecords.filter(({ gardenId }) => gardenId === id),
+				tasks: tasks.filter(({ gardenId }) => gardenId === id),
+				wishlist: wishlist.filter(({ gardenId }) => gardenId === id),
+			},
+		};
 	} catch {
 		return { status: 'error' };
 	}

@@ -14,6 +14,7 @@ const TASK_THREE = '38c2bed1-0e03-4187-aefd-233ca7b037c2';
 const WISH_ONE = 'fe1cbe08-4384-4dfa-9357-4ed87eea0398';
 const WISH_TWO = 'be9a73ba-0199-481d-9563-cfbc8279921d';
 const GARDEN_UUID = '210b8b0f-030c-4220-9374-8b78f461b474';
+const MISSING_GARDEN_UUID = '6934b241-739d-45a6-840b-ea2461fae984';
 const CREATED_AT = '2026-11-06T14:00:00.000Z';
 const UPDATED_AT = '2026-11-06T15:00:00.000Z';
 
@@ -258,6 +259,9 @@ describe('Tasks and Wish List service', () => {
 		expect(linked.gardenId).toBe(GARDEN_UUID);
 		expect(await lists.update(linked.id, 'task', { gardenId: null })).toBe(true);
 		expect((await lists.getById(linked.id)).gardenId).toBeNull();
+		await expect(lists.update(linked.id, 'task', { gardenId: MISSING_GARDEN_UUID }))
+			.rejects.toMatchObject({ code: 'GARDEN_NOT_FOUND', field: 'gardenId' });
+		expect((await lists.getById(linked.id)).gardenId).toBeNull();
 
 		storage.close();
 	});
@@ -305,6 +309,22 @@ describe('Tasks and Wish List service', () => {
 			TASK_ONE,
 			TASK_TWO,
 		]);
+		reopened.close();
+	});
+
+	it('persists Garden associations after the active database is reopened', async () => {
+		const storage = await initialize([TASK_ONE]);
+		const database = createGardenDatabase(storage.databaseName, dependencies);
+		await database.open();
+		await database.table('gardens').add({ id: GARDEN_UUID, name: 'Home', status: 'active' });
+		database.close();
+		const task = await createService(storage).create('task', { text: 'Linked task', gardenId: GARDEN_UUID });
+		const databaseName = storage.databaseName;
+		storage.close();
+
+		const reopened = await initializeDexieStorage({ dependencies });
+		expect(reopened.databaseName).toBe(databaseName);
+		expect(await reopened.repositories.listItems.getById(task.id)).toMatchObject({ gardenId: GARDEN_UUID });
 		reopened.close();
 	});
 

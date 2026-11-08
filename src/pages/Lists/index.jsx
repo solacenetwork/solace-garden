@@ -2,7 +2,10 @@ import Sortable from 'sortablejs';
 import { useLocation } from 'preact-iso';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useStorage } from '../../context/StorageContext.jsx';
+import { GardenAssociationSelector, gardenAssociationLabel } from '../../components/GardenAssociationSelector.jsx';
+import { createGardensService } from '../../services/gardens.js';
 import { createListItemsService, resolveListKind } from '../../services/listItems.js';
+import { createLocationsService } from '../../services/locations.js';
 import { StorageError, ValidationError } from '../../storage/index.js';
 import { updateItemCompletion } from './completionState.js';
 import './style.css';
@@ -59,6 +62,7 @@ function editFields(item) {
 		quantity: item.quantity ?? '',
 		notes: item.notes ?? '',
 		url: item.url ?? '',
+		gardenId: item.gardenId ?? null,
 	};
 }
 
@@ -71,6 +75,8 @@ export function Lists() {
 		() => createListItemsService(storage.repositories.listItems),
 		[storage],
 	);
+	const gardens = useMemo(() => createGardensService(storage.repositories.gardens), [storage]);
+	const locations = useMemo(() => createLocationsService(storage.repositories.locations), [storage]);
 	const listElement = useRef(null);
 	const quickInput = useRef(null);
 	const requestId = useRef(0);
@@ -91,9 +97,11 @@ export function Lists() {
 		}
 
 		try {
-			const items = await lists.list(kind);
+			const [items, gardenRecords, locationRecords] = await Promise.all([
+				lists.list(kind), gardens.list(), locations.list(),
+			]);
 			if (currentRequest === requestId.current) {
-				setState({ kind, status: 'ready', items });
+				setState({ kind, status: 'ready', items, gardens: gardenRecords, locations: locationRecords });
 			}
 			return items;
 		} catch (error) {
@@ -103,7 +111,7 @@ export function Lists() {
 			}
 			return null;
 		}
-	}, [kind, lists]);
+	}, [gardens, kind, lists, locations]);
 
 	useEffect(() => {
 		setQuickText('');
@@ -173,7 +181,7 @@ export function Lists() {
 	}, [persistOrder, reordering, routePending, state.items, state.status]);
 
 	function setItemsState(items) {
-		setState({ kind, status: 'ready', items });
+		setState((current) => ({ ...current, kind, status: 'ready', items }));
 	}
 
 	function setItemCompletion(id, completed) {
@@ -241,6 +249,7 @@ export function Lists() {
 
 		const changes = {
 			text: fields.text.trim(),
+			gardenId: fields.gardenId,
 			...(kind === 'wishlist' ? {
 				quantity: optionalValue(fields.quantity),
 				notes: optionalValue(fields.notes),
@@ -410,6 +419,14 @@ export function Lists() {
 											})}
 										/>
 									</div>
+									<GardenAssociationSelector
+										id={`list-garden-${item.id}`}
+										value={fields.gardenId}
+										gardens={state.gardens}
+										locations={state.locations}
+										onChange={(gardenId) => setFields({ ...fields, gardenId })}
+										disabled={pendingId === item.id}
+									/>
 									{kind === 'wishlist' && (
 										<>
 											<div class="lists-edit__grid">
@@ -516,6 +533,12 @@ export function Lists() {
 												</span>
 											)}
 										</div>
+										{item.gardenId && (() => {
+											const garden = state.gardens.find(({ id }) => id === item.gardenId);
+											return garden ? <a class="lists-item__garden" href={`/gardens/${garden.id}`}>
+												<i class="bi bi-tree" aria-hidden="true"></i>{gardenAssociationLabel(garden, state.locations)}
+											</a> : null;
+										})()}
 										{kind === 'wishlist' &&
 											(item.quantity || item.notes || item.url) && (
 												<div class="lists-item__details">

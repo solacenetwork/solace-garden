@@ -231,3 +231,10 @@
 		border-block-start: 1px solid var(--sg-color-border);
 	}
 }
+.lists-item__garden {
+	display: inline-flex;
+	gap: .4rem;
+	align-items: center;
+	margin-block-start: .35rem;
+	font-size: .875rem;
+}

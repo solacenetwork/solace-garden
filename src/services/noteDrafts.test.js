@@ -3,6 +3,7 @@ import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CONTROL_DATABASE_NAME } from '../storage/dexie/constants.js';
 import { initializeDexieStorage } from '../storage/dexie/initializeDexieStorage.js';
+import { createGardenDatabase } from '../storage/dexie/gardenDatabase.js';
 import { createDraftAutosave } from './draftAutosave.js';
 import { createNoteDraftsService, createNotesService } from './notes.js';
 
@@ -12,6 +13,7 @@ const OTHER_NOTE_ID = '3d18c8af-06ea-4b7d-8bd8-c450f3e2bd4d';
 const DRAFT_ID = '38c2bed1-0e03-4187-aefd-233ca7b037c2';
 const OTHER_DRAFT_ID = 'fe1cbe08-4384-4dfa-9357-4ed87eea0398';
 const TIME = '2026-11-05T14:00:00.000Z';
+const GARDEN_ID = '210b8b0f-030c-4220-9374-8b78f461b474';
 
 describe('Recoverable Note drafts', () => {
 	let indexedDB;
@@ -92,6 +94,22 @@ describe('Recoverable Note drafts', () => {
 		await expect(notes.update(NOTE_ID, { text: '   ' }, { draftId: DRAFT_ID })).rejects.toMatchObject({ code: 'INVALID_NOTE_TEXT' });
 		expect(await drafts.getById(DRAFT_ID)).toEqual(draft);
 		expect(await notes.getById(NOTE_ID)).toMatchObject({ text: 'Saved text' });
+		storage.close();
+	});
+
+	it('keeps a recoverable text draft when only the saved Note association changes', async () => {
+		const storage = await open([NOTE_ID]);
+		const { notes, drafts } = services(storage);
+		await notes.create({ text: 'Saved text' });
+		const draft = await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: 'Unsaved text' });
+		const database = createGardenDatabase(storage.databaseName, { indexedDB, IDBKeyRange });
+		await database.open();
+		await database.table('gardens').add({ id: GARDEN_ID, name: 'Garden', status: 'active' });
+		database.close();
+
+		await notes.update(NOTE_ID, { gardenId: GARDEN_ID });
+		expect(await notes.getById(NOTE_ID)).toMatchObject({ text: 'Saved text', gardenId: GARDEN_ID });
+		expect(await drafts.getById(DRAFT_ID)).toEqual(draft);
 		storage.close();
 	});
 

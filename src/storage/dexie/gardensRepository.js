@@ -17,6 +17,8 @@ export function createGardensRepository(database, {
 	const locations = database.table('locations');
 	const types = database.table('gardenTypes');
 	const drafts = database.table('drafts');
+	const notes = database.table('notes');
+	const listItems = database.table('listItems');
 	async function run(operation, action) {
 		try { return await action(); } catch (error) {
 			if (error instanceof ValidationError || error instanceof StorageError) throw error;
@@ -113,6 +115,28 @@ export function createGardensRepository(database, {
 				await gardens.put(garden);
 				return true;
 			}));
+		},
+		async removePermanently(id, updatedAt) {
+			validateRecordId(id);
+			validateTimestamp(updatedAt);
+			return run('permanently delete Garden', () => database.transaction(
+				'rw', gardens, notes, listItems, async () => {
+					const existing = await gardens.get(id);
+					if (!existing) return false;
+					const [linkedNotes, linkedItems] = await Promise.all([
+						notes.where('gardenId').equals(id).toArray(),
+						listItems.where('gardenId').equals(id).toArray(),
+					]);
+					await notes.bulkPut(linkedNotes.map((record) => ({
+						...record, gardenId: null, updatedAt,
+					})));
+					await listItems.bulkPut(linkedItems.map((record) => ({
+						...record, gardenId: null, updatedAt,
+					})));
+					await gardens.delete(id);
+					return true;
+				},
+			));
 		},
 		async setStatus(id, status, expected, updatedAt) {
 			if (!['planned', 'active'].includes(status)) {

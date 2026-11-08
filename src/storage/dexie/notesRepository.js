@@ -82,12 +82,11 @@ export function createNotesRepository(database, {
 				id: record?.id ?? randomUUID(),
 			};
 			validateNewNote(note);
-			if (note.gardenId !== null && note.gardenId !== undefined) {
-				await validateGardenReference(note.gardenId);
-			}
-
 			try {
-				await table.add(note);
+				await database.transaction('rw', table, gardens, async () => {
+					await validateGardenReference(note.gardenId);
+					await table.add(note);
+				});
 				return copyRecord(note);
 			} catch (error) {
 				throwStorageError('create note', error);
@@ -97,15 +96,13 @@ export function createNotesRepository(database, {
 		async update(id, changes) {
 			validateRecordId(id);
 			validateNoteChanges(changes);
-			if (
-				Object.hasOwn(changes, 'gardenId') &&
-				changes.gardenId !== null
-			) {
-				await validateGardenReference(changes.gardenId);
-			}
-
 			try {
-				return (await table.update(id, { ...changes })) === 1;
+				return await database.transaction('rw', table, gardens, async () => {
+					if (Object.hasOwn(changes, 'gardenId')) {
+						await validateGardenReference(changes.gardenId);
+					}
+					return (await table.update(id, { ...changes })) === 1;
+				});
 			} catch (error) {
 				throwStorageError('update note', error);
 			}

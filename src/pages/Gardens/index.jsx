@@ -1,7 +1,9 @@
+import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createGardenReaders, loadGardenDetail, loadGardenOverview } from './viewModel.js';
 import { GardenLifecycle } from './GardenLifecycle.jsx';
+import { GardenDeletion } from './GardenDeletion.jsx';
 import './style.css';
 
 function useGardenRead(load) {
@@ -99,7 +101,25 @@ export function GardensOverviewView({ state, onRetry, onDiscard = () => {}, disc
 	);
 }
 
-export function GardenDetailView({ state, onRetry, lifecycle = null }) {
+function AssociatedRecords({ associations, onRefresh }) {
+	const sections = [
+		{ id: 'associated-notes', title: 'Notes', items: associations.notes, href: '/notes', empty: 'No Notes are associated with this Garden.' },
+		{ id: 'associated-tasks', title: 'Tasks', items: associations.tasks, href: '/tasks', empty: 'No Tasks are associated with this Garden.' },
+		{ id: 'associated-wishlist', title: 'Wish List', items: associations.wishlist, href: '/wishlist', empty: 'No Wish List items are associated with this Garden.' },
+	];
+	return <section class="garden-associations" aria-labelledby="garden-associations-title">
+		<div class="garden-associations__header"><div><h2 id="garden-associations-title">Associated items</h2><p>These remain independent records in their gardener-wide workspaces.</p></div><button class="btn-outline" type="button" onClick={onRefresh}><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Refresh</button></div>
+		{sections.map((section) => <section class="garden-associated-section" aria-labelledby={section.id} key={section.id}>
+			<div class="garden-associated-section__header"><h3 id={section.id}>{section.title}</h3><a href={section.href}>Open {section.title}</a></div>
+			{section.items.length === 0 ? <p class="gardens-state">{section.empty}</p> : <ul>{section.items.map((item) => <li key={item.id}>
+				<a href={section.title === 'Notes' ? `/notes/${item.id}` : section.href}>{item.text}</a>
+				{section.title !== 'Notes' && item.completed && <span class="badge theme-success">{section.title === 'Tasks' ? 'Completed' : 'Purchased'}</span>}
+			</li>)}</ul>}
+		</section>)}
+	</section>;
+}
+
+export function GardenDetailView({ state, onRetry, lifecycle = null, deletion = null }) {
 	const garden = state.garden;
 	return (
 		<section class="container gardens-page" aria-label="Garden details">
@@ -140,6 +160,8 @@ export function GardenDetailView({ state, onRetry, lifecycle = null }) {
 							<p>{garden.notes}</p>
 						</section>
 					)}
+					<AssociatedRecords associations={state.associations ?? { notes: [], tasks: [], wishlist: [] }} onRefresh={onRetry} />
+					{deletion}
 				</>
 			)}
 		</section>
@@ -173,6 +195,7 @@ export function Gardens() {
 
 function GardenDetailRecord({ id }) {
 	const { repositories } = useStorage();
+	const { route } = useLocation();
 	const load = useMemo(() => {
 		const readers = createGardenReaders(repositories);
 		return () => loadGardenDetail(readers, id);
@@ -181,7 +204,10 @@ function GardenDetailRecord({ id }) {
 	const lifecycle = state.status === 'ready' ? (
 		<GardenLifecycle garden={state.garden} repository={repositories.gardens} onChanged={retry} />
 	) : null;
-	return <GardenDetailView state={state} onRetry={retry} lifecycle={lifecycle} />;
+	const deletion = state.status === 'ready' ? (
+		<GardenDeletion garden={state.garden} repository={repositories.gardens} onDeleted={() => route('/gardens', true)} />
+	) : null;
+	return <GardenDetailView state={state} onRetry={retry} lifecycle={lifecycle} deletion={deletion} />;
 }
 
 export function GardenDetail({ id }) {
