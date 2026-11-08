@@ -42,6 +42,28 @@ After the current A–F implementation work, we could do a documentation cleanup
 
 **Revisit only if user demand or future design work justifies it.**
 
+## Future UI Review (after 8F): Page types and informational navigation
+
+**Status:** Deferred navigation/architecture refinement identified during 8E8 integrated acceptance on November 8, 2026, following commit `c144f80`. **Do not start a navigation redesign or change 8E8 acceptance scope.** Help, About, and Welcome placeholders may remain unfinished while integrated Garden workflows are tested.
+
+**Principle:** Every workspace is a page, but not every page is a workspace. Distinguish pages where gardeners work with data from utilities and application information/support, without requiring a separate shell or giving every registered route a prominent navigation item.
+
+**Candidate page classification:** Add explicit metadata such as `kind: 'workspace' | 'utility' | 'information'` to appropriate route definitions. Illustrative groupings (to review, not yet a final taxonomy):
+- **Workspace:** Gardens, Plants, Harvest, Photos, Tasks, Notes, Calendar, Journal, Wish List, Locations, Templates, and their related work views.
+- **Utility:** Settings and potentially Search, depending on how those features evolve.
+- **Information:** Help, About, and Welcome.
+
+**Navigation and presentation questions for the post-8F review:**
+- Keep the existing Simple/Standard shared routes and shell. Use page type to distinguish workspace directories and context panels from supporting destinations, while keeping route registration independent from navigation prominence.
+- Consider renaming the Standard Mode `Other Links` group to **Help & Information**, rather than leaving Help/About in a miscellaneous category. Evaluate how Settings and Search should be grouped without treating the conceptual taxonomy as a mandatory sidebar hierarchy.
+- Review Standard Mode copy such as **“Browse workspaces”**, **“Standard Mode workspaces”**, and **“About this workspace”** when non-workspace pages are included; suppress or adapt workspace-specific context on informational pages.
+- Review Simple Mode Home's **“More places to explore”** directory: it currently includes every secondary route and therefore also Help/About. Do not present application support pages as gardening workspaces; give them a suitable separate access path.
+- Register dedicated Help/About page components in `src/index.jsx` when their real pages are implemented. At the time of this observation, `src/pages/Help/index.jsx` and `src/pages/About/index.jsx` exist but are not mapped in `pageComponents`, so their routes use the generic placeholder. The Welcome component also exists, but `/welcome` is not registered in `applicationRoutes`. Treat these as unfinished page wiring, not evidence that the informational pages are implemented.
+
+**Welcome is exceptional:** Follow `docs/GOALS.md` §2.13b: `/welcome` is an informational first-run page, not a gardening workspace or mandatory onboarding wizard. Automatically show it once at a normal starting launch with no `welcomeSeen` flag, set that flag when successfully displayed, preserve deep links to other routes, and allow later revisits from Help/About without resetting the flag. Do not place Welcome among the six Simple Mode primary actions; it need not be a regular sidebar destination. Preserve the separately planned optional install guidance.
+
+**Timing and boundary:** Revisit alongside the post-8F UI Tweaks/Review pass, with an appropriately scoped implementation decision then. No schema changes, new navigation framework, or acceptance reopening now. Existing 8E8 end-to-end and regression testing proceeds unchanged.
+
 ## Future UI Review (after 8F): Linked Garden indicator on Notes cards
 
 **Status:** UX observation from the 8E7 manual browser test on November 7, 2026. **8E7 test 1 passed**: a newly created Note linked to a Garden appeared on that Garden's detail page and the association survived reload. The gardener-wide `/notes` listing, however, shows linked and unlinked Notes identically, so users cannot tell which Notes are associated with a Garden without opening them. This is **not a functional test failure**; defer the display improvement to the post-8F UI refinement pass and the gardener's separate UI observation notes.
