@@ -286,6 +286,8 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 **Done when:** A gardener can install the PWA, manage gardens and their records offline, and manually export/restore a complete portable backup.
 
+**V1 beta backup communication acceptance:** In Welcome and Help, state plainly that Garden is beta software, records are stored locally in browser/installed-PWA storage, bugs or device/browser storage loss are possible, and there is no automatic cloud backup or redundancy. Recommend **regular manual ZIP exports**, explain where to create them and that backup files should be stored somewhere safe outside the browser/device when possible, and provide understandable steps for validating and restoring one. Check that the user-facing guidance matches the implemented ZIP workflow. Do not add backup reminders, background backups, or cloud sync to V1 merely for this messaging; those may be evaluated after release.
+
 ### Continuous workstream — Browser, device and regression testing
 
 **Begin at Milestone 2 and repeat during every milestone; this is not a final-only step.**
