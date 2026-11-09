@@ -340,11 +340,14 @@ These objectives supplement the existing V1 feature plan. They **do not introduc
 | Version | Focus | Scope boundary |
 |---|---|---|
 | **V1** | Offline-first Preact PWA, Dexie, Simple/Standard Mode, local ZIP export/replace-restore | No accounts, server, or cross-device sync |
+| **V1.5** | Developer-focused Playwright end-to-end browser testing and regression hardening **after V1 ships, before V2 work begins** | Internal QA/tooling phase, not a dependency blocking V1 release and not a user-facing feature release; retain Vitest and manual checks |
 | **V2** | Hosted Laravel/MariaDB accounts and Garden backend; one-way phone/PWA upload, authenticated online viewing | Local PWA remains source of truth; not two-way edit sync |
 | **V3** | True bidirectional cloud synchronization | Revisions, deletions, conflicts, resumable/retry-safe transfers |
 | **V4** | OAuth integrations for third-party cloud providers (Dropbox, OneDrive, Google Drive as candidates) | Decide backup vs sync semantics per provider |
 | **V5/V6** | Household SOS/SHD synchronization via pared-down Laravel/PHP/MariaDB server | One HID and authorized sub-MIDs locally; optional central sync |
 | **V7/V8** | Separate generic SOLACE Sync/Tauri initiative for cross-application/device interchange | SQLite/filesystem handling, pairing, manifests and shared transport; not Garden-only |
+
+**V1.5 sequencing note:** After shipping V1, pause new V2 feature development to establish a maintainable Playwright browser regression suite and related developer testing workflows. V1 remains subject to its existing manual acceptance, offline/PWA, and data-integrity release gates; Playwright automation is not required to ship V1. See `PARKING_LOT.md` for exploratory scope and coverage, which should be refined when V1.5 begins.
 
 ### Backend distinction for future phases
 
