@@ -22,6 +22,7 @@ function editableFields(location) {
 }
 
 export function Locations() {
+	const lookupUrl = 'https://www.almanac.com/planting-zones-by-zip-code';
 	const storage = useStorage();
 	const locations = useMemo(
 		() => createLocationsService(storage.repositories.locations),
@@ -172,7 +173,7 @@ export function Locations() {
 				</form>
 				<p class="locations-zone-help">
 					Zones range from 1a through 13b.{' '}
-					<a href="https://planthardiness.ars.usda.gov/" target="_blank" rel="noreferrer">
+					<a href={lookupUrl} target="_blank" rel="noreferrer">
 						Find your USDA Plant Hardiness Zone
 						<i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
 					</a>
