@@ -15,6 +15,8 @@ After the current A–F implementation work, we could do a documentation cleanup
 
 **Goal:** Help a first-time, nontechnical gardener understand the application and create their first Garden without making the introduction another required chore. Garden should enhance gardening rather than create a new job.
 
+**Presentation preference:** Keep the introduction as the existing **full-page `/welcome` route**, not a modal dialog. A dedicated page gives the short carousel room to breathe on mobile, keeps Welcome independently revisitable through Help, and reinforces that it is optional information rather than a pop-up or mandatory onboarding gate. The existing route is the intended destination; do not create a parallel modal flow. Preserve visible Skip / Go to Gardens access.
+
 **Possible experience:**
 - Use a short, visual **Bootstrap 6 carousel** (approximately three or four slides) introducing the purpose of Garden in plain language, with an obvious **Create Your First Garden** action leading to the **existing** Garden creation Wizard. Do not build a second onboarding Wizard or force users to complete every slide.
 - Offer visible **Skip Introduction / Go to Gardens** access at any time. Skipping the current visit must not silently change the startup preference.
