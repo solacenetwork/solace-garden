@@ -9,6 +9,21 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## V1.5 developer testing and regression hardening — Playwright
+
+**Status:** Planned post-V1, pre-V2 development/QA phase (November 9, 2026). **Not a V1 release blocker or end-user feature.** The V1.5 label identifies an internal engineering checkpoint; decide release/version tagging when the work is scoped.
+
+**Purpose:** After V1 has shipped and its existing acceptance gates are satisfied, briefly pause feature development to build reliable, repeatable real-browser regression coverage before beginning V2 work. Keep the established Vitest suite and hands-on device testing; Playwright complements rather than replaces them.
+
+**Initial proposed coverage:**
+- Critical flows: Garden creation through Wizard and Advanced, Template save/apply, Location reassignment/deletion safeguards, draft recovery, and ZIP backup/restore.
+- Cross-mode/browser behavior: Simple and Standard presentations, representative phone/tablet/desktop viewports, and Chromium/Firefox where practical.
+- Offline-first integrity: installed PWA startup and navigation offline, IndexedDB persistence across reload/reopen and app updates, and safe behavior when storage or restore fails.
+- Repeatable test fixtures with clean isolated browser profiles and disposable synthetic data; after public V1 release, never destroy or reset actual user data for testing.
+- Consider CI via GitHub Actions once local execution is dependable; document how developers run the suite and diagnose failures.
+
+**Scope boundary:** No new gardening features or V2 backend/sync development in this phase. Playwright automation does not substitute for V1's existing manual accessibility, device, offline/PWA, backup, and data-preservation release checks. Prioritize stable, meaningful end-to-end tests over a brittle requirement for exhaustive coverage. Revisit exact test scenarios, dependencies, browser matrix, and CI configuration when V1.5 begins.
+
 ## Future UI Review: Optional Welcome carousel and startup preference
 
 **Status:** Parked concept from November 9, 2026, for the post-8F UI review. **Not approved for implementation yet.** This proposal would revise the earlier *show Welcome automatically once* behavior described in `GOALS.md` §2.13b and in the page-types parking-lot notes below; reconcile those documents **if** the alternative is adopted.
