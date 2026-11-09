@@ -22,6 +22,14 @@ After the current A–F implementation work, we could do a documentation cleanup
 - Repeatable test fixtures with clean isolated browser profiles and disposable synthetic data; after public V1 release, never destroy or reset actual user data for testing.
 - Consider CI via GitHub Actions once local execution is dependable; document how developers run the suite and diagnose failures.
 
+### V1.0 beta versus V1.5 build identification and diagnostics
+
+**V1 soft launch:** Label the first public build **1.0 beta** and clearly explain that bugs may remain. Show a basic **running app version** in About plus an obvious Help/contact link (e.g. `feedback@solace.network`), and explain local-only storage and the importance of ZIP backups. Avoid suggesting cloud redundancy or guaranteed recovery. Keep existing service-worker update consent, stable offline use, safe storage operations, and V1 acceptance checks; a beta label is not permission to silently lose real user data.
+
+**Defer to V1.5:** Vite-generated consistent build metadata (version, commit/build ID, timestamp) embedded in the compiled bundle and emitted as `build-info.json`; detailed About → Build Information; on-demand read-only `collectDiagnostics()` shared by About/Help and `window.getDiagnostics()`; optional user-reviewed diagnostic content for Help → Report a Problem; service-worker, Workbox cache, IndexedDB schema, browser/OS/PWA status; and Playwright validation of running-versus-waiting builds, offline updates and persistence. Never infer the **running** version from a JSON asset fetched after a deployment. Avoid sending user content, secrets or identifying diagnostics automatically.
+
+**Versioning distinction:** Application version, IndexedDB schema version, service-worker asset revisions and portable backup format version are independent. There is no need for an IndexedDB store dedicated to running-build identification or manual cache-version increments.
+
 ### Possible future CI/CD deployment pipeline
 
 **Status:** Parked design follow-up to the V1.5 testing infrastructure, not an approved deployment implementation or a prerequisite for V1 release.
