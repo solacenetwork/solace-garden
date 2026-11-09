@@ -22,6 +22,16 @@ After the current A–F implementation work, we could do a documentation cleanup
 - Repeatable test fixtures with clean isolated browser profiles and disposable synthetic data; after public V1 release, never destroy or reset actual user data for testing.
 - Consider CI via GitHub Actions once local execution is dependable; document how developers run the suite and diagnose failures.
 
+### Possible future CI/CD deployment pipeline
+
+**Status:** Parked design follow-up to the V1.5 testing infrastructure, not an approved deployment implementation or a prerequisite for V1 release.
+
+- Run Vitest and Playwright in GitHub Actions; retain failure logs and Playwright reports/traces for diagnosis. Only publish a built `dist/` artifact after required tests pass. A dedicated deployment repository containing production files only is one candidate, subject to comparison with a deployment branch or direct Actions deployment.
+- **Hostinger behavior observed in FreeTV testing:** An existing `.htaccess` in the hosting destination was **overwritten** by Git auto-deployment when the deployed repository included its own `.htaccess`. Earlier FreeTV testing also suggested destination contents are replaced rather than selectively merged. Design Garden deployments on the conservative assumption that **server-side hand edits and files are not preserved**; verify removal semantics and the exact Hostinger configuration before implementation.
+- Keep a **production-safe `.htaccess`** with the deployment artifact for Apache SPA fallback/PWA delivery and caching. Never depend on an existing server-side `.htaccess` surviving automatic deployment.
+- Current Hostinger password protection is temporary. Keep authentication directives and `.htpasswd` credentials out of the public deployment repository and build artifact. Separate any host-managed protection from app routing until protection is deliberately removed for public V1; verify the transition does not accidentally expose a password-protected test site.
+- Treat the deployable folder as fully reproducible: no irreplaceable uploads, manual customizations, or secrets in a directory subject to replacement. Validate SPA deep links, cached/PWA clients during deploys, missing/stale assets, and recovery/rollback before enabling unattended production releases.
+
 **Scope boundary:** No new gardening features or V2 backend/sync development in this phase. Playwright automation does not substitute for V1's existing manual accessibility, device, offline/PWA, backup, and data-preservation release checks. Prioritize stable, meaningful end-to-end tests over a brittle requirement for exhaustive coverage. Revisit exact test scenarios, dependencies, browser matrix, and CI configuration when V1.5 begins.
 
 ## Future UI Review: Optional Welcome carousel and startup preference
