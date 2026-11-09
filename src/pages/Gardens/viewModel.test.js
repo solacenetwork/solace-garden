@@ -78,6 +78,31 @@ describe('Garden browsing data', () => {
 		}));
 	});
 
+	it('reopens unfinished drafts in their last-used editor in both directions', async () => {
+		const draft = await readers.drafts.create();
+		await readers.drafts.save({
+			id: draft.id,
+			fields: draft.fields,
+			preferredEditor: 'advanced',
+		});
+		let result = await loadGardenOverview(readers);
+		expect(result.drafts).toContainEqual(expect.objectContaining({
+			id: draft.id,
+			href: `/gardens/new/advanced/${draft.id}`,
+		}));
+
+		await readers.drafts.save({
+			id: draft.id,
+			fields: draft.fields,
+			preferredEditor: 'wizard',
+		});
+		result = await loadGardenOverview(readers);
+		expect(result.drafts).toContainEqual(expect.objectContaining({
+			id: draft.id,
+			href: `/gardens/new/wizard/${draft.id}`,
+		}));
+	});
+
 	it.each(['invalid-id', MISSING_ID])('returns not-found for missing or invalid IDs: %s', async (id) => {
 		expect(await loadGardenDetail(readers, id)).toEqual({ status: 'not-found' });
 	});

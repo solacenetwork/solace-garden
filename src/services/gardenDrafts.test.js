@@ -14,6 +14,7 @@ import { initializeDexieStorage } from '../storage/dexie/initializeDexieStorage.
 const FIRST_DRAFT = '38c2bed1-0e03-4187-aefd-233ca7b037c2';
 const SECOND_DRAFT = 'fe1cbe08-4384-4dfa-9357-4ed87eea0398';
 const NOTE_DRAFT = 'c707274f-b57b-4b1a-9346-a3c16f00008f';
+const SOURCE_TEMPLATE = '550e8400-e29b-41d4-a716-446655440010';
 const CREATED = '2026-11-07T18:00:00.000Z';
 const UPDATED = '2026-11-07T18:05:00.000Z';
 
@@ -76,6 +77,55 @@ describe('Recoverable Garden drafts', () => {
 		expect(await drafts.list()).toHaveLength(2);
 	});
 
+	it('persists Garden-only editor context and preserves it through field-only saves and reopen', async () => {
+		const created = await drafts.create({ preferredEditor: 'advanced' });
+		expect(created).toMatchObject({ sourceTemplateId: null, preferredEditor: 'advanced' });
+		await drafts.save({
+			id: created.id,
+			fields: fields({ name: 'Template fields' }),
+			sourceTemplateId: SOURCE_TEMPLATE,
+			preferredEditor: 'advanced',
+		});
+		await drafts.save({ id: created.id, fields: fields({ name: 'Gardener edit' }) });
+
+		storage.close();
+		storage = await initializeDexieStorage({ dependencies });
+		drafts = createGardenDraftsService(storage.repositories.drafts);
+		expect(await drafts.getById(created.id)).toMatchObject({
+			fields: { name: 'Gardener edit' },
+			sourceTemplateId: SOURCE_TEMPLATE,
+			preferredEditor: 'advanced',
+		});
+	});
+
+	it('normalizes legacy Garden drafts without metadata while leaving Note drafts unchanged', async () => {
+		await storage.repositories.drafts.add({
+			id: FIRST_DRAFT,
+			kind: 'garden',
+			subjectId: null,
+			isNew: true,
+			fields: fields(),
+			createdAt: CREATED,
+			updatedAt: CREATED,
+		});
+		const legacy = await drafts.getById(FIRST_DRAFT);
+		expect(legacy).toMatchObject({ sourceTemplateId: null, preferredEditor: 'wizard' });
+
+		const note = await notes.save({ id: NOTE_DRAFT, text: 'Note work' });
+		expect(note).not.toHaveProperty('sourceTemplateId');
+		expect(note).not.toHaveProperty('preferredEditor');
+		await expect(storage.repositories.drafts.save({ ...note, preferredEditor: 'advanced' }))
+			.rejects.toMatchObject({ code: 'UNSUPPORTED_DRAFT_FIELD', field: 'preferredEditor' });
+	});
+
+	it('validates Garden draft editor context without requiring a schema migration', async () => {
+		await expect(drafts.create({ preferredEditor: 'grid' }))
+			.rejects.toMatchObject({ code: 'INVALID_GARDEN_DRAFT_EDITOR', field: 'preferredEditor' });
+		await drafts.create();
+		await expect(drafts.save({ id: FIRST_DRAFT, fields: fields(), sourceTemplateId: 'not-a-uuid' }))
+			.rejects.toMatchObject({ code: 'INVALID_RECORD_ID', field: 'sourceTemplateId' });
+	});
+
 	it('discards only the selected Garden draft', async () => {
 		await drafts.create();
 		const secondDrafts = createGardenDraftsService(storage.repositories.drafts, {
@@ -111,6 +161,8 @@ describe('Recoverable Garden drafts', () => {
 			thumbnailMediaId: null, layoutMediaId: null,
 		});
 		expect(garden.id).not.toBe(FIRST_DRAFT);
+		expect(garden).not.toHaveProperty('sourceTemplateId');
+		expect(garden).not.toHaveProperty('preferredEditor');
 		expect(await drafts.getById(FIRST_DRAFT)).toBeNull();
 		expect(await drafts.getById(SECOND_DRAFT)).toEqual(retained);
 		expect((await notes.list()).map(({ id }) => id)).toEqual([NOTE_DRAFT]);

@@ -44,7 +44,7 @@ export async function loadGardenOverview({ gardens, locations, drafts }) {
 			drafts: unfinished.map((draft) => ({
 				...draft,
 				label: draft.fields.name.trim() || 'Untitled Garden',
-				href: `/gardens/new/wizard/${draft.id}`,
+				href: `/gardens/new/${draft.preferredEditor}/${draft.id}`,
 			})),
 		};
 	} catch {

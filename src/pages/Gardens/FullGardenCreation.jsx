@@ -16,8 +16,6 @@ import { createLocationsService, DEFAULT_LOCATION_ID } from '../../services/loca
 import { StorageError, ValidationError } from '../../storage/index.js';
 import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
 
-const templateLocationOrigins = new Map();
-
 const STATUS_TEXT = {
 	'all-saved': 'All changes saved',
 	saving: 'Saving draft…',
@@ -60,13 +58,39 @@ export async function applyTemplateToGardenDraft({
 		return { status: 'cancelled' };
 	}
 	await autosave.stop();
-	const saved = await drafts.save({ id: draft.id, fields, createdAt: draft.createdAt });
+	const saved = await drafts.save({
+		id: draft.id,
+		fields,
+		sourceTemplateId: templateId,
+		preferredEditor: draft.preferredEditor,
+		createdAt: draft.createdAt,
+	});
 	return {
 		status: 'applied',
 		fields: saved.fields,
+		sourceTemplateId: saved.sourceTemplateId,
+		preferredEditor: saved.preferredEditor,
 		createdAt: saved.createdAt,
 		locationResolution: resolution.locationResolution,
 	};
+}
+
+export async function clearTemplateFromGardenDraft({ draft, currentFields, autosave, drafts }) {
+	await autosave.stop();
+	return drafts.save({
+		id: draft.id,
+		fields: currentFields,
+		sourceTemplateId: null,
+		preferredEditor: draft.preferredEditor,
+		createdAt: draft.createdAt,
+	});
+}
+
+export function templateLocationOriginForDraft(draft, templates) {
+	const source = templates.find(({ id }) => id === draft.sourceTemplateId);
+	return source && draft.fields.locationId === source.configuration.locationId
+		? { locationId: draft.fields.locationId }
+		: null;
 }
 
 export function resolveTemplateLocationForFinalization(fields, locations, origin) {
@@ -143,7 +167,9 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 	const createdAt = useRef(draft.createdAt);
 	const submitting = useRef(false);
 	const fieldsRef = useRef(draft.fields);
-	const templateLocationOrigin = useRef(templateLocationOrigins.get(draft.id) ?? null);
+	const sourceTemplateIdRef = useRef(draft.sourceTemplateId);
+	const preferredEditorRef = useRef(draft.preferredEditor);
+	const templateLocationOrigin = useRef(null);
 	const [fields, setFields] = useState(draft.fields);
 	const [currentReferences, setCurrentReferences] = useState(references);
 	const [stage, setStage] = useState(0);
@@ -151,12 +177,18 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 	const [errors, setErrors] = useState({});
 	const [message, setMessage] = useState('');
 	const [busy, setBusy] = useState(false);
-	const [selectedTemplateId, setSelectedTemplateId] = useState(null);
+	const [selectedTemplateId, setSelectedTemplateId] = useState(draft.sourceTemplateId);
 	const [templateState, setTemplateState] = useState({ status: 'loading' });
 	const [templateNotice, setTemplateNotice] = useState('');
 	const autosave = useMemo(() => createDraftAutosave({
 		write: async (value) => {
-			const saved = await workspace.drafts.save({ id: draft.id, fields: value, createdAt: createdAt.current });
+			const saved = await workspace.drafts.save({
+				id: draft.id,
+				fields: value,
+				sourceTemplateId: sourceTemplateIdRef.current,
+				preferredEditor: preferredEditorRef.current,
+				createdAt: createdAt.current,
+			});
 			createdAt.current = saved.createdAt;
 		},
 		onStatus: (nextStatus, error) => {
@@ -170,7 +202,16 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 	async function loadTemplates() {
 		setTemplateState({ status: 'loading' });
 		try {
-			setTemplateState({ status: 'ready', templates: await workspace.templates.list() });
+			const templates = await workspace.templates.list();
+			setTemplateState({ status: 'ready', templates });
+			const source = templates.find(({ id }) => id === sourceTemplateIdRef.current);
+			templateLocationOrigin.current = templateLocationOriginForDraft({
+				fields: fieldsRef.current,
+				sourceTemplateId: sourceTemplateIdRef.current,
+			}, templates);
+			if (sourceTemplateIdRef.current && !source) {
+				setTemplateNotice('The source Template is no longer available. Your independent draft and edits are preserved.');
+			}
 		} catch (error) {
 			setTemplateState({ status: 'error', error });
 		}
@@ -181,7 +222,6 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 	function changeField(field, value) {
 		if (field === 'locationId') {
 			templateLocationOrigin.current = null;
-			templateLocationOrigins.delete(draft.id);
 		}
 		setFields((current) => {
 			const next = { ...current, [field]: value };
@@ -213,7 +253,11 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 		try {
 			const result = await applyTemplateToGardenDraft({
 				templateId: selectedTemplateId,
-				draft: { id: draft.id, createdAt: createdAt.current },
+				draft: {
+					id: draft.id,
+					createdAt: createdAt.current,
+					preferredEditor: preferredEditorRef.current,
+				},
 				currentFields: fieldsRef.current,
 				autosave,
 				drafts: workspace.drafts,
@@ -221,18 +265,19 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 			});
 			if (result.status === 'cancelled') return;
 			if (result.status === 'missing') {
-				setSelectedTemplateId(null);
+				setSelectedTemplateId(sourceTemplateIdRef.current);
 				setMessage('That Template was deleted before it could be applied. Choose another Template or continue from scratch.');
 				await loadTemplates();
 				return;
 			}
 			createdAt.current = result.createdAt;
+			sourceTemplateIdRef.current = result.sourceTemplateId;
+			preferredEditorRef.current = result.preferredEditor;
 			fieldsRef.current = result.fields;
 			setFields(result.fields);
 			setErrors({});
 			setStatus('draft-saved');
 			templateLocationOrigin.current = { locationId: result.fields.locationId };
-			templateLocationOrigins.set(draft.id, templateLocationOrigin.current);
 			setTemplateNotice(result.locationResolution.fallbackOccurred
 				? 'Template applied. Its saved Location is no longer available, so Default Location was selected.'
 				: 'Template applied to this draft. The Garden remains independent of the Template.');
@@ -245,14 +290,59 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 		}
 	}
 
-	async function persistCurrent() {
+	async function selectTemplateSource(templateId) {
+		if (templateId !== null) {
+			setSelectedTemplateId(templateId);
+			return;
+		}
+		if (busy) return;
+		if (sourceTemplateIdRef.current === null) {
+			setSelectedTemplateId(null);
+			return;
+		}
+		setBusy(true);
+		setMessage('');
+		try {
+			const saved = await clearTemplateFromGardenDraft({
+				draft: {
+					id: draft.id,
+					preferredEditor: preferredEditorRef.current,
+					createdAt: createdAt.current,
+				},
+				currentFields: fieldsRef.current,
+				autosave,
+				drafts: workspace.drafts,
+			});
+			createdAt.current = saved.createdAt;
+			sourceTemplateIdRef.current = null;
+			setSelectedTemplateId(null);
+			templateLocationOrigin.current = null;
+			setTemplateNotice('Start from Scratch selected. Existing draft fields were kept.');
+			setStatus('draft-saved');
+		} catch (error) {
+			setSelectedTemplateId(sourceTemplateIdRef.current);
+			setStatus('error');
+			setMessage(creationError(error, 'saved'));
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	async function persistCurrent({
+		sourceTemplateId = sourceTemplateIdRef.current,
+		preferredEditor = preferredEditorRef.current,
+	} = {}) {
 		await autosave.stop();
 		const saved = await workspace.drafts.save({
 			id: draft.id,
 			fields: fieldsRef.current,
+			sourceTemplateId,
+			preferredEditor,
 			createdAt: createdAt.current,
 		});
 		createdAt.current = saved.createdAt;
+		sourceTemplateIdRef.current = saved.sourceTemplateId;
+		preferredEditorRef.current = saved.preferredEditor;
 		setStatus('draft-saved');
 	}
 
@@ -260,6 +350,8 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 		const saved = await workspace.drafts.save({
 			id: draft.id,
 			fields: locationResult.fields,
+			sourceTemplateId: sourceTemplateIdRef.current,
+			preferredEditor: preferredEditorRef.current,
 			createdAt: createdAt.current,
 		});
 		createdAt.current = saved.createdAt;
@@ -268,16 +360,15 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 		setErrors({});
 		setStatus('draft-saved');
 		templateLocationOrigin.current = null;
-		templateLocationOrigins.delete(draft.id);
 		setTemplateNotice('The Template Location became unavailable. Default Location was selected; review it, then create the Garden again.');
 	}
 
-	async function navigatePreservingDraft(path) {
+	async function navigatePreservingDraft(path, preferredEditor = preferredEditorRef.current) {
 		if (busy) return;
 		setBusy(true);
 		setMessage('');
 		try {
-			await persistCurrent();
+			await persistCurrent({ preferredEditor });
 			route(path);
 		} catch (error) {
 			setStatus('error');
@@ -293,7 +384,6 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 		await autosave.stop();
 		try {
 			await workspace.drafts.remove(draft.id);
-			templateLocationOrigins.delete(draft.id);
 			route('/gardens', true);
 		} catch (error) {
 			setMessage(creationError(error, 'discarded'));
@@ -348,7 +438,6 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 				await persistTemplateLocationFallback(raceResult);
 				return;
 			}
-			templateLocationOrigins.delete(draft.id);
 			route(`/gardens/${garden.id}`);
 		} catch (error) {
 			setErrors(error?.field ? { [error.field]: error.message } : {});
@@ -374,14 +463,14 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 			{message && <div class="garden-create__error" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{message}</span></div>}
 			{templateNotice && <div class="garden-template-notice" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i><span>{templateNotice}</span></div>}
 			<div class="garden-full-create__toolbar">
-				<button class="btn-outline" type="button" disabled={busy} onClick={() => navigatePreservingDraft(`/gardens/new/${otherMode}/${draft.id}`)}>Switch to {otherMode === 'wizard' ? 'Wizard' : 'Advanced'}</button>
+				<button class="btn-outline" type="button" disabled={busy} onClick={() => navigatePreservingDraft(`/gardens/new/${otherMode}/${draft.id}`, otherMode)}>Switch to {otherMode === 'wizard' ? 'Wizard' : 'Advanced'}</button>
 				<button class="btn-text theme-danger" type="button" disabled={busy} onClick={discard}><i class="bi bi-trash3" aria-hidden="true"></i> Discard Draft</button>
 			</div>
 
 			<form class="garden-full-create__form" noValidate onSubmit={createGarden}>
 				{mode === 'wizard' ? <>
 					<GardenStepper stage={stage} />
-					{stage === 0 && <GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} onSelect={setSelectedTemplateId} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="wizard-garden" applyLabel="Apply Template and Continue" />}
+					{stage === 0 && <GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="wizard-garden" applyLabel="Apply Template and Continue" />}
 					{stage === 1 && <section class="garden-wizard__stage" aria-labelledby="details-stage-title"><h2 id="details-stage-title">Garden details</h2><GardenFields fields={fields} errors={errors} locations={currentReferences.locations} types={currentReferences.types} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>}
 					{stage === 2 && <section class="garden-wizard__stage"><GardenReview fields={fields} locations={currentReferences.locations} types={currentReferences.types} /></section>}
 					<div class="garden-full-create__actions">
@@ -389,7 +478,7 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 						{stage < 2 ? <button class="btn-solid theme-primary" type="button" disabled={busy || (stage === 0 && selectedTemplateId !== null)} onClick={() => stage === 1 ? review() : setStage(1)}>Continue</button> : <button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button>}
 					</div>
 				</> : <>
-					<GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} onSelect={setSelectedTemplateId} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="advanced-garden" />
+					<GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="advanced-garden" />
 					<section aria-labelledby="advanced-details-title"><h2 id="advanced-details-title">Garden details</h2><GardenFields fields={fields} errors={errors} locations={currentReferences.locations} types={currentReferences.types} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>
 					<div class="garden-full-create__actions"><button class="btn-outline" type="button" disabled={busy} onClick={() => navigatePreservingDraft('/gardens')}>Back to Gardens</button><button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button></div>
 				</>}
@@ -431,7 +520,7 @@ export function NewGardenDraftRoute({ mode }) {
 		if (started.current) return;
 		started.current = true;
 		let active = true;
-		drafts.create().then((draft) => {
+		drafts.create({ preferredEditor: mode }).then((draft) => {
 			if (active) route(`/gardens/new/${mode}/${draft.id}`, true);
 		}, (creationFailure) => {
 			if (active) setError(creationError(creationFailure, 'started'));

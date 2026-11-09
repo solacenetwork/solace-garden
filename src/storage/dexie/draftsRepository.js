@@ -11,6 +11,18 @@ function copyRecord(record) {
 const GARDEN_DRAFT_FIELDS = Object.freeze([
 	'name', 'subtitle', 'description', 'locationId', 'typeIds', 'startDate', 'endDate',
 ]);
+const GARDEN_DRAFT_CONTEXT_FIELDS = Object.freeze(['sourceTemplateId', 'preferredEditor']);
+
+function preserveGardenDraftContext(draft, existing) {
+	if (draft.kind !== 'garden') return draft;
+	const saved = { ...draft };
+	for (const field of GARDEN_DRAFT_CONTEXT_FIELDS) {
+		if (!Object.hasOwn(saved, field) && Object.hasOwn(existing, field)) {
+			saved[field] = existing[field];
+		}
+	}
+	return saved;
+}
 
 function validateGardenDraftFields(fields) {
 	if (!fields || Object.getPrototypeOf(fields) !== Object.prototype) {
@@ -37,6 +49,7 @@ function validateDraft(draft) {
 	const allowed = new Set([
 		'id', 'kind', 'subjectId', 'isNew', 'createdAt', 'updatedAt',
 		draft.kind === 'garden' ? 'fields' : 'text',
+		...(draft.kind === 'garden' ? GARDEN_DRAFT_CONTEXT_FIELDS : []),
 	]);
 	const unsupported = Object.keys(draft).find((field) => !allowed.has(field));
 	if (unsupported) {
@@ -62,6 +75,12 @@ function validateDraft(draft) {
 			throw new ValidationError('INVALID_GARDEN_DRAFT_IDENTITY', 'Garden drafts must describe a new Garden.');
 		}
 		validateGardenDraftFields(draft.fields);
+		if (Object.hasOwn(draft, 'sourceTemplateId') && draft.sourceTemplateId !== null) {
+			validateRecordId(draft.sourceTemplateId, 'sourceTemplateId');
+		}
+		if (Object.hasOwn(draft, 'preferredEditor') && !['wizard', 'advanced'].includes(draft.preferredEditor)) {
+			throw new ValidationError('INVALID_GARDEN_DRAFT_EDITOR', 'Garden draft editor must be wizard or advanced.', { field: 'preferredEditor' });
+		}
 	}
 	for (const field of ['createdAt', 'updatedAt']) {
 		if (typeof draft[field] !== 'string' || draft[field].length === 0) {
@@ -158,7 +177,10 @@ export function createDraftsRepository(database) {
 					if (existing.kind !== expectedKind || draft.kind !== expectedKind) {
 						throw new ValidationError('WRONG_DRAFT_KIND', `This is not a ${expectedKind} draft.`, { field: 'kind' });
 					}
-					const saved = copyRecord({ ...draft, createdAt: existing.createdAt });
+					const saved = copyRecord({
+						...preserveGardenDraftContext(draft, existing),
+						createdAt: existing.createdAt,
+					});
 					await table.put(saved);
 					return copyRecord(saved);
 				});

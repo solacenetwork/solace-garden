@@ -18,6 +18,11 @@ export function GardenTemplateSelection({
 	idPrefix,
 	applyLabel = 'Apply Template',
 }) {
+	const selectedTemplateAvailable = state.status === 'ready'
+		&& state.templates.some(({ id }) => id === selectedId);
+	const selectedTemplateUnavailable = state.status === 'ready'
+		&& selectedId !== null
+		&& !selectedTemplateAvailable;
 	return (
 		<section class="garden-template-selection" aria-labelledby={`${idPrefix}-template-title`}>
 			<div class="garden-template-selection__header">
@@ -45,6 +50,10 @@ export function GardenTemplateSelection({
 				{state.status === 'loading' && <div class="garden-template-selection__state" role="status">Loading saved Templates…</div>}
 				{state.status === 'error' && <div class="garden-template-selection__state" role="alert"><span>Saved Templates could not be loaded.</span><button class="btn-outline" type="button" onClick={onRetry}>Retry</button></div>}
 				{state.status === 'ready' && state.templates.length === 0 && <div class="garden-template-selection__state"><span>No saved Garden Templates yet.</span><a href="/templates">Open Template management</a></div>}
+				{selectedTemplateUnavailable && <div class="garden-template-choice garden-template-choice--selected" role="status">
+					<i class="bi bi-file-earmark-x" aria-hidden="true"></i>
+					<span><strong>Source Template unavailable</strong><small>This draft and its edits remain independent and available.</small></span>
+				</div>}
 				{state.status === 'ready' && state.templates.map((template) => (
 					<label class={`garden-template-choice${selectedId === template.id ? ' garden-template-choice--selected' : ''}`} key={template.id}>
 						<input
@@ -64,7 +73,7 @@ export function GardenTemplateSelection({
 				))}
 			</fieldset>
 
-			{selectedId !== null && <div class="garden-template-selection__apply">
+			{selectedTemplateAvailable && <div class="garden-template-selection__apply">
 				<button class="btn-solid theme-primary" type="button" disabled={busy} onClick={onApply}>
 					<i class="bi bi-copy" aria-hidden="true"></i>{busy ? 'Applying…' : applyLabel}
 				</button>

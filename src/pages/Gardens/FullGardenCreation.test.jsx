@@ -4,8 +4,10 @@ import { DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import { createGardensService } from '../../services/gardens.js';
 import {
 	applyTemplateToGardenDraft,
+	clearTemplateFromGardenDraft,
 	GardenStepper,
 	resolveTemplateLocationForFinalization,
+	templateLocationOriginForDraft,
 	validateGardenDraftForReview,
 } from './FullGardenCreation.jsx';
 import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
@@ -99,6 +101,17 @@ describe('Full Garden creation UI helpers', () => {
 		});
 		expect(nodes(tree).filter((node) => typeof node === 'string').join(' ')).toContain(expected);
 	});
+
+	it('shows a selected unavailable source without offering to apply it again', () => {
+		const tree = GardenTemplateSelection({
+			state: { status: 'ready', templates: [] },
+			references, selectedId: template.id, onSelect: () => {}, onApply: () => {}, onRetry: () => {}, idPrefix: 'missing',
+		});
+		const visibleText = nodes(tree).filter((node) => typeof node === 'string').join(' ');
+		expect(visibleText).toContain('Source Template unavailable');
+		expect(visibleText).toContain('draft and its edits remain independent');
+		expect(nodes(tree).filter((node) => node.type === 'button')).toHaveLength(0);
+	});
 });
 
 describe('Garden Template draft application', () => {
@@ -109,10 +122,10 @@ describe('Garden Template draft application', () => {
 		};
 		const result = await applyTemplateToGardenDraft({
 			templateId: template.id,
-			draft: { id: 'draft', createdAt: 'created' },
+			draft: { id: 'draft', createdAt: 'created', preferredEditor: 'advanced' },
 			currentFields,
 			autosave: { stop: async () => { events.push('stop'); } },
-			drafts: { save: async ({ fields: savedFields }) => { events.push('save'); return { fields: savedFields, createdAt: 'created' }; } },
+			drafts: { save: async (record) => { events.push('save'); return { ...record, createdAt: 'created' }; } },
 			templates: { resolveConfiguration: async () => ({
 				configuration: template.configuration,
 				locationResolution: { fallbackOccurred: false },
@@ -124,17 +137,22 @@ describe('Garden Template draft application', () => {
 			name: 'Template Garden', description: '', locationId: DEFAULT_LOCATION_ID, typeIds: ['indoor'],
 		});
 		expect(result.fields).not.toHaveProperty('layoutMediaId');
+		expect(result).toMatchObject({ sourceTemplateId: template.id, preferredEditor: 'advanced' });
 	});
 
 	it('prevents a pending older autosave from overwriting the applied Template', async () => {
 		let scheduledTimer;
-		const savedValues = [];
-		const save = async ({ fields: savedFields }) => {
-			savedValues.push(savedFields);
-			return { fields: savedFields, createdAt: 'created' };
+		const savedRecords = [];
+		const save = async (record) => {
+			savedRecords.push(record);
+			return { ...record, createdAt: 'created' };
 		};
 		const autosave = createDraftAutosave({
-			write: (value) => save({ fields: value }),
+			write: (value) => save({
+				fields: value,
+				sourceTemplateId: '550e8400-e29b-41d4-a716-446655440009',
+				preferredEditor: 'wizard',
+			}),
 			onStatus: () => {},
 			setTimer: (callback) => { scheduledTimer = callback; return 1; },
 			clearTimer: () => {},
@@ -143,7 +161,7 @@ describe('Garden Template draft application', () => {
 
 		await applyTemplateToGardenDraft({
 			templateId: template.id,
-			draft: { id: 'draft', createdAt: 'created' },
+			draft: { id: 'draft', createdAt: 'created', preferredEditor: 'advanced' },
 			currentFields: { ...fields, name: '' },
 			autosave,
 			drafts: { save },
@@ -154,8 +172,28 @@ describe('Garden Template draft application', () => {
 		});
 		await scheduledTimer();
 
-		expect(savedValues).toHaveLength(1);
-		expect(savedValues[0].name).toBe('Template Garden');
+		expect(savedRecords).toHaveLength(1);
+		expect(savedRecords[0]).toMatchObject({
+			fields: { name: 'Template Garden' },
+			sourceTemplateId: template.id,
+			preferredEditor: 'advanced',
+		});
+	});
+
+	it('clears Template association only after pending autosave stops and keeps every field', async () => {
+		const events = [];
+		const saved = await clearTemplateFromGardenDraft({
+			draft: { id: 'draft', createdAt: 'created', preferredEditor: 'advanced' },
+			currentFields: { ...fields, name: 'Edited after apply', subtitle: 'Keep me' },
+			autosave: { stop: async () => { events.push('stop'); } },
+			drafts: { save: async (record) => { events.push('save'); return record; } },
+		});
+		expect(events).toEqual(['stop', 'save']);
+		expect(saved).toMatchObject({
+			fields: { name: 'Edited after apply', subtitle: 'Keep me' },
+			sourceTemplateId: null,
+			preferredEditor: 'advanced',
+		});
 	});
 
 	it('requires confirmation before replacing entered values and cancellation leaves autosave untouched', async () => {
@@ -208,5 +246,14 @@ describe('Garden Template draft application', () => {
 			.toMatchObject({ fallbackOccurred: false, locationUnavailable: true });
 		expect(resolveTemplateLocationForFinalization(missingFields, locations, { locationId: 'different-location' }))
 			.toMatchObject({ fallbackOccurred: false, locationUnavailable: true });
+	});
+
+	it('rehydrates Location provenance only when the persisted source still matches the draft Location', () => {
+		const draft = { fields, sourceTemplateId: template.id };
+		expect(templateLocationOriginForDraft(draft, [template])).toEqual({ locationId: DEFAULT_LOCATION_ID });
+		expect(templateLocationOriginForDraft({
+			...draft, fields: { ...fields, locationId: 'gardener-location' },
+		}, [template])).toBeNull();
+		expect(templateLocationOriginForDraft(draft, [])).toBeNull();
 	});
 });

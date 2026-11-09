@@ -82,4 +82,61 @@ describe('Garden creation from a saved Template', () => {
 		expect(await drafts.getById(second.id)).toBeNull();
 		expect(await templates.getById(template.id)).toBeNull();
 	});
+
+	it('recovers edited Template context, replaces it, and excludes draft metadata from the final Garden', async () => {
+		const firstSource = await gardens.create({
+			name: 'Garden One', locationId: DEFAULT_LOCATION_ID, typeIds: ['outdoor'],
+		});
+		const secondSource = await gardens.create({
+			name: 'Garden Two', locationId: DEFAULT_LOCATION_ID, typeIds: ['container'],
+		});
+		const firstTemplate = await templates.createFromGarden({ gardenId: firstSource.id, name: 'First Template' });
+		const secondTemplate = await templates.createFromGarden({ gardenId: secondSource.id, name: 'Second Template' });
+		const draft = await drafts.create({ preferredEditor: 'advanced' });
+		const firstApplication = await applyTemplateToGardenDraft({
+			templateId: firstTemplate.id, draft, currentFields: draft.fields,
+			autosave: { stop: async () => {} }, drafts, templates,
+		});
+		await drafts.save({
+			id: draft.id,
+			fields: { ...firstApplication.fields, name: 'Gardener-edited name', subtitle: 'My edit' },
+		});
+
+		storage.close();
+		storage = await initializeDexieStorage({ dependencies });
+		gardens = createGardensService(storage.repositories.gardens, { now: () => CREATED });
+		templates = createGardenTemplatesService(storage.repositories.gardenTemplates, { now: () => CREATED });
+		drafts = createGardenDraftsService(storage.repositories.drafts, { now: () => CREATED });
+		const recovered = await drafts.getById(draft.id);
+		expect(recovered).toMatchObject({
+			fields: { name: 'Gardener-edited name', subtitle: 'My edit' },
+			sourceTemplateId: firstTemplate.id,
+			preferredEditor: 'advanced',
+		});
+
+		const replacement = await applyTemplateToGardenDraft({
+			templateId: secondTemplate.id,
+			draft: recovered,
+			currentFields: recovered.fields,
+			autosave: { stop: async () => {} },
+			drafts,
+			templates,
+			confirmReplacement: () => true,
+		});
+		expect(replacement).toMatchObject({
+			fields: { name: 'Garden Two', subtitle: 'My edit', typeIds: ['container'] },
+			sourceTemplateId: secondTemplate.id,
+			preferredEditor: 'advanced',
+		});
+		expect(await templates.removePermanently(secondTemplate.id)).toBe(true);
+		expect(await drafts.getById(draft.id)).toMatchObject({ sourceTemplateId: secondTemplate.id });
+
+		const garden = await gardens.createFromDraft(
+			gardenInputFromDraftFields(replacement.fields),
+			draft.id,
+		);
+		expect(garden).toMatchObject({ name: 'Garden Two', subtitle: 'My edit', status: 'planned' });
+		expect(garden).not.toHaveProperty('sourceTemplateId');
+		expect(garden).not.toHaveProperty('preferredEditor');
+	});
 });

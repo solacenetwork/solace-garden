@@ -61,7 +61,11 @@ function requireGardenDraft(draft) {
 	if (draft && (draft.kind !== 'garden' || draft.subjectId !== null || draft.isNew !== true)) {
 		throw new ValidationError('WRONG_DRAFT_KIND', 'This is not a new Garden draft.', { field: 'kind' });
 	}
-	return draft;
+	return draft ? {
+		...draft,
+		sourceTemplateId: draft.sourceTemplateId ?? null,
+		preferredEditor: draft.preferredEditor ?? 'wizard',
+	} : null;
 }
 
 export function createGardenDraftsService(repository, {
@@ -69,17 +73,19 @@ export function createGardenDraftsService(repository, {
 	randomUUID = () => globalThis.crypto.randomUUID(),
 } = {}) {
 	return Object.freeze({
-		async create() {
+		async create({ preferredEditor = 'wizard' } = {}) {
 			const timestamp = now();
-			return repository.add({
+			return requireGardenDraft(await repository.add({
 				id: randomUUID(),
 				kind: 'garden',
 				subjectId: null,
 				isNew: true,
 				fields: copyGardenDraftFields(),
+				sourceTemplateId: null,
+				preferredEditor,
 				createdAt: timestamp,
 				updatedAt: timestamp,
-			});
+			}));
 		},
 
 		async getById(id) {
@@ -92,16 +98,24 @@ export function createGardenDraftsService(repository, {
 				.sort((first, second) => second.updatedAt.localeCompare(first.updatedAt));
 		},
 
-		save({ id, fields, createdAt }) {
-			return repository.saveExisting({
+		async save({
+			id,
+			fields,
+			sourceTemplateId,
+			preferredEditor,
+			createdAt,
+		}) {
+			return requireGardenDraft(await repository.saveExisting({
 				id,
 				kind: 'garden',
 				subjectId: null,
 				isNew: true,
 				fields: copyGardenDraftFields(fields),
+				...(sourceTemplateId !== undefined ? { sourceTemplateId } : {}),
+				...(preferredEditor !== undefined ? { preferredEditor } : {}),
 				createdAt: createdAt ?? now(),
 				updatedAt: now(),
-			}, 'garden');
+			}, 'garden'));
 		},
 
 		remove(id) {

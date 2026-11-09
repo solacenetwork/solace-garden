@@ -497,6 +497,10 @@
 	box-shadow: inset 0 0 0 1px var(--sg-color-primary);
 }
 
+.garden-template-choice[role="status"] {
+	grid-template-columns: auto minmax(0, 1fr);
+}
+
 .garden-template-choice > i {
 	color: var(--sg-color-primary);
 	font-size: 1.5rem;
