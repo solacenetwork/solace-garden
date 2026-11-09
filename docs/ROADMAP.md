@@ -152,7 +152,7 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 ### Milestone 8 — Dependency-ordered V1 feature delivery
 
-**Planning status:** Sub-milestones 8A–8C are accepted; **8A Storage Foundations** was accepted November 5, 2026, **8B Notes (including the 8A2 draft-recovery follow-up)** was accepted November 6, 2026, and **8C Tasks and Wish List** was accepted November 6, 2026 after manual browser/PWA testing. **Milestones 8D and 8E are accepted. All eight 8E slices (8E1–8E8) are complete; integrated 8E8 acceptance passed November 8, 2026, including a fresh installed PWA from the HTTPS production deployment. Proceed to 8F Garden Templates.** Review undefined details within later slices before coding. Further sub-milestones (starting at **8G — PlantDB**) will be specified separately after 8A–8F planning. Milestone 9 remains the final integrated readiness gate. Use 8A, 8B, ... 8Z, then 8A1/B1/... if needed; subdivide large deliverables when they cannot be independently tested.
+**Planning status:** Sub-milestones 8A–8C are accepted; **8A Storage Foundations** was accepted November 5, 2026, **8B Notes (including the 8A2 draft-recovery follow-up)** was accepted November 6, 2026, and **8C Tasks and Wish List** was accepted November 6, 2026 after manual browser/PWA testing. **Milestones 8D and 8E are accepted. All eight 8E slices (8E1–8E8) are complete; integrated 8E8 acceptance passed November 8, 2026, including a fresh installed PWA from the HTTPS production deployment. Proceed to 8F Garden Templates.** Review undefined details within later slices before coding. Further sub-milestones (starting at **8G — Cache management and generated build information**, following the post-8F UI Review; then **8H — PlantDB**) will be specified separately after 8A–8F planning. Milestone 9 remains the final integrated readiness gate. Use 8A, 8B, ... 8Z, then 8A1/B1/... if needed; subdivide large deliverables when they cannot be independently tested.
 
 | ID | Scope | Dependencies | Acceptance focus |
 |---|---|---|---|
@@ -233,23 +233,24 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 **Garden Type scope:** Treat types as independent, user-selected descriptions with no required hierarchy or mutual-exclusion rules; save an array of stable IDs. Seed In-Ground, Raised Bed, Container, Greenhouse, Hydroponic, Other, Indoor and Outdoor. **Empty `typeIds: []` is valid** in full forms and editing (not `null`); Quick Start selects In-Ground. Optional user-created type definitions are post-V1 (V2/V3), not part of 8D.
 
-**Later Milestone 8 slices — pending separate planning (stop before PlantDB for now):**
+**Later Milestone 8 slices — pending separate planning:** Complete 8F4 integrated acceptance, then undertake the planned post-8F UI/UX Review before starting 8G. The new 8G cache/build-identification work precedes PlantDB (now 8H); later slices remain candidates until scoped individually.
 
 | Candidate | Workstream / dependency |
 |---|---|
-| **8G** | PlantDB offline selection / versioned reference boundary (after garden creation) |
-| **8H** | Plant groups and manual growing phases (Gardens + PlantDB) |
-| **8I** | Harvest and history (plant groups) |
-| **8J** | Media records, relationships, optimization and Gallery input/viewing (storage; before Journal) |
-| **8K** | Journal with Tiptap and shared Gallery references (media first) |
-| **8L** | Calendar / recurrence / reminders (garden references and event records) |
-| **8M** | Cross-feature search and filtering, including Garden Notes, Notes and historical gardens |
-| **8N** | ZIP export, standalone read-only **Validate Backup** operation (`validate` detailed report / `isValid` yes-no), and staged, validated replace-only restore (all persistent stores and media) |
-| **8O** | Feature integration/accessibility/polish, ahead of Milestone 9 readiness |
+| **8G** | **Cache management and generated build information (after post-8F UI Review):** retain Workbox-managed asset revisions and update-consent behavior; generate `build-info.json` at production build time with app version, Git commit/build ID and build timestamp; precache it for offline inspection. Expose build identity and service-worker/update status (e.g. About → Build Information), and document/verify deployed-vs-running build, waiting/activated worker, offline caching and IndexedDB schema distinctions. Do not introduce a manually incremented cache version or change Dexie schema merely for build tracking. |
+| **8H** | PlantDB offline selection / versioned reference boundary (after garden creation and 8G) |
+| **8I** | Plant groups and manual growing phases (Gardens + PlantDB) |
+| **8J** | Harvest and history (plant groups) |
+| **8K** | Media records, relationships, optimization and Gallery input/viewing (storage; before Journal) |
+| **8L** | Journal with Tiptap and shared Gallery references (media first) |
+| **8M** | Calendar / recurrence / reminders (garden references and event records) |
+| **8N** | Cross-feature search and filtering, including Garden Notes, Notes and historical gardens |
+| **8O** | ZIP export, standalone read-only **Validate Backup** operation (`validate` detailed report / `isValid` yes-no), and staged, validated replace-only restore (all persistent stores and media) |
+| **8P** | Feature integration/accessibility/polish, ahead of Milestone 9 readiness |
 
 **Post-V1 scope rule:** **Only V1 is the current implementation commitment.** All proposed V2 and later features—including potential Laravel API or SQLite data-source adapters around V3/V4—are optional, revisable directions, not guaranteed deliverables or schedules. Do not implement speculative adapters in Milestone 8A.
 
-**Validation layering:** 8A introduces minimal storage-neutral shared record-validation conventions, without building a complete archive scanner. Implement per-entity validators as those features are delivered. In 8N, reuse those rules in a standalone read-only `BackupValidator.validate(file)` report and `BackupValidator.isValid(file)` boolean API, exposed through a **Validate Backup** UI action and shared by import/export checks. Validate ZIP safety/format, record schemas, cross-record references and media integrity; distinguish *archive validity* from device-specific restore feasibility. A validation scan must not write to IndexedDB or change the active pointer.
+**Validation layering:** 8A introduces minimal storage-neutral shared record-validation conventions, without building a complete archive scanner. Implement per-entity validators as those features are delivered. In 8O, reuse those rules in a standalone read-only `BackupValidator.validate(file)` report and `BackupValidator.isValid(file)` boolean API, exposed through a **Validate Backup** UI action and shared by import/export checks. Validate ZIP safety/format, record schemas, cross-record references and media integrity; distinguish *archive validity* from device-specific restore feasibility. A validation scan must not write to IndexedDB or change the active pointer.
 
 **Implementation guardrails:** Keep every sub-milestone independently reviewable, test UI → service → Dexie and persistence across reloads, and apply slice-appropriate basic functional acceptance; reserve exhaustive cross-feature/device end-to-end browser/PWA acceptance for each feature milestone's final integration gate (8E8 for Gardens). Calendar recurrence merits early isolated testing even though complete Calendar is later. Backup manifest/versioning principles begin in 8A, while full ZIP recovery waits until record/media schemas are mature. Garden creation must precede plant groups, media services must precede Journal image integration, and photo-selector/camera behavior belongs to its later media milestone.
 
