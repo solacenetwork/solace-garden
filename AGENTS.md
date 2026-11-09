@@ -20,3 +20,24 @@
 All headless browser processes and temporary development servers launched for testing must have explicit timeouts and reliable cleanup. Use try/finally or equivalent mechanisms to terminate browser instances and their child processes, including when tests fail or are interrupted. Never leave orphaned Chromium/Chrome processes running. Avoid concurrent browser instances unless necessary. Verify that test-owned processes have exited before reporting completion. Do not terminate unrelated user browser sessions.
 
 You should favor lightweight tests over launching Chromium when a browser isn't actually necessary.
+
+### Alpha Development Data Policy
+
+SOLACE projects follow a strict distinction between disposable alpha development data and persistent user data after release.
+
+**During alpha development:**
+- All local test data, including IndexedDB/Dexie records, is expendable.
+- The developer routinely clears browser storage and starts fresh when data contracts change.
+- Do not introduce backward-compatibility code, migrations, legacy defaults, or recovery mechanisms solely to preserve obsolete alpha test data.
+- Implement the current intended data contract directly, removing outdated assumptions and code.
+- Schema version changes are not automatically required when only stored record properties change and IndexedDB stores/indexes remain unchanged.
+- Favor clean, maintainable implementation over compatibility with previous alpha builds.
+
+**After public release:**
+- Treat real user data as persistent and valuable.
+- Plan and version incompatible data/schema changes deliberately.
+- Preserve user data through appropriate migrations and recovery mechanisms.
+
+**Important:** Do not confuse protecting currently valid data during normal operations (autosave, draft recovery, atomic transactions) with supporting obsolete alpha data formats. Operational data integrity remains required, even during alpha.
+
+When discussing or writing Codex prompts, apply this policy automatically unless the developer explicitly overrides it.
