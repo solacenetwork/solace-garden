@@ -9,6 +9,24 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future UI Review: Optional Welcome carousel and startup preference
+
+**Status:** Parked concept from November 9, 2026, for the post-8F UI review. **Not approved for implementation yet.** This proposal would revise the earlier *show Welcome automatically once* behavior described in `GOALS.md` §2.13b and in the page-types parking-lot notes below; reconcile those documents **if** the alternative is adopted.
+
+**Goal:** Help a first-time, nontechnical gardener understand the application and create their first Garden without making the introduction another required chore. Garden should enhance gardening rather than create a new job.
+
+**Possible experience:**
+- Use a short, visual **Bootstrap 6 carousel** (approximately three or four slides) introducing the purpose of Garden in plain language, with an obvious **Create Your First Garden** action leading to the **existing** Garden creation Wizard. Do not build a second onboarding Wizard or force users to complete every slide.
+- Offer visible **Skip Introduction / Go to Gardens** access at any time. Skipping the current visit must not silently change the startup preference.
+- Add **Show Welcome at startup** as an explicit, user-controlled checkbox, initially enabled for a new installation. If enabled, show Welcome on normal future launches; if disabled, open the usual Garden home page. Avoid showing Welcome on direct/deep links to a specific Garden, Note, or other page.
+- Keep Welcome permanently accessible from Help (and perhaps About), regardless of the preference. It remains an **information/support page**, not a primary gardening workspace.
+- Store the preference with existing local UI settings if adopted; no special IndexedDB store or new account mechanism should be required. During alpha, obsolete test preferences don't require migration or compatibility code.
+- Evaluate whether the introduction should differ after the user has created Gardens, and test with people who haven't been taught the interface. Don't assume the user is a beginner simply because they want Welcome displayed.
+
+**Design questions for the UI review:** Does the carousel help or merely delay creation? Is the default checked state appropriate? What is the clearest wording for the checkbox, Skip, and Create actions? Keep the experience useful on a phone and accessible with touch, keyboard, and screen readers.
+
+**Boundary:** A candidate UX change only. Do not alter current Welcome behavior, `GOALS.md`, routes, or application code until the UI review settles the design.
+
 ## Future UI Review (after 8F): Garden-grouped Notes navigation
 
 **Status:** Parked UX concept from November 8, 2026; evaluate during the app-wide post-8F UI sweep, not during 8F3/8F4. No implementation or data-contract change approved yet.
@@ -86,7 +104,7 @@ The `/templates` management page currently prints a full UUID (e.g. `Template ID
 - Review Simple Mode Home's **“More places to explore”** directory: it currently includes every secondary route and therefore also Help/About. Do not present application support pages as gardening workspaces; give them a suitable separate access path.
 - Register dedicated Help/About page components in `src/index.jsx` when their real pages are implemented. At the time of this observation, `src/pages/Help/index.jsx` and `src/pages/About/index.jsx` exist but are not mapped in `pageComponents`, so their routes use the generic placeholder. The Welcome component also exists, but `/welcome` is not registered in `applicationRoutes`. Treat these as unfinished page wiring, not evidence that the informational pages are implemented.
 
-**Welcome is exceptional:** Follow `docs/GOALS.md` §2.13b: `/welcome` is an informational first-run page, not a gardening workspace or mandatory onboarding wizard. Automatically show it once at a normal starting launch with no `welcomeSeen` flag, set that flag when successfully displayed, preserve deep links to other routes, and allow later revisits from Help/About without resetting the flag. Do not place Welcome among the six Simple Mode primary actions; it need not be a regular sidebar destination. Preserve the separately planned optional install guidance.
+**Welcome is exceptional:** Follow `docs/GOALS.md` §2.13b: `/welcome` is an informational first-run page, not a gardening workspace or mandatory onboarding wizard. Automatically show it once at a normal starting launch with no `welcomeSeen` flag, set that flag when successfully displayed, preserve deep links to other routes, and allow later revisits from Help/About without resetting the flag. Do not place Welcome among the six Simple Mode primary actions; it need not be a regular sidebar destination. Preserve the separately planned optional install guidance. **Potential revision:** See the separately parked optional Welcome carousel / Show Welcome at startup proposal above; the one-time behavior here remains the current documented plan unless that proposal is adopted during UI review.
 
 **Timing and boundary:** Revisit alongside the post-8F UI Tweaks/Review pass, with an appropriately scoped implementation decision then. No schema changes, new navigation framework, or acceptance reopening now. Existing 8E8 end-to-end and regression testing proceeds unchanged.
 
