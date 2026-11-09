@@ -61,11 +61,7 @@ function requireGardenDraft(draft) {
 	if (draft && (draft.kind !== 'garden' || draft.subjectId !== null || draft.isNew !== true)) {
 		throw new ValidationError('WRONG_DRAFT_KIND', 'This is not a new Garden draft.', { field: 'kind' });
 	}
-	return draft ? {
-		...draft,
-		sourceTemplateId: draft.sourceTemplateId ?? null,
-		preferredEditor: draft.preferredEditor ?? 'wizard',
-	} : null;
+	return draft;
 }
 
 export function createGardenDraftsService(repository, {

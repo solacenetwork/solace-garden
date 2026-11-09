@@ -96,21 +96,48 @@ describe('Recoverable Garden drafts', () => {
 			sourceTemplateId: SOURCE_TEMPLATE,
 			preferredEditor: 'advanced',
 		});
+		const cleared = await drafts.save({
+			id: created.id,
+			fields: fields({ name: 'Gardener edit' }),
+			sourceTemplateId: null,
+		});
+		expect(cleared).toMatchObject({
+			sourceTemplateId: null,
+			preferredEditor: 'advanced',
+		});
 	});
 
-	it('normalizes legacy Garden drafts without metadata while leaving Note drafts unchanged', async () => {
-		await storage.repositories.drafts.add({
-			id: FIRST_DRAFT,
+	it('rejects new Garden records missing either required context property', async () => {
+		const record = {
+			id: SECOND_DRAFT,
 			kind: 'garden',
 			subjectId: null,
 			isNew: true,
 			fields: fields(),
+			sourceTemplateId: null,
+			preferredEditor: 'wizard',
 			createdAt: CREATED,
 			updatedAt: CREATED,
-		});
-		const legacy = await drafts.getById(FIRST_DRAFT);
-		expect(legacy).toMatchObject({ sourceTemplateId: null, preferredEditor: 'wizard' });
+		};
+		const raw = createGardenDatabase(storage.databaseName, dependencies);
+		await raw.open();
+		try {
+			for (const missingField of ['sourceTemplateId', 'preferredEditor']) {
+				const incomplete = { ...record };
+				delete incomplete[missingField];
+				await expect(storage.repositories.drafts.add(incomplete))
+					.rejects.toMatchObject({ code: 'INVALID_GARDEN_DRAFT_CONTEXT', field: missingField });
+				await raw.table('drafts').put(incomplete);
+				await expect(drafts.getById(incomplete.id))
+					.rejects.toMatchObject({ code: 'INVALID_GARDEN_DRAFT_CONTEXT', field: missingField });
+				await raw.table('drafts').delete(incomplete.id);
+			}
+		} finally {
+			raw.close();
+		}
+	});
 
+	it('keeps Note draft records and validation unchanged', async () => {
 		const note = await notes.save({ id: NOTE_DRAFT, text: 'Note work' });
 		expect(note).not.toHaveProperty('sourceTemplateId');
 		expect(note).not.toHaveProperty('preferredEditor');

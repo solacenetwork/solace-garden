@@ -75,10 +75,16 @@ function validateDraft(draft) {
 			throw new ValidationError('INVALID_GARDEN_DRAFT_IDENTITY', 'Garden drafts must describe a new Garden.');
 		}
 		validateGardenDraftFields(draft.fields);
-		if (Object.hasOwn(draft, 'sourceTemplateId') && draft.sourceTemplateId !== null) {
+		if (!Object.hasOwn(draft, 'sourceTemplateId')) {
+			throw new ValidationError('INVALID_GARDEN_DRAFT_CONTEXT', 'Garden draft sourceTemplateId is required.', { field: 'sourceTemplateId' });
+		}
+		if (draft.sourceTemplateId !== null) {
 			validateRecordId(draft.sourceTemplateId, 'sourceTemplateId');
 		}
-		if (Object.hasOwn(draft, 'preferredEditor') && !['wizard', 'advanced'].includes(draft.preferredEditor)) {
+		if (!Object.hasOwn(draft, 'preferredEditor')) {
+			throw new ValidationError('INVALID_GARDEN_DRAFT_CONTEXT', 'Garden draft preferredEditor is required.', { field: 'preferredEditor' });
+		}
+		if (!['wizard', 'advanced'].includes(draft.preferredEditor)) {
 			throw new ValidationError('INVALID_GARDEN_DRAFT_EDITOR', 'Garden draft editor must be wizard or advanced.', { field: 'preferredEditor' });
 		}
 	}
@@ -87,6 +93,12 @@ function validateDraft(draft) {
 			throw new ValidationError('INVALID_DRAFT_TIMESTAMP', `${field} is required.`, { field });
 		}
 	}
+}
+
+function validatedCopyRecord(record) {
+	if (!record) return null;
+	validateDraft(record);
+	return copyRecord(record);
 }
 
 function storageFailure(operation, error) {
@@ -103,7 +115,7 @@ export function createDraftsRepository(database) {
 		async getById(id) {
 			validateRecordId(id, 'draftId');
 			try {
-				return copyRecord(await table.get(id));
+				return validatedCopyRecord(await table.get(id));
 			} catch (error) {
 				storageFailure('get draft', error);
 			}
@@ -112,7 +124,7 @@ export function createDraftsRepository(database) {
 		async getForSubject(kind, subjectId) {
 			validateRecordId(subjectId, 'subjectId');
 			try {
-				return copyRecord(await table.where('[kind+subjectId]').equals([kind, subjectId]).first());
+				return validatedCopyRecord(await table.where('[kind+subjectId]').equals([kind, subjectId]).first());
 			} catch (error) {
 				storageFailure('get subject draft', error);
 			}
@@ -120,7 +132,7 @@ export function createDraftsRepository(database) {
 
 		async listByKind(kind) {
 			try {
-				return (await table.where('kind').equals(kind).toArray()).map(copyRecord);
+				return (await table.where('kind').equals(kind).toArray()).map(validatedCopyRecord);
 			} catch (error) {
 				storageFailure('list drafts', error);
 			}
@@ -167,7 +179,7 @@ export function createDraftsRepository(database) {
 		},
 
 		async saveExisting(draft, expectedKind) {
-			validateDraft(draft);
+			validateRecordId(draft?.id, 'draftId');
 			try {
 				return await database.transaction('rw', table, async () => {
 					const existing = await table.get(draft.id);
@@ -181,6 +193,7 @@ export function createDraftsRepository(database) {
 						...preserveGardenDraftContext(draft, existing),
 						createdAt: existing.createdAt,
 					});
+					validateDraft(saved);
 					await table.put(saved);
 					return copyRecord(saved);
 				});
