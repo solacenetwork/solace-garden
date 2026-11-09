@@ -11,6 +11,7 @@ export function GardenTemplateSelection({
 	state,
 	references,
 	selectedId,
+	sourceTemplateId = null,
 	onSelect,
 	onApply,
 	onRetry,
@@ -66,6 +67,7 @@ export function GardenTemplateSelection({
 						<i class="bi bi-file-earmark-text" aria-hidden="true"></i>
 						<span>
 							<strong>{template.name}</strong>
+							{template.id === sourceTemplateId && <small>Applied</small>}
 							<small>Suggested Garden: {template.configuration.name}</small>
 							<small>{templateContext(template, references)}</small>
 						</span>
@@ -73,7 +75,7 @@ export function GardenTemplateSelection({
 				))}
 			</fieldset>
 
-			{selectedTemplateAvailable && <div class="garden-template-selection__apply">
+			{selectedTemplateAvailable && selectedId !== sourceTemplateId && <div class="garden-template-selection__apply">
 				<button class="btn-solid theme-primary" type="button" disabled={busy} onClick={onApply}>
 					<i class="bi bi-copy" aria-hidden="true"></i>{busy ? 'Applying…' : applyLabel}
 				</button>

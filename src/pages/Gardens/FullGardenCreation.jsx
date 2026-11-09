@@ -470,15 +470,15 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 			<form class="garden-full-create__form" noValidate onSubmit={createGarden}>
 				{mode === 'wizard' ? <>
 					<GardenStepper stage={stage} />
-					{stage === 0 && <GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="wizard-garden" applyLabel="Apply Template and Continue" />}
+					{stage === 0 && <GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} sourceTemplateId={sourceTemplateIdRef.current} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="wizard-garden" applyLabel="Apply Template and Continue" />}
 					{stage === 1 && <section class="garden-wizard__stage" aria-labelledby="details-stage-title"><h2 id="details-stage-title">Garden details</h2><GardenFields fields={fields} errors={errors} locations={currentReferences.locations} types={currentReferences.types} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>}
 					{stage === 2 && <section class="garden-wizard__stage"><GardenReview fields={fields} locations={currentReferences.locations} types={currentReferences.types} /></section>}
 					<div class="garden-full-create__actions">
 						<button class="btn-outline" type="button" disabled={busy} onClick={() => stage === 0 ? navigatePreservingDraft('/gardens') : setStage((value) => value - 1)}>{stage === 0 ? 'Back to Gardens' : 'Back'}</button>
-						{stage < 2 ? <button class="btn-solid theme-primary" type="button" disabled={busy || (stage === 0 && selectedTemplateId !== null)} onClick={() => stage === 1 ? review() : setStage(1)}>Continue</button> : <button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button>}
+						{stage < 2 ? <button class="btn-solid theme-primary" type="button" disabled={busy || (stage === 0 && selectedTemplateId !== null && selectedTemplateId !== sourceTemplateIdRef.current)} onClick={() => stage === 1 ? review() : setStage(1)}>Continue</button> : <button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button>}
 					</div>
 				</> : <>
-					<GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="advanced-garden" />
+					<GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} sourceTemplateId={sourceTemplateIdRef.current} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="advanced-garden" />
 					<section aria-labelledby="advanced-details-title"><h2 id="advanced-details-title">Garden details</h2><GardenFields fields={fields} errors={errors} locations={currentReferences.locations} types={currentReferences.types} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>
 					<div class="garden-full-create__actions"><button class="btn-outline" type="button" disabled={busy} onClick={() => navigatePreservingDraft('/gardens')}>Back to Gardens</button><button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button></div>
 				</>}
