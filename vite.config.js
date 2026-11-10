@@ -45,6 +45,9 @@ export const pwaOptions = {
       'assets/temp/**/*',
     ],
     navigateFallback: 'index.html',
+    navigateFallbackDenylist: [
+      /^\/sg(?:\/|$|\?)/,
+    ],
     runtimeCaching: [],
     cleanupOutdatedCaches: true,
     skipWaiting: false,
