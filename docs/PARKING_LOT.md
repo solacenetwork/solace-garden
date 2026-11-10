@@ -9,6 +9,17 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future candidate: External support and knowledge base
+
+**Status:** Parked idea (November 2026), not a V1 launch requirement or committed platform choice.
+
+- Keep the Garden PWA focused on gardening and offline use. Retain brief, essential in-app help (especially backup/restore and other tasks users may need while offline), while putting longer tutorials, FAQs, troubleshooting, and support contact/tickets on a separately maintained support website.
+- Explore an external knowledge-base/helpdesk system such as **HESK** (candidate only), potentially hosted at `https://garden.solace.network/support` (illustrative path, not a deployed endpoint). Check Apache routing and SPA rewrite exclusions if it shares the Garden host; keep support availability independent of the PWA's offline operation.
+- Possible knowledge-base categories: Getting Started; Using Garden; Privacy and Sharing; Troubleshooting; Contact Support.
+- Include **photo-sharing privacy guidance** in the external documentation: simple staged/stock *safer versus risky* example images (e.g. close-up plant versus photo with identifiable sign/building); background landmarks and visible text; EXIF/GPS metadata; using device tools to crop or fully cover sensitive details; links to up-to-date Apple, Google, and other trusted instructions. Don't build a photo editor or an EXIF inspection UI into Garden. Keep any future public-image metadata stripping verification in the separate sharing/privacy planning notes.
+- Store development screenshots and visual reference material in `docs/pics/` as appropriate, but keep documentation examples and other development-only assets out of the production PWA bundle. Review/remove disposable development material from the V1 production distribution; externally hosted support content can be maintained separately.
+- Consider an app-specific support site now and a consistent support strategy across SOLACE applications later, without requiring a single shared helpdesk from the outset.
+
 ## Post-V2 candidate: Household Garden publishing and read-only sharing
 
 **Status:** Concept from November 2026; not part of V1, and **not a V2 launch requirement**. First establish authenticated online access at `garden.solace.network`; define publishing and sharing after that foundation exists. Precise release/version sequencing remains undecided.
