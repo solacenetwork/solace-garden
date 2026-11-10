@@ -283,6 +283,7 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 - [ ] Complete portable ZIP backup and staged, validated **replace-only** restore; test failures, quotas, media size, rollback and fresh-device import.
 - [ ] Verify PWA installation/offline launch, local data persistence, bundled PlantDB availability, and operation without any account, remote API or sync connection.
 - [ ] Review keyboard/touch accessibility, unsaved-change safeguards, and practical garden use before declaring MVP ready.
+- [ ] **Remove temporary `/sg/` observation collector routing exclusions before the V1 production/beta launch:** remove the `/sg/` `navigateFallbackDenylist` entry from `vite.config.js` (Workbox) and the `^sg` exclusion rule from the production root `.htaccess`. Confirm the temporary `/sg/` testing tool is no longer deployed, then rebuild/redeploy, activate the updated service worker, and verify Garden's SPA routes and offline navigation still work.
 
 **Done when:** A gardener can install the PWA, manage gardens and their records offline, and manually export/restore a complete portable backup.
 
