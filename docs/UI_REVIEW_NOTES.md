@@ -81,6 +81,14 @@ The categories below collect issues and ideas previously discussed during Garden
 - Treat Welcome as a lightweight, once-shown informational page, not a mandatory onboarding wizard or primary workspace; review its page wiring and later revisit access.
 - Consider where Help, About, Settings, Search and Templates should live without forcing every route into primary navigation.
 
+**Historical UI reference and navigation ideas (November 2026; evaluation only)**
+- The earlier vanilla-JS Garden put **workspaces** in a compact left sidebar, while the top toolbar exposed **persistent, app-wide tools** (including list/Notes/Journal/Calendar shortcuts) from any workspace. That division kept the left navigation shorter and reduced scrolling. In the current Garden, Tasks, Notes, and Wish List are relevant examples of app-wide tools even if their full views remain workspace routes.
+- Consider a **More / ellipsis menu** for standalone Help, About, Settings, and Welcome destinations rather than giving all of them permanent toolbar positions. App-wide access is a **navigation placement**, not necessarily a route type or a new data model.
+- Evaluate a global **Add New** shortcut for common actions and contextual lists/search/navigation inside an active workspace, without duplicating services or assuming each tool must appear as a separate full page.
+- Preserve a recognizable application shell and consistent movement between workspaces while avoiding the old heavy borders, bright boxed controls, and simulated desktop window chrome. The older SOLACE Menu's responsive large tiles are a layout reference, not a mandate to recreate the old styling.
+- Compare these possibilities with actual phone, tablet, and desktop observation reports before choosing a redesign. Preserve existing Simple/Standard modes and shared routes; no new shell framework is approved.
+- **Image references:** Historical screenshots and later comparison images may be placed in `docs/pics/` (user-managed). Treat them as development/design reference assets, not runtime PWA content. Before the V1 production release, review and remove development-only screenshots/reference assets from the production distribution; retain or archive planning history separately as appropriate. Do not have application builds package `docs/pics/`.
+
 ### 6. Cards, lists, and information display
 
 **Observed friction**
