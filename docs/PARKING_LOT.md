@@ -9,6 +9,30 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Post-V2 candidate: Household Garden publishing and read-only sharing
+
+**Status:** Concept from November 2026; not part of V1, and **not a V2 launch requirement**. First establish authenticated online access at `garden.solace.network`; define publishing and sharing after that foundation exists. Precise release/version sequencing remains undecided.
+
+**Ownership and participants**
+- The Garden dataset belongs to a **Household ID (HID)**, not separate gardener profiles or per-member records. Authorized household members may use and edit the same Garden database, locally or through future authenticated remote access. Household membership is independent of where a member lives (for example, a student away at college); access policy is supplied by SOLACE identity services rather than location checks.
+- Non-household recipients—public visitors and explicitly invited, authenticated friends, relatives, or neighboring households—receive **read-only** access to permitted content. External sharing never grants editing rights or ownership. Authentication does not by itself authorize access to a household's data.
+
+**Public gardening knowledge, not personal profiles**
+- A household could opt to publish selected plant varieties, growing methods, dates, harvest information, photos, and public journal entries, possibly via RSS or other feeds. The subject is the gardening knowledge, not the household's members or street address.
+- A changeable public display name such as “Sally's Garden” is independent of the internal HID and of stable opaque public URLs/identifiers. Private records, household identity, mailing address, precise coordinates, private journals, tasks, and wishlist content remain undisclosed unless separately and deliberately authorized for a sharing context.
+
+**Graduated location disclosure**
+- Internal Locations may eventually hold optional addresses or GPS coordinates for weather, rainfall, frost alerts, growing guidance, etc. Such internal data is not automatically published; external weather providers receiving coordinates is a separate privacy consideration.
+- Consider opt-in public location precision: **hidden → country → broad region → state → town/city → exact coordinates**. An explicit exact-location exception may be useful for a community garden. Visibility choices can differ between public and invited audiences and perhaps by Garden or published item.
+- Inspect published photos/media metadata and text for location leakage; preview the recipient-visible result before enabling sharing. Broad locations may still reveal information in small communities.
+
+**Sharing management (hypothetical UI)**
+- A central **Sharing** page could list recipients, invite authenticated contacts, inspect what each may view, adjust read-only scopes, and revoke access. An individual Garden could provide a reciprocal view of who can see it. Both manage one authorization model, not duplicate permissions.
+- Keep all publication **private by default**. A shared view is server-enforced read-only; revocation prevents future authorized access, but cannot retract already downloaded information. Cross-household editing, collaborative conflict resolution, personal activity feeds, and a conventional social-profile system are outside this concept.
+- Household-to-household identity relationships and member transitions are governed by the organization-level `IDENTITY_AND_GOVERNANCE.md`, not by Garden's own profile system.
+
+**Future dependency:** Hosted authorization and publishing require explicit server-side privacy enforcement and tested data-provider boundaries. V3 two-way synchronization and conflict resolution are separate from the read-only sharing model; do not build either as part of the current UI review.
+
 ## V1.5 developer testing and regression hardening — Playwright
 
 **Status:** Planned post-V1, pre-V2 development/QA phase (November 9, 2026). **Not a V1 release blocker or end-user feature.** The V1.5 label identifies an internal engineering checkpoint; decide release/version tagging when the work is scoped.
