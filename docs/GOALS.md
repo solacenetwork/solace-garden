@@ -311,6 +311,12 @@ These are **future directions, not v1 commitments**; version numbers are illustr
 - **Later hosting options:** SOLACE household devices (SHD) and SOS, potentially with household disks or Nextcloud, as alternatives to centralized storage.
 - **Journal/public features:** opt-in publishing, RSS, video/media embeds, and community functionality if justified.
 
+### Household ownership and future online identity (long-term direction)
+
+SOLACE Garden is intended to be a **shared household gardening application**. When integrated with SOLACE identity services, one HID owns the complete Garden dataset. Authorized household members use the same Gardens and may edit records without Garden requiring individual gardener profiles, per-MID ownership, or tracking who performed routine gardening actions. Household membership—not the member's physical proximity to the garden—determines eligibility for future authenticated remote access.
+
+This does **not** add an account or HID requirement to the V1 standalone PWA. V2's priority is hosted/authenticated access; later two-way sync must define conflict handling before implementation. Optional **post-V2** public plant/journal publishing, graduated location privacy, and invited **read-only** sharing belong to the [Parking Lot](PARKING_LOT.md) until scoped. Household identity linking and permissions are governed by the organization-level [Identity and Governance](https://github.com/solacenetwork/.github/blob/main/docs/IDENTITY_AND_GOVERNANCE.md) document. Keep private physical location data and public presentation choices separate.
+
 ## 4. Initial Data Handling
 
 **Approved v1 direction:** Garden should work local-first, including offline access to locally held records, Journal content, lists, and imported media. Browser-managed storage (likely IndexedDB) will hold application data. A portable ZIP export/restore provides user-controlled backup without mandatory hosting or cloud accounts.
