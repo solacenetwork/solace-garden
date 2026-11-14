@@ -50,7 +50,7 @@ This document is the **single consolidated design specification** for the UI red
 
 **Favored, not yet final:** main sidebar centered on Gardens, PlantDB, Gallery; global access to Tasks, Notes, Wish List, Calendar; a More menu for Help/About/Welcome and potentially Settings; global Add New in the top navbar (now approved); Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
 
-**Still open:** Home dashboard versus Gardens as startup view; precise toolbar membership and overflow; Settings gear versus More; whether global Add New includes New Journal Entry; Search field versus icon on phones; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
+**Still open:** Home dashboard versus Gardens as startup view; precise toolbar membership and overflow; Settings gear versus More; whether global Add New includes New Journal Entry; Search availability before the later Search feature milestone; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
 
 **Conflict to settle rather than silently rewrite:** the existing GOALS/TECH_SPEC first-run Welcome behavior is an informational page shown once; PARKING_LOT explores an optional carousel and show-at-startup preference. The current requirement remains in force until deliberately revised.
 
@@ -91,13 +91,26 @@ A full Notes page or Calendar page may still be reached from the global toolbar.
 ### Approved navbar additions and responsive branding (November 14, 2026)
 
 **Approved:**
-- **Search** is a global top-navbar entry point, reachable from any major view in both interface modes. The earlier test proposal to accept a query in the navbar and display results at `/search?q=...` remains a **candidate interaction**; the cross-feature search engine belongs to its later scheduled milestone.
+- **Search** is a global top-navbar entry point, reachable from any major view in both interface modes. The approved responsive search pattern and planned query-to-results behavior are detailed below. The underlying cross-feature search engine belongs to its later scheduled milestone.
 - On **small/narrow screens**, hide the long **“SOLACE Garden” text SVG/wordmark** and retain the recognizable **logo icon** as the brand/home affordance. Wider presentations may show the full wordmark. Choose the actual threshold after measuring the available header space; keep an accessible app name on the icon-only link.
 - **Bootstrap 6 Nav overflow (Priority+)** is the favored responsive solution for handling navbar items that no longer fit. See [Bootstrap 6 Nav overflow](https://getbootstrap.com/docs/6.0/components/nav-overflow/). The component moves overflowed navigation items into a generated **More** menu based on *container width*, with `.nav-overflow` and `data-bs-toggle="nav-overflow"`. Confirm behavior against the exact pinned Bootstrap 6 alpha package before implementing.
 
 **Approved:** Show **exactly one More menu item** in the navbar. It must serve both as access to lower-priority global tools that do not fit and to supporting destinations such as Help/About/Welcome (final membership still pending). Do not render a separate overflow More alongside another support More. Assess whether the pinned Bootstrap 6 Nav overflow supports combining deliberate menu items with dynamically overflowed actions; if not, implement one coordinated menu without duplicate More triggers. The exact technical approach is still open. Bootstrap 6's [Menu component](https://getbootstrap.com/docs/6.0/components/menus/) and [Nav overflow](https://getbootstrap.com/docs/6.0/components/nav-overflow/) have different APIs.
 
-**Approved visibility priority:** Keep **Add New (+)** and **Search** directly visible in the narrow-screen navbar; other global tools may move into the **single More** menu as width requires. **Still open:** Search input versus icon on wider screens; Search's interim behavior until its results feature exists; priority/order of other tools; precise More membership and Settings placement; brand breakpoint.
+**Approved visibility priority:** Keep **Add New (+)** and **Search** directly visible in the narrow-screen navbar; other global tools may move into the **single More** menu as width requires. **Still open:** Search's interim behavior until its results feature exists; priority/order of other tools; precise More membership and Settings placement; brand breakpoint.
+
+### Approved responsive search presentation (November 14, 2026)
+
+**Decision:** Use **one global Search feature** in the persistent navbar with two responsive presentations, in both interface modes:
+
+- **Wide screens:** Show a directly usable inline text query field in the navbar.
+- **Narrow screens:** Show a persistent Search icon next to the other high-priority actions. Activating it reveals a **full-width search field in a panel immediately below the navbar** (not a tiny floating menu or a permanently squeezed input).
+- Narrow-screen branding uses the logo without the long text wordmark, freeing horizontal space. Keep the **Add New (+)**, **Search**, and the **single More** trigger accessible.
+- Submitting with Enter or an explicit Search button should use the same query workflow and display results through `/search?q=...`. This is an approved **target interaction**, not a claim that cross-feature Search is already built. Keep implementation aligned with the later Search milestone.
+- The narrow panel must be dismissible via Close and Escape, with sensible keyboard focus and touch targets. Opening and closing it must not navigate away, silently discard edits, or interfere with the current page.
+- Do not add live/type-ahead suggestions as part of this UI redesign. They can be evaluated after basic offline Search works.
+
+**Implementation details still to verify:** Use available navbar width rather than assuming all tablets can display an input; choose the responsive threshold against actual toolbar contents and tested devices. Prefer Bootstrap 6 and a small shared Preact component. Define exact focus restoration, panel dismissal, and the harmless interim UI before the scheduled Search feature is implemented. The responsive Search control is the **same action** in either presentation, not two separate search services.
 
 ### Approved shell behavior — persistent navbar (November 14, 2026)
 
@@ -138,7 +151,7 @@ The Standard Mode “About this workspace” panel should not be shown indiscrim
 | Calendar | Global toolbar candidate | `/calendar` | Placement in Simple Home |
 | Notes | Global toolbar candidate, complete page | `/notes` and editor routes | Grouped Notes navigation within page |
 | Tasks / Wish List | Global toolbar or a shared Lists overview | `/tasks`, `/wishlist` | Combined `/lists` candidate; distinct views remain accessible |
-| Search | **Global top navbar (approved)** | `/search` | Header input vs icon and `/search?q=...` results interaction remain to design |
+| Search | **Global top navbar (approved): inline query on wide screens; icon-triggered panel below navbar on narrow screens** | `/search` | Target result URL `/search?q=...`; actual search engine remains later milestone |
 | Locations | Settings → Geographic Locations | `/locations` | No need for top-level sidebar link |
 | Settings | Header gear **or** More menu | `/settings` with return context | Avoid confusing simultaneous sidebar + gear access |
 | Help / About / Welcome | More/support; Welcome revisitable | Existing/planned routes | First-run Welcome behavior vs parked optional carousel |
@@ -184,7 +197,7 @@ This table records **candidates**, not a mandate to show all listed items at onc
 
 **Lists:** consider a combined `/lists` dashboard for Tasks and Wish List with separate Add controls; keep current `/tasks` and `/wishlist` access and underlying shared data.
 
-**Search:** global navbar entry point is approved; evaluate header search field/action that navigates to `/search?q=...`; defer actual cross-feature search behavior to its scheduled milestone unless scope is explicitly changed. Query parameters should be treated as input, not authority to perform writes.
+**Search:** approved responsive navbar input (wide) or icon-triggered panel (narrow) with a shared submit action targeting `/search?q=...`; defer actual cross-feature search behavior to its scheduled milestone unless scope is explicitly changed. Query parameters should be treated as input, not authority to perform writes.
 
 ### F. Responsive polish and UI feedback
 
@@ -194,7 +207,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 - [ ] Choose default landing experience: Home dashboard or Gardens hub; specify Simple and Standard behavior.
 - [ ] Approve the final desktop sidebar destinations and order.
-- [x] Approve top-navbar placement for global Search (presentation still open).
+- [x] Approve top-navbar placement and responsive presentation for global Search: inline input on wide screens; icon-triggered below-navbar field on narrow screens.
 - [x] Approve icon-only brand on narrow screens, with full wordmark on wider screens (threshold still open).
 - [x] Keep Add New (+) and Search directly visible at narrow widths, with **one** More navbar item collecting overflow/support destinations.
 - [ ] Approve the remaining toolbar tools/actions, ordering, and single-menu composition.
@@ -235,6 +248,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
+| 2026-11-14 | **Approved** | Search uses an inline navbar input on wide screens and an icon-triggered search panel below the navbar on narrow screens; Enter/Search targets `/search?q=...` once results exist. |
 | 2026-11-14 | **Approved** | Use only one navbar More menu; on narrow screens keep Add New and Search visible while lower-priority tools move into that menu as needed. Exact menu mechanism and membership remain open. |
 | 2026-11-14 | **Approved** | Global Search belongs in the persistent navbar; small-screen branding uses icon only instead of the full wordmark. Bootstrap 6 Nav overflow is favored pending pinned-version testing. |
 | 2026-11-14 | **Approved** | Global Add New (+) belongs in the persistent top navbar, not the sidebar; its submenu contents remain open. |
