@@ -50,9 +50,9 @@ This document is the **single consolidated design specification** for the UI red
 
 **Favored, not yet final:** primary sidebar ordered **Gardens → Journal → Gallery → PlantDB** (approved), with no separate Home item; global toolbar tools **Tasks → Notes → Wish List → Calendar** (approved order); a More menu for **Help, About, and Settings (approved)**, with Welcome linked from Help; global Add New in the top navbar (now approved); Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
 
-**Still open:** what the logo-linked `/` landing view actually shows (Home dashboard versus Gardens); responsive toolbar overflow priority (membership/order of the four app-wide tools is approved); whether global Add New includes New Journal Entry; Search availability before the later Search feature milestone; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
+**Approved direction:** the logo-linked Home route presents an **overview dashboard**, not the Gardens hub. **Still open:** the precise Home cards, order, and Simple/Standard layouts; responsive toolbar overflow priority (membership/order of the four app-wide tools is approved); whether global Add New includes New Journal Entry; Search availability before the later Search feature milestone; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
 
-**Conflict to settle rather than silently rewrite:** the existing GOALS/TECH_SPEC first-run Welcome behavior is an informational page shown once; PARKING_LOT explores an optional carousel and show-at-startup preference. The current requirement remains in force until deliberately revised.
+**Welcome behavior to reconcile deliberately:** the historical JavaScript design displayed Welcome first and included a “Display this screen” preference; after users disabled it, normal startup went to the Home overview. The *current confirmed V1 contract* in [GOALS.md](GOALS.md) §2.13b is different: automatically show informational `/welcome` **once per browser/device** at normal startup, set `welcomeSeen` on first successful display, and use Home on later launches without needing a checkbox. Preserve that V1 contract until a separate decision explicitly restores an ongoing show-at-startup toggle. Do not silently introduce another persistence flag or contradict first-run/deep-link safeguards.
 
 ---
 
@@ -120,7 +120,7 @@ A full Notes page or Calendar page may still be reached from the global toolbar.
 
 **Approved addition:** The global **Add New (+)** action belongs in the top navbar in both modes, using the approved responsive navbar presentation. It is an action menu, not a primary workspace or sidebar destination. Its menu entries and interactions remain to be designed.
 
-**Approved Home access:** The SOLACE logo is the sole Home navigation affordance in the navbar on both wide and narrow screens. There is **no separate Home button or sidebar entry**. Preserve the `/` route; the content shown there remains to be designed.
+**Approved Home access:** The SOLACE logo is the sole Home navigation affordance in the navbar on both wide and narrow screens. There is **no separate Home button or sidebar entry**. The `/` route is the **Home overview dashboard**; exact responsive composition remains to be designed.
 
 **Not yet decided:** Exact icon artwork and what is always visible versus placed in overflow, the remaining contents of More, and precise breakpoint/layout behavior. Do not treat the earlier candidate toolbar membership as approved.
 
@@ -142,7 +142,7 @@ The Standard Mode “About this workspace” panel should not be shown indiscrim
 
 | Destination / action | Candidate placement | Keep URL / behavior | Open question |
 | --- | --- | --- | --- |
-| Home | **SOLACE navbar logo only (approved)**; no additional Home button or sidebar item | `/` | Landing content (dashboard vs Gardens) remains open |
+| Home | **SOLACE navbar logo only (approved)**; no additional Home button or sidebar item | `/` | Overview dashboard; exact cards/layout remain open |
 | Gardens | **Primary sidebar position 1 (approved)**; first Simple Home card candidate | `/gardens` | Hub layout and categories |
 | Current / Planned / Drafts / Previous | Within Gardens | Existing Gardens service/records | Tabs, rails, filtered routes, or hybrid |
 | Templates | Under Gardens, not global top-level | `/templates` | Contextual menu vs hub link |
@@ -171,6 +171,14 @@ This table records **candidates**, not a mandate to show all listed items at onc
 **Evaluate:** slim Standard sidebar; persistent top toolbar; More menu; global Add New; search affordance; `.container` versus `.container-fluid` for header (retain deliberate responsive padding); active location and keyboard/focus semantics. Decide exactly where every destination goes before changing source.
 
 **Open:** which tools deserve persistent top-level emphasis (Journal remains a primary workspace, not a permanent toolbar tool); whether Add New offers New Journal Entry; how Simple Home relates to Standard Home; whether Welcome appears automatically under the existing V1 rule or an approved revision.
+
+### Approved Home overview and historical first-run entry
+
+**Home is a dashboard, not a sidebar item or a shortcut to Gardens.** The navbar logo navigates to the Home overview at `/`. The historical Home screen gave an at-a-glance view of **Current Gardens, Tasks, Wish List, Gallery, and Previous Gardens**. Preserve those five categories as the *starting content inventory* for redesign; exact card layout, information density, relative ordering, and differences between Simple and Standard Mode remain to be designed. Use concise summaries and direct links to the corresponding workspaces; do not duplicate entire workspaces in the dashboard.
+
+**Historical first-run sequence:** First launch displayed Welcome with a **“Display this screen”** option; after opting out, future launches defaulted to Home. This describes the **old JavaScript design**, not a change already authorized to the current V1 requirement. [GOALS.md](GOALS.md) §2.13b currently requires informational Welcome **once** on first normal startup, storing `welcomeSeen` on first display, followed by Home on future normal launches; direct links are not interrupted. An optional persistent show-on-start preference is a separate **open design decision** and must not be implemented implicitly.
+
+**Design questions still open:** How much of each summary to show, where to place actions to continue a draft, how empty states behave, and whether the historical Welcome checkbox should replace the confirmed one-time V1 approach. Home should remain accessible through the logo regardless of Welcome settings.
 
 ### B. Gardens hub, discovery, and lifecycle
 
@@ -209,7 +217,9 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 ## 8. Design decisions to settle before Codex implementation
 
 - [x] Use only the navbar SOLACE logo to navigate Home (`/`); no separate Home button or sidebar item.
-- [ ] Choose what the logo-linked landing route (`/`) displays in Simple and Standard Mode.
+- [x] Approve the logo-linked Home (`/`) as an overview dashboard: Current Gardens, Tasks, Wish List, Gallery, Previous Gardens (historical content inventory).
+- [ ] Design Home dashboard summaries and responsive layouts for Simple and Standard Mode.
+- [ ] Decide whether to restore historical Welcome “Display this screen” preference or retain current confirmed V1 one-time Welcome behavior; do not change GOALS.md implicitly.
 - [x] Approve primary sidebar destinations and order: **Gardens, Journal, Gallery, PlantDB** (PlantDB last).
 - [x] Approve top-navbar placement and responsive presentation for global Search: inline input on wide screens; icon-triggered below-navbar field on narrow screens.
 - [x] Approve icon-only brand on narrow screens, with full wordmark on wider screens (threshold still open).
@@ -255,7 +265,8 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
-| 2026-11-14 | **Approved** | Home is accessed exclusively through the SOLACE logo in the navbar; no standalone Home button. Primary sidebar order is Gardens, Journal, Gallery, PlantDB, with PlantDB last. The `/` landing content is still open. |
+| 2026-11-14 | **Approved direction** | Home (`/`) is an overview dashboard with Current Gardens, Tasks, Wish List, Gallery, and Previous Gardens. Historical Welcome had a “Display this screen” opt-out; current V1 spec instead shows Welcome once, then Home. Whether to restore the preference remains open. |
+| 2026-11-14 | **Approved** | Home is accessed exclusively through the SOLACE logo in the navbar; no standalone Home button. Primary sidebar order is Gardens, Journal, Gallery, PlantDB, with PlantDB last. |
 | 2026-11-14 | **Approved** | The four app-wide navbar tools appear in this order: Tasks, Notes, Wish List, Calendar. Their responsive overflow behavior remains to be designed. |
 | 2026-11-14 | **Approved** | Help and About belong in the single navbar More menu; Welcome is accessible from Help rather than appearing in More. Preserve existing first-run Welcome requirements unless separately revised. |
 | 2026-11-14 | **Approved** | Settings appears exclusively inside the one navbar More menu, with no permanent gear icon or Standard sidebar entry; preserve the Settings route and return/Close behavior. |
@@ -267,7 +278,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 | 2026-11-14 | **Approved** | Keep the top navbar in both Simple and Standard Mode, adapting its presentation responsively; membership and breakpoints remain open. |
 | 2026-11-14 | Proposed | Separate routing from navigation placement; keep `preact-iso` and current functional services. |
 | 2026-11-14 | Proposed | Use historical three-layer concept: global toolbar, concise main navigation, contextual navigation; More for secondary/support links. |
-| 2026-11-14 | Open | landing-route content, responsive toolbar presentation, Add New submenu contents, and screen-specific layouts. |
+| 2026-11-14 | Open | dashboard composition and Welcome preference, responsive toolbar presentation, Add New submenu contents, and screen-specific layouts. |
 | 2026-11-14 | Open | Gardens hub, creation methods, grouped Notes, Lists overview, and future Search entry behavior. |
 
 **Next design session:** Agree on a destination map for Standard Mode and Simple Mode, then translate it into annotated shell layouts. Do not treat this working proposal as an approved Codex prompt.
