@@ -299,17 +299,17 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 - [ ] Test IndexedDB persistence, offline startup, library compatibility and regression coverage incrementally; add deeper Gallery, Calendar and backup stress tests when those features exist.
 - [ ] Treat findings as reasons to revise mockups, component boundaries or implementation order rather than as blockers requiring the entire UI to be frozen.
 
-### V1 first-run Welcome page — planned
+### V1 Welcome page and startup preference — planned
 
 **Status:** Agreed behavior; implementation and acceptance testing pending. Schedule within the V1 UI/navigation work before public beta; do not mark earlier milestones incomplete retroactively.
 
 - [ ] Add a normal `/welcome` route with informational beta messaging, local-data/backup explanation, concise getting-started directions, and documentation/GitHub issue links. Do not present garden creation as already implemented.
-- [ ] On a normal first launch with no `welcomeSeen` preference, show Welcome once and persist the flag after successful display, without requiring a button click.
+- [ ] Include a **Show Welcome at startup** checkbox, enabled by default on fresh installations; when enabled normal launches show Welcome, and when disabled they open the Home overview (`/`). Persist this preference in existing local UI settings, without the obsolete one-time `welcomeSeen` startup rule. Skip/Go to Gardens or viewing Welcome must not silently change it.
 - [ ] Preserve ordinary app navigation; do not override deep links or make Welcome a prerequisite for garden creation.
-- [ ] Provide a Help/About path to reopen Welcome; reopening must not reset first-run state.
+- [ ] Provide a **Help page link** to reopen Welcome at any time, without changing the startup preference. Retain full-page `/welcome`, with visible Skip / Go to Gardens. The optional short Bootstrap 6 carousel remains subject to design approval.
 - [ ] **V1 in-app installation:** Add an optional Install SOLACE Garden action in Help/About, linked or explained briefly from Welcome. Follow the working `beforeinstallprompt` patterns in [SwatchTime](https://github.com/swatchtime/swatch-preact) and [Jesus Prayer](https://github.com/kendawson-online/jp), with a small Preact hook/service boundary. Capture the event, invoke its prompt on a deliberate click, handle accepted/dismissed results, and listen for `appinstalled`/standalone mode. Do not use a stale persisted installed flag as authoritative state; provide manual guidance if the prompt is unavailable, and keep this separate from Workbox updates.
 - [ ] Test Chrome/Vivaldi install action (Vivaldi may not display a toolbar install icon), unavailable prompt, already-running-standalone case, accepted/dismissed prompt, and Help/About revisit.
-- [ ] Test first launch, navigation away without clicking, refresh/restart, deep links, revisiting, and persistence across app updates. Test clearing site data separately as a new-install scenario.
+- [ ] Test default-checked first launch, checked and unchecked repeated launches, checkbox changes, Skip/Go to Gardens without changing preference, refresh/restart, deep links, Help revisit, and preference persistence across app updates. Test clearing site data separately as a new-install scenario.
 
 ## V1 UI detail — New interaction candidate (November 2026)
 
