@@ -48,7 +48,7 @@ This document is the **single consolidated design specification** for the UI red
 
 **Established direction:** retain Preact + `preact-iso`, Bootstrap 6, shared Simple/Standard modes and existing routes/data services; decouple routes from link placement; use a compact main navigation plus global shortcuts and contextual navigation; preserve the historical layout *principle* without recreating its appearance.
 
-**Favored, not yet final:** main sidebar centered on Gardens, PlantDB, Gallery; global access to Tasks, Notes, Wish List, Calendar; a More menu for Help/About/Welcome and **Settings (approved)**; global Add New in the top navbar (now approved); Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
+**Favored, not yet final:** main sidebar centered on Gardens, PlantDB, Gallery; global access to Tasks, Notes, Wish List, Calendar; a More menu for **Help, About, and Settings (approved)**, with Welcome linked from Help; global Add New in the top navbar (now approved); Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
 
 **Still open:** Home dashboard versus Gardens as startup view; precise toolbar membership and overflow; whether global Add New includes New Journal Entry; Search availability before the later Search feature milestone; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
 
@@ -95,9 +95,9 @@ A full Notes page or Calendar page may still be reached from the global toolbar.
 - On **small/narrow screens**, hide the long **“SOLACE Garden” text SVG/wordmark** and retain the recognizable **logo icon** as the brand/home affordance. Wider presentations may show the full wordmark. Choose the actual threshold after measuring the available header space; keep an accessible app name on the icon-only link.
 - **Bootstrap 6 Nav overflow (Priority+)** is the favored responsive solution for handling navbar items that no longer fit. See [Bootstrap 6 Nav overflow](https://getbootstrap.com/docs/6.0/components/nav-overflow/). The component moves overflowed navigation items into a generated **More** menu based on *container width*, with `.nav-overflow` and `data-bs-toggle="nav-overflow"`. Confirm behavior against the exact pinned Bootstrap 6 alpha package before implementing.
 
-**Approved:** Show **exactly one More menu item** in the navbar. It must serve both as access to lower-priority global tools that do not fit and to supporting destinations such as Help/About/Welcome (final membership still pending). Do not render a separate overflow More alongside another support More. Assess whether the pinned Bootstrap 6 Nav overflow supports combining deliberate menu items with dynamically overflowed actions; if not, implement one coordinated menu without duplicate More triggers. The exact technical approach is still open. Bootstrap 6's [Menu component](https://getbootstrap.com/docs/6.0/components/menus/) and [Nav overflow](https://getbootstrap.com/docs/6.0/components/nav-overflow/) have different APIs.
+**Approved:** Show **exactly one More menu item** in the navbar. It must serve both as access to lower-priority global tools that do not fit and to supporting destinations such as Help/About (approved), with Welcome linked from Help. Do not render a separate overflow More alongside another support More. Assess whether the pinned Bootstrap 6 Nav overflow supports combining deliberate menu items with dynamically overflowed actions; if not, implement one coordinated menu without duplicate More triggers. The exact technical approach is still open. Bootstrap 6's [Menu component](https://getbootstrap.com/docs/6.0/components/menus/) and [Nav overflow](https://getbootstrap.com/docs/6.0/components/nav-overflow/) have different APIs.
 
-**Approved visibility priority:** Keep **Add New (+)** and **Search** directly visible in the narrow-screen navbar; other global tools may move into the **single More** menu as width requires. **Still open:** Search's interim behavior until its results feature exists; priority/order of other tools; remaining More membership; brand breakpoint.
+**Approved visibility priority:** Keep **Add New (+)** and **Search** directly visible in the narrow-screen navbar; other global tools may move into the **single More** menu as width requires. **Still open:** Search's interim behavior until its results feature exists; priority/order of other tools; remaining overflow membership; brand breakpoint.
 
 ### Approved responsive search presentation (November 14, 2026)
 
@@ -154,7 +154,8 @@ The Standard Mode “About this workspace” panel should not be shown indiscrim
 | Search | **Global top navbar (approved): inline query on wide screens; icon-triggered panel below navbar on narrow screens** | `/search` | Target result URL `/search?q=...`; actual search engine remains later milestone |
 | Locations | Settings → Geographic Locations | `/locations` | No need for top-level sidebar link |
 | Settings | **Single navbar More menu only (approved)**; no dedicated gear icon or sidebar entry | `/settings` with return context | Preserve Close/return to originating context; direct URL still works |
-| Help / About / Welcome | More/support; Welcome revisitable | Existing/planned routes | First-run Welcome behavior vs parked optional carousel |
+| Help / About | **Single navbar More menu (approved)** | `/help`, `/about` | Keep ordinary routes and navigation |
+| Welcome | **Link from Help page (approved)**, not a More entry | `/welcome` (planned) | Existing first-run behavior remains; optional carousel is a separate parked proposal |
 | Global Add New | **Top navbar (approved)**, responsive in both modes | Routes and services remain authoritative | Menu choices, ordering, availability, dirty-state handling remain open |
 
 This table records **candidates**, not a mandate to show all listed items at once. On narrow screens, toolbar actions can collapse into accessible menus without removing functionality.
@@ -212,7 +213,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [x] Keep Add New (+) and Search directly visible at narrow widths, with **one** More navbar item collecting overflow/support destinations.
 - [ ] Approve the remaining toolbar tools/actions, ordering, and single-menu composition.
 - [x] Place Settings exclusively in the single navbar More menu; remove standalone gear and sidebar Settings entry in the redesign.
-- [ ] Finalize Help/About/Welcome placement and remaining More contents.
+- [x] Place Help and About in the single navbar More menu; link to Welcome from Help, not from More.
+- [ ] Finalize remaining responsive overflow membership.
 - [x] Place global Add New (+) in the top navbar in both modes.
 - [ ] Define global Add New contents and whether it replaces or complements page-specific Create actions.
 - [x] Agree that the persistent top navbar exists in both Simple and Standard Mode, with different responsive presentations.
@@ -249,6 +251,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
+| 2026-11-14 | **Approved** | Help and About belong in the single navbar More menu; Welcome is accessible from Help rather than appearing in More. Preserve existing first-run Welcome requirements unless separately revised. |
 | 2026-11-14 | **Approved** | Settings appears exclusively inside the one navbar More menu, with no permanent gear icon or Standard sidebar entry; preserve the Settings route and return/Close behavior. |
 | 2026-11-14 | **Approved** | Search uses an inline navbar input on wide screens and an icon-triggered search panel below the navbar on narrow screens; Enter/Search targets `/search?q=...` once results exist. |
 | 2026-11-14 | **Approved** | Use only one navbar More menu; on narrow screens keep Add New and Search visible while lower-priority tools move into that menu as needed. Exact menu mechanism and membership remain open. |
