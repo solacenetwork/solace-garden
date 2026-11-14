@@ -48,7 +48,7 @@ This document is the **single consolidated design specification** for the UI red
 
 **Established direction:** retain Preact + `preact-iso`, Bootstrap 6, shared Simple/Standard modes and existing routes/data services; decouple routes from link placement; use a compact main navigation plus global shortcuts and contextual navigation; preserve the historical layout *principle* without recreating its appearance.
 
-**Favored, not yet final:** main sidebar centered on Gardens, PlantDB, Gallery; global access to Tasks, Notes, Wish List, Calendar; a More menu for Help/About/Welcome and potentially Settings; global Add New; Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
+**Favored, not yet final:** main sidebar centered on Gardens, PlantDB, Gallery; global access to Tasks, Notes, Wish List, Calendar; a More menu for Help/About/Welcome and potentially Settings; global Add New in the top navbar (now approved); Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
 
 **Still open:** Home dashboard versus Gardens as startup view; precise toolbar membership and overflow; Settings gear versus More; whether global Add New includes New Journal Entry; Search field versus icon on phones; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
 
@@ -94,7 +94,9 @@ A full Notes page or Calendar page may still be reached from the global toolbar.
 
 **Intent:** Preserve the persistent, app-wide access pattern from the historical JavaScript UI. On wider screens the toolbar may show more directly accessible tools; on narrow phones it may compact or use an accessible overflow menu rather than shrinking controls or hiding functionality.
 
-**Not yet decided:** Exact tools/icons and order, what is always visible versus placed in overflow, whether Settings is a gear or a More item, and precise breakpoint/layout behavior. Do not treat the earlier candidate toolbar membership as approved.
+**Approved addition:** The global **Add New (+)** action belongs in the top navbar in both modes, using the approved responsive navbar presentation. It is an action menu, not a primary workspace or sidebar destination. Its menu entries and interactions remain to be designed.
+
+**Not yet decided:** Other tools/icons and order, what is always visible versus placed in overflow, whether Settings is a gear or a More item, and precise breakpoint/layout behavior. Do not treat the earlier candidate toolbar membership as approved.
 
 **Acceptance implications:** Test header availability and access to every approved action in Simple and Standard Mode, including manual mode override on narrow and wide viewports; check touch targets, keyboard/focus, overflow menu usability, and no disruption to unsaved editor data.
 
@@ -129,7 +131,7 @@ The Standard Mode “About this workspace” panel should not be shown indiscrim
 | Locations | Settings → Geographic Locations | `/locations` | No need for top-level sidebar link |
 | Settings | Header gear **or** More menu | `/settings` with return context | Avoid confusing simultaneous sidebar + gear access |
 | Help / About / Welcome | More/support; Welcome revisitable | Existing/planned routes | First-run Welcome behavior vs parked optional carousel |
-| Global Add New | Header action menu candidate | Routes and services remain authoritative | Choices, ordering, availability, dirty-state handling |
+| Global Add New | **Top navbar (approved)**, responsive in both modes | Routes and services remain authoritative | Menu choices, ordering, availability, dirty-state handling remain open |
 
 This table records **candidates**, not a mandate to show all listed items at once. On narrow screens, toolbar actions can collapse into accessible menus without removing functionality.
 
@@ -183,6 +185,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [ ] Approve the final desktop sidebar destinations and order.
 - [ ] Approve the final toolbar tools/actions and their ordering.
 - [ ] Decide Settings gear versus More, and Help/About/Welcome placement.
+- [x] Place global Add New (+) in the top navbar in both modes.
 - [ ] Define global Add New contents and whether it replaces or complements page-specific Create actions.
 - [x] Agree that the persistent top navbar exists in both Simple and Standard Mode, with different responsive presentations.
 - [ ] Define responsive collapse behavior for portrait tablet, landscape tablet, narrow phone, and desktop; preserve manually selected mode.
@@ -218,11 +221,12 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
+| 2026-11-14 | **Approved** | Global Add New (+) belongs in the persistent top navbar, not the sidebar; its submenu contents remain open. |
 | 2026-11-14 | **Approved direction** | Journal stays in primary workspace navigation, not as a permanent top-navbar tool. “New Journal Entry” in Add New remains a candidate. |
 | 2026-11-14 | **Approved** | Keep the top navbar in both Simple and Standard Mode, adapting its presentation responsively; membership and breakpoints remain open. |
 | 2026-11-14 | Proposed | Separate routing from navigation placement; keep `preact-iso` and current functional services. |
 | 2026-11-14 | Proposed | Use historical three-layer concept: global toolbar, concise main navigation, contextual navigation; More for secondary/support links. |
-| 2026-11-14 | Open | Home versus Gardens default, toolbar membership, Settings placement, global Add New, and screen-specific layouts. |
+| 2026-11-14 | Open | Home versus Gardens default, remaining toolbar membership, Settings placement, Add New submenu contents, and screen-specific layouts. |
 | 2026-11-14 | Open | Gardens hub, creation methods, grouped Notes, Lists overview, and future Search entry behavior. |
 
 **Next design session:** Agree on a destination map for Standard Mode and Simple Mode, then translate it into annotated shell layouts. Do not treat this working proposal as an approved Codex prompt.
