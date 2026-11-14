@@ -88,6 +88,17 @@ Reference images: [main UI](pics/js-app-garden-ui.png), [Add New](pics/js-app-ga
 
 A full Notes page or Calendar page may still be reached from the global toolbar. Navigation placement is not a constraint on page capability.
 
+### Approved navbar additions and responsive branding (November 14, 2026)
+
+**Approved:**
+- **Search** is a global top-navbar entry point, reachable from any major view in both interface modes. The earlier test proposal to accept a query in the navbar and display results at `/search?q=...` remains a **candidate interaction**; the cross-feature search engine belongs to its later scheduled milestone.
+- On **small/narrow screens**, hide the long **“SOLACE Garden” text SVG/wordmark** and retain the recognizable **logo icon** as the brand/home affordance. Wider presentations may show the full wordmark. Choose the actual threshold after measuring the available header space; keep an accessible app name on the icon-only link.
+- **Bootstrap 6 Nav overflow (Priority+)** is the favored responsive solution for handling navbar items that no longer fit. See [Bootstrap 6 Nav overflow](https://getbootstrap.com/docs/6.0/components/nav-overflow/). The component moves overflowed navigation items into a generated **More** menu based on *container width*, with `.nav-overflow` and `data-bs-toggle="nav-overflow"`. Confirm behavior against the exact pinned Bootstrap 6 alpha package before implementing.
+
+**Important distinction:** Bootstrap's *automatically generated overflow More* menu and the proposed *deliberate support/utilities More* grouping serve different purposes. Do not automatically create two confusing controls with the same name. The final design must decide whether and how they coexist (for example, one coordinated overflow entry or different clearly named menus) without hiding required tools. Bootstrap 6's separate [Menu component](https://getbootstrap.com/docs/6.0/components/menus/) can provide an intentional, static options menu; its API is not the same as the Nav overflow behavior.
+
+**Still open:** Search field vs Search icon on narrow screens; handling Search until the results feature is implemented; priority/order of overflowed actions; whether Add New and Search stay directly visible; More/support arrangement and Settings placement; exact brand breakpoint.
+
 ### Approved shell behavior — persistent navbar (November 14, 2026)
 
 **Decision:** The application top navbar remains available in **both Simple Mode and Standard Mode**, with responsive presentations appropriate to screen size. Switching modes does not remove the navbar or deny access to its actions. An explicitly selected mode remains selected even as the viewport changes; responsive arrangement continues within that mode.
@@ -127,7 +138,7 @@ The Standard Mode “About this workspace” panel should not be shown indiscrim
 | Calendar | Global toolbar candidate | `/calendar` | Placement in Simple Home |
 | Notes | Global toolbar candidate, complete page | `/notes` and editor routes | Grouped Notes navigation within page |
 | Tasks / Wish List | Global toolbar or a shared Lists overview | `/tasks`, `/wishlist` | Combined `/lists` candidate; distinct views remain accessible |
-| Search | Global header search candidate | `/search` | Search results as `/search?q=...` when search exists |
+| Search | **Global top navbar (approved)** | `/search` | Header input vs icon and `/search?q=...` results interaction remain to design |
 | Locations | Settings → Geographic Locations | `/locations` | No need for top-level sidebar link |
 | Settings | Header gear **or** More menu | `/settings` with return context | Avoid confusing simultaneous sidebar + gear access |
 | Help / About / Welcome | More/support; Welcome revisitable | Existing/planned routes | First-run Welcome behavior vs parked optional carousel |
@@ -173,7 +184,7 @@ This table records **candidates**, not a mandate to show all listed items at onc
 
 **Lists:** consider a combined `/lists` dashboard for Tasks and Wish List with separate Add controls; keep current `/tasks` and `/wishlist` access and underlying shared data.
 
-**Search:** evaluate header search field/action that navigates to `/search?q=...`; defer actual cross-feature search behavior to its scheduled milestone unless scope is explicitly changed. Query parameters should be treated as input, not authority to perform writes.
+**Search:** global navbar entry point is approved; evaluate header search field/action that navigates to `/search?q=...`; defer actual cross-feature search behavior to its scheduled milestone unless scope is explicitly changed. Query parameters should be treated as input, not authority to perform writes.
 
 ### F. Responsive polish and UI feedback
 
@@ -183,7 +194,9 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 - [ ] Choose default landing experience: Home dashboard or Gardens hub; specify Simple and Standard behavior.
 - [ ] Approve the final desktop sidebar destinations and order.
-- [ ] Approve the final toolbar tools/actions and their ordering.
+- [x] Approve top-navbar placement for global Search (presentation still open).
+- [x] Approve icon-only brand on narrow screens, with full wordmark on wider screens (threshold still open).
+- [ ] Approve the remaining toolbar tools/actions and their ordering, including overflow priority.
 - [ ] Decide Settings gear versus More, and Help/About/Welcome placement.
 - [x] Place global Add New (+) in the top navbar in both modes.
 - [ ] Define global Add New contents and whether it replaces or complements page-specific Create actions.
@@ -221,6 +234,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
+| 2026-11-14 | **Approved** | Global Search belongs in the persistent navbar; small-screen branding uses icon only instead of the full wordmark. Bootstrap 6 Nav overflow is favored pending pinned-version testing. |
 | 2026-11-14 | **Approved** | Global Add New (+) belongs in the persistent top navbar, not the sidebar; its submenu contents remain open. |
 | 2026-11-14 | **Approved direction** | Journal stays in primary workspace navigation, not as a permanent top-navbar tool. “New Journal Entry” in Add New remains a candidate. |
 | 2026-11-14 | **Approved** | Keep the top navbar in both Simple and Standard Mode, adapting its presentation responsively; membership and breakpoints remain open. |
