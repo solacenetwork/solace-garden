@@ -2,6 +2,8 @@
 
 New ideas that don't belong in technical specifications or the roadmap can be documented here so they aren't forgotten.
 
+**Current UI decisions:** See [UI_REDESIGN.md](UI_REDESIGN.md). This file retains deferred alternatives and future ideas; it is not an alternate specification for the current V1 redesign.
+
 After the current A–F implementation work, we could do a documentation cleanup alongside the UI sweep:
 1. Keep ROADMAP focused on committed V1 milestones and a concise future-direction summary.
 2. Move detailed speculative features and unresolved research into the appropriate parking lot.
@@ -81,25 +83,11 @@ After the current A–F implementation work, we could do a documentation cleanup
 
 **Scope boundary:** No new gardening features or V2 backend/sync development in this phase. Playwright automation does not substitute for V1's existing manual accessibility, device, offline/PWA, backup, and data-preservation release checks. Prioritize stable, meaningful end-to-end tests over a brittle requirement for exhaustive coverage. Revisit exact test scenarios, dependencies, browser matrix, and CI configuration when V1.5 begins.
 
-## Future UI Review: Welcome carousel (purpose approved; details open)
+## Welcome carousel — detailed design owned by UI_REDESIGN.md
 
-**Status:** Originally parked November 9, 2026. During the November 14 post-8F UI redesign, the **Show Welcome at startup** preference was **approved** and reconciled in `GOALS.md`, `ROADMAP.md`, and `UI_REDESIGN.md`. The **purpose of the short Bootstrap 6 carousel is approved**: quickly overview the main Garden app features, introduce Gardens, and lead to **Create Your First Garden** in the existing Wizard. Exact slides, count, artwork and controls remain for UI design.
+The startup preference, full-page Welcome route, Help access, deep-link behavior, and purpose of the short skippable Bootstrap 6 feature-introduction carousel have been decided. The authoritative current requirements and remaining slide-design questions are in [UI_REDESIGN.md](UI_REDESIGN.md) §7A. Do not maintain a second copy of those decisions here.
 
-**Goal:** Help a first-time, nontechnical gardener understand the application and create their first Garden without making the introduction another required chore. Garden should enhance gardening rather than create a new job.
-
-**Presentation preference:** Keep the introduction as the existing **full-page `/welcome` route**, not a modal dialog. A dedicated page gives the short carousel room to breathe on mobile, keeps Welcome independently revisitable through Help, and reinforces that it is optional information rather than a pop-up or mandatory onboarding gate. The existing route is the intended destination; do not create a parallel modal flow. Preserve visible Skip / Go to Gardens access.
-
-**Possible experience:**
-- **Approved direction:** A short, visual **Bootstrap 6 carousel** provides a quick overview of major app features, introduces the purpose of Gardens, and offers an obvious **Create Your First Garden** action leading to the **existing** Garden creation Wizard. No second onboarding Wizard or forced slide completion. The approximate three-or-four-slide count remains a candidate to test.
-- Offer visible **Skip Introduction / Go to Gardens** access at any time. Skipping the current visit must not silently change the startup preference.
-- **Approved:** Add **Show Welcome at startup** as an explicit, user-controlled checkbox, initially enabled for a new installation. If enabled, show Welcome on normal future launches; if disabled, open the usual Garden Home overview (`/`). Avoid showing Welcome on direct/deep links to a specific Garden, Note, or other page.
-- Keep Welcome permanently accessible from Help (and perhaps About), regardless of the preference. It remains an **information/support page**, not a primary gardening workspace.
-- **Approved:** Store the preference with existing local UI settings; no special IndexedDB store or account mechanism is required. During alpha, obsolete test preferences don't require migration or compatibility code.
-- Evaluate whether the introduction should differ after the user has created Gardens, and test with people who haven't been taught the interface. Don't assume the user is a beginner simply because they want Welcome displayed.
-
-**Design questions for the UI review:** Does the carousel help or merely delay creation? What is the clearest wording for Skip and Create actions? Keep the experience useful on a phone and accessible with touch, keyboard, and screen readers. The checkbox and its default enabled state are already approved.
-
-**Boundary:** The startup preference is an approved redesign requirement, **not yet implemented**. The carousel's goal is approved, but exact screen composition and implementation remain for the UI redesign. No application code change is authorized by this parking-lot note alone.
+Retain this entry as a pointer only; future alternative Welcome experiences should be added separately and clearly marked as deferred rather than mixed into the approved V1 direction.
 
 ## Future candidate (possibly V2): Show Drafts on Gardens dashboard preference
 
@@ -112,7 +100,7 @@ After the current A–F implementation work, we could do a documentation cleanup
 - If implemented later, use the existing local UI preferences rather than a special store; no obsolete alpha data compatibility migrations.
 - **Future decisions:** default checkbox state, where its control lives, whether `/drafts` or a nested Gardens route is preferable, and responsive accessibility.
 
-**V1 direction:** compact drafts rail on `/gardens`; no drafts on Home.
+**V1 decision source:** [UI_REDESIGN.md](UI_REDESIGN.md) §7B specifies the approved compact Draft Gardens rail on `/gardens` and the exclusion of drafts from Home. This entry records only the possible V2 display preference and `/drafts` destination.
 
 ## Future UI Review (after 8F): Garden-grouped Notes navigation
 
@@ -173,27 +161,13 @@ The `/templates` management page currently prints a full UUID (e.g. `Template ID
 
 **Proposed UI review direction:** Hide raw UUIDs from the default card view, while retaining a discoverable optional details/info affordance (for example, an info icon with an accessible label and details panel) for advanced users and support troubleshooting. Preserve UUID-based internal identity and duplicate-name handling; do not replace IDs with names as identifiers. Evaluate the final presentation during the scheduled post-8F UI review.
 
-## Future UI Review (after 8F): Page types and informational navigation
+## Page types and informational navigation — design principles consolidated
 
-**Status:** Deferred navigation/architecture refinement identified during 8E8 integrated acceptance on November 8, 2026, following commit `c144f80`. **Do not start a navigation redesign or change 8E8 acceptance scope.** Help, About, and Welcome placeholders may remain unfinished while integrated Garden workflows are tested.
+The post-8F review has incorporated the useful principle from this earlier note: **not every page is a workspace, and route registration is separate from navigation prominence**. The current navigation placements, Simple/Standard shell decisions, and open presentation questions are maintained only in [UI_REDESIGN.md](UI_REDESIGN.md) §§3, 5, 6, and 7A.
 
-**Principle:** Every workspace is a page, but not every page is a workspace. Distinguish pages where gardeners work with data from utilities and application information/support, without requiring a separate shell or giving every registered route a prominent navigation item.
+Do not introduce a mandatory workspace/utility/information route taxonomy or a new navigation framework merely to classify every page. Keep Help, About, and Welcome out of gardening-workspace directories; Welcome is reached from Help. Preserve direct URLs even when a destination is available only through More or contextual navigation.
 
-**Candidate page classification:** Add explicit metadata such as `kind: 'workspace' | 'utility' | 'information'` to appropriate route definitions. Illustrative groupings (to review, not yet a final taxonomy):
-- **Workspace:** Gardens, Plants, Harvest, Photos, Tasks, Notes, Calendar, Journal, Wish List, Locations, Templates, and their related work views.
-- **Utility:** Settings and potentially Search, depending on how those features evolve.
-- **Information:** Help, About, and Welcome.
-
-**Navigation and presentation questions for the post-8F review:**
-- Keep the existing Simple/Standard shared routes and shell. Use page type to distinguish workspace directories and context panels from supporting destinations, while keeping route registration independent from navigation prominence.
-- Consider renaming the Standard Mode `Other Links` group to **Help & Information**, rather than leaving Help/About in a miscellaneous category. Evaluate how Settings and Search should be grouped without treating the conceptual taxonomy as a mandatory sidebar hierarchy.
-- Review Standard Mode copy such as **“Browse workspaces”**, **“Standard Mode workspaces”**, and **“About this workspace”** when non-workspace pages are included; suppress or adapt workspace-specific context on informational pages.
-- Review Simple Mode Home's **“More places to explore”** directory: it currently includes every secondary route and therefore also Help/About. Do not present application support pages as gardening workspaces; give them a suitable separate access path.
-- Register dedicated Help/About page components in `src/index.jsx` when their real pages are implemented. At the time of this observation, `src/pages/Help/index.jsx` and `src/pages/About/index.jsx` exist but are not mapped in `pageComponents`, so their routes use the generic placeholder. The Welcome component also exists, but `/welcome` is not registered in `applicationRoutes`. Treat these as unfinished page wiring, not evidence that the informational pages are implemented.
-
-**Welcome is exceptional:** Follow the updated `docs/GOALS.md` §2.13b: `/welcome` is an informational page, not a gardening workspace or mandatory onboarding wizard. On fresh installations **Show Welcome at startup** defaults to enabled; respect the user's checkbox choice on later normal launches, preserve deep links, and permit revisits from Help without changing the preference. Do not place Welcome among the Simple Mode primary actions or a regular sidebar destination. Preserve optional install guidance. The separately parked short carousel remains a visual/interaction candidate.
-
-**Timing and boundary:** Revisit alongside the post-8F UI Tweaks/Review pass, with an appropriately scoped implementation decision then. No schema changes, new navigation framework, or acceptance reopening now. Existing 8E8 end-to-end and regression testing proceeds unchanged.
+This section is retained as rationale for the redesign, not as a second list of current implementation requirements. Any remaining page-wiring or presentation work should be specified in UI_REDESIGN.md before a Codex prompt is written.
 
 ## Future UI Review (after 8F): Linked Garden indicator on Notes cards
 
@@ -216,31 +190,24 @@ The `/templates` management page currently prints a full UUID (e.g. `Template ID
 
 **Do not implement during 8E5; review alongside the larger Gardens hub/card redesign after 8F.**
 
-## Future UI Tweaks pass (after 8F): Gardens hub, browsing and creation UX
+## Future UI Tweaks pass (after 8F): Remaining Gardens hub alternatives
 
-**Status:** Brainstorming from hands-on 8E4 browser testing (November 7, 2026). **No route, UI, workflow, or milestone changes approved yet.** All six 8E4 functional checks passed; confusing presentation and expectations are deferred for the post-8F UI Tweaks pass. Revisit the **whole `/gardens` experience together**, rather than patching individual symptoms before its overall structure is chosen.
+**Status:** The overall Gardens review is now underway. The approved V1 separation and Draft Gardens filmstrip are specified in [UI_REDESIGN.md](UI_REDESIGN.md) §7B. This parking-lot entry preserves the earlier observations and alternatives that have **not** been selected; it must not override the current design record.
 
-### Observed user-confusion cases
+### Observed user-confusion cases to resolve in the design
 
-- **Quick Start → Advanced/Wizard:** A gardener types a name into Quick Start, then clicks **Advanced Form** assuming it continues the same creation process; Advanced opens with a blank name because it creates a separate draft. All three controls appear together, suggesting continuity that does not exist. Consider carrying the typed name into a newly initialized Wizard/Advanced draft (e.g. an optional `?name=My%20Test%20Garden` prefill), without creating a Garden or retroactively turning Quick Start into a persistent draft. Parse/validate untrusted query text only on **new draft initialization**; never overwrite an already-existing UUID draft. See the separate parked URL-prefill idea below. Alternatively, rethink how creation methods are selected and grouped.
-- **Blank name / “Untitled Garden”:** Quick Start correctly requires a Garden name, whereas an Advanced draft may save with an empty name, then show up as **“Untitled Garden”** in Unfinished Gardens. Both are technically correct but can imply that actual nameless Gardens are allowed. Consider clearer **“Unnamed draft”** labeling and visible distinction between an unfinished draft (no Garden exists) and an actual Garden with status **Planned**.
-- **Finding a newly created Garden:** Two unfinished drafts named “Test” appeared above Current Gardens. A new Quick Start Garden also named “Test” correctly appeared in Current Gardens farther down the page, but the user initially expected three “Test” items together. This is an information hierarchy/discoverability issue, not a data-integrity issue. Avoid assuming draft and created-Garden records belong in the same list. Distinguish **Draft**, **Planned**, **Active**, and **Completed/Archived** lifecycle concepts clearly.
+- **Quick Start → Advanced/Wizard:** The old arrangement placed a Quick Start name field beside Wizard/Advanced links, implying that the typed name would carry into another method even though they create separate flows. The new creation entry design must make the three choices distinct or explicitly specify safe carry-forward behavior. Any optional URL-prefill must never create a Garden or overwrite an existing UUID draft; see the separate URL-prefill idea below.
+- **Blank name / “Untitled Garden”:** An Advanced draft may have an empty name and appear in the draft collection. Consider a clear label such as **“Unnamed draft”** so it cannot be mistaken for a saved Garden.
+- **Finding a newly created Garden:** Keep unfinished drafts distinct from saved Gardens. A saved Garden with status **Planned** is not an unfinished creation draft. Duplicate Garden names remain valid and are distinguished by IDs.
 
-### Navigation and layout candidates (all undecided)
+### Alternatives still parked, not selected for V1
 
-- **Tabs candidate:** Bootstrap 6 tabs for Current / Drafts / Previous, perhaps with visible counts, could keep Current immediately visible while drafts remain one tap away. Tradeoff: inactive tabs hide content.
-- **Distinct category routes candidate:** Dedicated listing URLs such as `/current` (Active), `/planned` (created but not active), `/drafts` (unfinished creation sessions), and `/previous` (Completed/Archived), alongside `/gardens` as a central management/discovery hub. Earlier prototypes used `/current`, `/previous` and a separate new-Garden wizard; they are **historical ideas**, not authoritative routing requirements. Route names, exact status filters, and navigation destinations remain open. **Planned is not Draft.** Routes do **not** all need primary-navigation buttons.
-- **Garden hub / filmstrip candidate:** Keep **one primary navigation entry, “Gardens” → `/gardens`**. The hub could feature an upper-right prominent **plus** action for Quick Start (opening the creation workflow, not silently creating a record), then horizontal, Netflix-like card/thumbnail rails for **Current Gardens**, **Draft Gardens**, **Planned Gardens**, **Previous Gardens**. Each section displays a few scrollable previews and a **View all** link to its dedicated listing route. Evaluate how this works with many Gardens, missing thumbnails (use placeholders/icons), clear scroll affordances on phones, keyboard/touch access, and smaller screens. Both hub rails and full-list routes should use the same authoritative data and services.
-- **“I want to…” action selector candidate:** An action-oriented select control at the top of the hub could offer **user intentions** such as “Create a Garden,” “Continue an unfinished Garden,” “Find an earlier Garden,” or “Manage Gardens,” rather than exposing internal route names. It offers a quick task path alongside full-list browsing and visual exploration. **Multiple entry points are intentional** because some users are action-oriented, some want a complete list, and others want to browse thumbnails. Share underlying workflows rather than building duplicate functionality.
-- **Optional visibility preference:** An eventual Settings checkbox, e.g. **“Show action menu on Garden page”**, could hide the “I want to…” selector for those who prefer the other navigation styles. Candidate default **shown**; let the user choose rather than auto-hiding based on experience. Use existing local UI preference conventions if implemented; hiding the selector must not remove access to any operation.
+- **Tabs:** Bootstrap 6 tabs for Current / Drafts / Previous, perhaps with counts. Tradeoff: inactive tabs hide content.
+- **Dedicated filtered routes:** Possible `/current`, `/planned`, `/drafts`, and `/previous` pages alongside `/gardens`. These are historical candidates, not approved routes. **Planned is not Draft.** Not every route needs a primary-navigation item.
+- **“I want to…” action selector:** A task-oriented selector for Create a Garden, Continue a draft, Find an earlier Garden, or Manage Gardens. This remains an alternative, not a V1 requirement.
+- **Selector visibility preference:** A possible future Settings option to hide the action selector, only if the selector is eventually adopted.
 
-### Principles and open questions
-
-- Test the actual **user's mental model**, not merely internal record correctness. If controls look like consecutive parts of one action, people will expect entered values to follow them.
-- Preserve the distinction between a **draft creation session** and a **saved Garden**. A created Garden's **Planned** status is not an incomplete draft. Existing duplicate Garden names and distinct UUIDs remain valid.
-- Keep creation, lifecycle, navigation, and display layers separate; avoid coupling the hub presentation to internal services or changing the 8E4 atomic-draft guarantees merely to alter the UI.
-- Decide later whether the hub, tabs, or route-focused UI (or a hybrid) best serves everyday outdoor use and desktop management. Also decide how new Planned Gardens are discoverable, whether “Current” means **Active only**, and how visible draft counts/links should be.
-- **Timing:** Revisit after 8F during UI Tweaks. Do not amend 8E4 acceptance, implement speculative routes/preferences, or silently move them into committed ROADMAP scope now.
+Preserve the separation between draft creation sessions, saved Garden lifecycle, navigation, and display. Do not change the accepted draft/autosave/atomic-creation contract to solve a presentation issue. Resolve remaining V1 choices in UI_REDESIGN.md; promote a parked alternative only through an explicit design decision.
 
 ## Future UI Tweaks pass (after 8F): Modular, smaller-step Garden Wizard
 
