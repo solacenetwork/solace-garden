@@ -271,13 +271,13 @@ Garden V1 should be **mobile-first and desktop-complete**, suited to quick obser
 
 The precise Standard Mode navigation, automatic breakpoint, Simple Mode home layout, and whether/where contextual panels appear are still open **Milestone 1 UI design decisions**. A gardener may always choose Standard Mode to use its full interface on a landscape tablet or phone.
 
-### 2.13b First-run Welcome (confirmed V1)
+### 2.13b Welcome page and startup preference (confirmed V1)
 
-- Provide an **informational Welcome page** at `/welcome`, shown automatically once when the app first launches at its normal starting route on a browser/device with no `welcomeSeen` flag.
+- Provide an **informational Welcome page** at `/welcome`. On a new browser/device installation, the **Show Welcome at startup** preference defaults to enabled: normal startup shows Welcome. If the user disables it, subsequent normal launches open the Home overview at `/`. The SOLACE logo always links to Home.
 - Briefly explain Garden's purpose, how to begin using Create Garden **once implemented** (do not advertise unavailable workflows), local-only data storage and backup responsibility, beta status during beta releases, and links to documentation and GitHub issues for bugs or suggestions.
 - Welcome is **not** an onboarding wizard or prerequisite for creating a garden. Normal navigation remains available; no required acknowledgment, dismissal, or Get Started button.
-- Persist `welcomeSeen` when Welcome is first successfully displayed, **not** when a button is clicked or when the user navigates away. Future launches skip automatic Welcome regardless of app version.
-- Do not interrupt direct/deep links to other routes. Allow users to revisit Welcome via Help/About without resetting the flag.
+- Persist the explicit **Show Welcome at startup** preference with existing local UI settings. Changing the checkbox takes effect on subsequent normal launches; merely viewing Welcome or choosing Skip/Go to Gardens must not silently disable it. Do not retain the old `welcomeSeen` one-time startup rule as a second competing decision mechanism. Alpha test settings do not require compatibility migration.
+- Do not interrupt direct/deep links to other routes. Allow users to revisit Welcome via **Help** regardless of the preference; revisiting does not alter it. The full-page `/welcome` presentation and visible Skip / Go to Gardens remain the intended approach. A short Bootstrap 6 introductory carousel is still a design candidate, not an approved requirement.
 - Keep Welcome content informational; the separately planned Wizard, Quick Start, and Advanced garden-creation flows are not yet implemented and must not be presented as currently usable.
 - **V1 optional in-app installation:** Help/About offers **Install SOLACE Garden** when `beforeinstallprompt` is available, with a brief explanation/link from Welcome. This is a user-initiated native prompt, not a requirement to proceed. Provide manual installation guidance when appropriate rather than a nonfunctional button; do not depend on Chrome's toolbar icon. Detect standalone mode and `appinstalled`, but do not rely on a permanent localStorage flag as proof of current installation. Keep installation distinct from the existing **Update now/Later** flow.
 
