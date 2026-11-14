@@ -236,7 +236,7 @@ Keep these states simple and usable in both modes. A user may have Previous Gard
 
 **Preserve:** existing draft IDs, autosave, no overwrite of existing drafts by incidental prefill, atomic create/cleanup, and independent saved Garden status.
 
-**Open:** creation choice screen, optional new-draft prefill, actual Wizard steps, and step-resume metadata. Do not add steps requiring unimplemented PlantDB/appearance features simply to fill a Wizard.
+**Open:** creation choice screen, optional new-draft prefill, actual Wizard steps, and step-resume metadata. Do not add steps requiring unimplemented PlantDB/appearance features simply to fill a Wizard. The modular step-registry concept and earlier prototype references remain in [PARKING_LOT.md](PARKING_LOT.md) as implementation/design options, not an approved exact step contract.
 
 ### D. Templates and Notes
 
