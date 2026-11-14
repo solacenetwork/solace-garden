@@ -182,7 +182,7 @@ This table records **candidates**, not a mandate to show all listed items at onc
 
 ### Home dashboard — approved mixed previews, design to validate (November 14, 2026)
 
-**Home at `/` is a dashboard of real data, not a menu of category tiles.** Keep five overview sections in their already agreed order: **Current Gardens, Tasks, Wish List, Gallery, Previous Gardens**. Each section has a clear **View all** path to its corresponding workspace. Do not duplicate data or editing logic in Home.
+**Home at `/` is a dashboard of real data, not a menu of category tiles. Unfinished Garden drafts are explicitly excluded from Home; they belong on `/gardens`.** Keep five overview sections in their already agreed order: **Current Gardens, Tasks, Wish List, Gallery, Previous Gardens**. Each section has a clear **View all** path to its corresponding workspace. Do not duplicate data or editing logic in Home.
 
 **Garden filmstrips (approved):**
 - **Current Gardens:** horizontal cards showing **Title, Subtitle, Start Date**; eventually an optional **thumbnail** when available. Do not make thumbnails or new media storage prerequisites for V1.
@@ -207,15 +207,19 @@ Keep these states simple and usable in both modes. A user may have Previous Gard
 
 **Responsive behavior:** Use separate, independently swipeable **Bootstrap 6 Carousel** rails for the Garden and Gallery categories, aiming for roughly **two usable cards on narrow phones and up to six on wider screens**, without squeezing content. Prefer testing the pinned Bootstrap 6 Carousel (scroll snap, touch and multi-item behavior) before installing SwiperJS; see [Bootstrap 6 Carousel docs](https://getbootstrap.com/docs/6.0/components/carousel/). Disable autoplay and avoid surprise looping. Lists should reflow naturally instead of forcing Tasks and Wish List into carousel controls.
 
-**Open details:** title/subtitle/start-date field mapping and missing-value behavior; status grouping and Garden ordering; card dimensions and thumbnail treatment; item labels and date presentation in each five-item list preview; image metadata and Gallery readiness; exact empty-state copy and available actions as features arrive; drafts/resume visibility; and exact Simple/Standard Mode layout. The mixed-rail-and-list structure, short five-item recent previews, and full-page editing boundary are **approved**. Exact visual styling remains to test.
+**Open details:** title/subtitle/start-date field mapping and missing-value behavior; status grouping and Garden ordering; card dimensions and thumbnail treatment; item labels and date presentation in each five-item list preview; image metadata and Gallery readiness; exact empty-state copy and available actions as features arrive; the exact Simple/Standard Mode layout. The mixed-rail-and-list structure, short five-item recent previews, and full-page editing boundary are **approved**. Exact visual styling remains to test.
 
 ### B. Gardens hub, discovery, and lifecycle
 
 **Evidence:** Unfinished drafts can dominate the page; a new Garden may be hard to find; draft is not Planned; long names distort cards.
 
-**Evaluate:** a central `/gardens` hub with clear Current, Draft, Planned, Previous groupings; perhaps horizontal card rails with View all links, tabs, or a hybrid. Make Current and newly created Gardens easy to find. Consider a contextual Templates entry, Garden-specific actions, and a clear Create Garden action. A “What do you want to do?” selector is parked as an alternative, not assumed required.
+**Approved separation:** Garden drafts **never appear on the Home dashboard** or inside Current/Planned/Previous Gardens collections. They are unfinished creation sessions, not existing Gardens.
 
-**Open:** grouping order, definitions of Current versus Active, number of cards shown per device, whether dedicated filtered routes are worth adding, and title clamping versus a proposed ~200-character input limit.
+**Favored layout for drafts:** On `/gardens`, replace the potentially tall stack of unfinished drafts with a **dedicated horizontally scrolling Draft Gardens filmstrip**. Show all unfinished drafts within the rail (rather than an arbitrary handful), with each card providing its recognizable draft context and a **Continue/Resume** action to the appropriate existing Wizard or Advanced editor. The rail should have a small, predictable vertical footprint, work with touch scrolling, and not visually dominate actual Gardens. Keep draft persistence and editor recovery behavior unchanged. Test the pinned Bootstrap 6 Carousel before introducing SwiperJS. The exact rail position, card metadata, and overflow cues remain open.
+
+**Evaluate:** a central `/gardens` hub with clear Current, Draft, Planned, Previous groupings; horizontal card rails for drafts are favored while the presentation of other groups (rails, tabs, or hybrid) remains open. Make Current and newly created Gardens easy to find. Consider a contextual Templates entry, Garden-specific actions, and a clear Create Garden action. A “What do you want to do?” selector is parked as an alternative, not assumed required.
+
+**Open:** grouping order, definitions of Current versus Active, location of the proposed Draft Gardens rail, number of other cards shown per device, whether dedicated filtered routes are worth adding, and title clamping versus a proposed ~200-character input limit.
 
 ### C. Quick Start, Wizard, Advanced, and drafts
 
@@ -269,7 +273,9 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [ ] Define global Add New contents and whether it replaces or complements page-specific Create actions.
 - [x] Agree that the persistent top navbar exists in both Simple and Standard Mode, with different responsive presentations.
 - [ ] Define responsive collapse behavior for portrait tablet, landscape tablet, narrow phone, and desktop; preserve manually selected mode.
-- [ ] Choose the Gardens hub/category navigation model and Templates entry point.
+- [x] Exclude unfinished Garden drafts from Home entirely; preserve them on `/gardens` as separate creation sessions.
+- [ ] Validate the favored **Draft Gardens horizontal filmstrip on `/gardens`**, showing all drafts with a direct Continue/Resume action, and choose its position alongside Current/Planned/Previous.
+- [ ] Choose the remaining Gardens hub/category navigation model and Templates entry point.
 - [ ] Choose Garden creation entry presentation and Wizard refactor boundaries.
 - [ ] Decide how Lists and Notes are presented without expanding the current data model.
 - [ ] Define what is in scope for this pre-8G redesign versus deferred until the corresponding V1 feature exists.
@@ -301,6 +307,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
+| 2026-11-14 | **Approved / favored** | No unfinished Garden drafts on Home; drafts remain only in the Gardens workspace. Favor a compact horizontally scrolling rail on `/gardens` showing all drafts and their Resume actions, pending responsive layout validation. |
 | 2026-11-14 | **Approved** | Use simple, per-section Home empty states: create first Garden, add Task, add Wish List item, open Gallery if available; no forced CTA for Previous Gardens. Do not confuse no records with loading/errors. |
 | 2026-11-14 | **Approved** | Garden rails show Title, Subtitle, Start Date (thumbnail later); Gallery shows recently added images; Previous Gardens includes Closed, Completed, Archived. Tasks and Wish List show five most recently added items as read-only dashboard previews; full pages handle edits. |
 | 2026-11-14 | **Approved** | Home sections show real records with View all access to their complete workspaces, not static category navigation tiles. |
