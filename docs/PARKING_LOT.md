@@ -81,16 +81,16 @@ After the current A–F implementation work, we could do a documentation cleanup
 
 **Scope boundary:** No new gardening features or V2 backend/sync development in this phase. Playwright automation does not substitute for V1's existing manual accessibility, device, offline/PWA, backup, and data-preservation release checks. Prioritize stable, meaningful end-to-end tests over a brittle requirement for exhaustive coverage. Revisit exact test scenarios, dependencies, browser matrix, and CI configuration when V1.5 begins.
 
-## Future UI Review: Optional Welcome carousel (startup preference approved)
+## Future UI Review: Welcome carousel (purpose approved; details open)
 
-**Status:** Originally parked November 9, 2026. During the November 14 post-8F UI redesign, the **Show Welcome at startup** preference was **approved** and reconciled in `GOALS.md`, `ROADMAP.md`, and `UI_REDESIGN.md`. The short Bootstrap 6 carousel remains an **unapproved design candidate**; do not imply its acceptance from the preference decision.
+**Status:** Originally parked November 9, 2026. During the November 14 post-8F UI redesign, the **Show Welcome at startup** preference was **approved** and reconciled in `GOALS.md`, `ROADMAP.md`, and `UI_REDESIGN.md`. The **purpose of the short Bootstrap 6 carousel is approved**: quickly overview the main Garden app features, introduce Gardens, and lead to **Create Your First Garden** in the existing Wizard. Exact slides, count, artwork and controls remain for UI design.
 
 **Goal:** Help a first-time, nontechnical gardener understand the application and create their first Garden without making the introduction another required chore. Garden should enhance gardening rather than create a new job.
 
 **Presentation preference:** Keep the introduction as the existing **full-page `/welcome` route**, not a modal dialog. A dedicated page gives the short carousel room to breathe on mobile, keeps Welcome independently revisitable through Help, and reinforces that it is optional information rather than a pop-up or mandatory onboarding gate. The existing route is the intended destination; do not create a parallel modal flow. Preserve visible Skip / Go to Gardens access.
 
 **Possible experience:**
-- Use a short, visual **Bootstrap 6 carousel** (approximately three or four slides) introducing the purpose of Garden in plain language, with an obvious **Create Your First Garden** action leading to the **existing** Garden creation Wizard. Do not build a second onboarding Wizard or force users to complete every slide.
+- **Approved direction:** A short, visual **Bootstrap 6 carousel** provides a quick overview of major app features, introduces the purpose of Gardens, and offers an obvious **Create Your First Garden** action leading to the **existing** Garden creation Wizard. No second onboarding Wizard or forced slide completion. The approximate three-or-four-slide count remains a candidate to test.
 - Offer visible **Skip Introduction / Go to Gardens** access at any time. Skipping the current visit must not silently change the startup preference.
 - **Approved:** Add **Show Welcome at startup** as an explicit, user-controlled checkbox, initially enabled for a new installation. If enabled, show Welcome on normal future launches; if disabled, open the usual Garden Home overview (`/`). Avoid showing Welcome on direct/deep links to a specific Garden, Note, or other page.
 - Keep Welcome permanently accessible from Help (and perhaps About), regardless of the preference. It remains an **information/support page**, not a primary gardening workspace.
@@ -99,7 +99,7 @@ After the current A–F implementation work, we could do a documentation cleanup
 
 **Design questions for the UI review:** Does the carousel help or merely delay creation? What is the clearest wording for Skip and Create actions? Keep the experience useful on a phone and accessible with touch, keyboard, and screen readers. The checkbox and its default enabled state are already approved.
 
-**Boundary:** The startup preference is an approved redesign requirement, **not yet implemented**. The carousel remains a candidate; no application code change is authorized by this parking-lot note alone.
+**Boundary:** The startup preference is an approved redesign requirement, **not yet implemented**. The carousel's goal is approved, but exact screen composition and implementation remain for the UI redesign. No application code change is authorized by this parking-lot note alone.
 
 ## Future UI Review (after 8F): Garden-grouped Notes navigation
 
