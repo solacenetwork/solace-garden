@@ -48,9 +48,9 @@ This document is the **single consolidated design specification** for the UI red
 
 **Established direction:** retain Preact + `preact-iso`, Bootstrap 6, shared Simple/Standard modes and existing routes/data services; decouple routes from link placement; use a compact main navigation plus global shortcuts and contextual navigation; preserve the historical layout *principle* without recreating its appearance.
 
-**Favored, not yet final:** main sidebar centered on Gardens, PlantDB, Gallery; global access to Tasks, Notes, Wish List, Calendar; a More menu for Help/About/Welcome and potentially Settings; global Add New in the top navbar (now approved); Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
+**Favored, not yet final:** main sidebar centered on Gardens, PlantDB, Gallery; global access to Tasks, Notes, Wish List, Calendar; a More menu for Help/About/Welcome and **Settings (approved)**; global Add New in the top navbar (now approved); Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
 
-**Still open:** Home dashboard versus Gardens as startup view; precise toolbar membership and overflow; Settings gear versus More; whether global Add New includes New Journal Entry; Search availability before the later Search feature milestone; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
+**Still open:** Home dashboard versus Gardens as startup view; precise toolbar membership and overflow; whether global Add New includes New Journal Entry; Search availability before the later Search feature milestone; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
 
 **Conflict to settle rather than silently rewrite:** the existing GOALS/TECH_SPEC first-run Welcome behavior is an informational page shown once; PARKING_LOT explores an optional carousel and show-at-startup preference. The current requirement remains in force until deliberately revised.
 
@@ -84,7 +84,7 @@ Reference images: [main UI](pics/js-app-garden-ui.png), [Add New](pics/js-app-ga
 1. **Global toolbar:** small set of frequently used tools/actions available from every major view.
 2. **Primary navigation:** small set of main application areas; Gardens is prominent.
 3. **Contextual navigation:** subviews, filters, and management actions owned by the active area (e.g., Gardens categories/Templates or PlantDB browsing). This may be tabs, inline controls, accordion, or a local panel; it does not always require a third sidebar.
-4. **More/support menu:** lower-frequency informational/support destinations. Whether Settings stays as a dedicated gear icon or joins More remains open.
+4. **More/support menu:** lower-frequency informational/support destinations. **Settings belongs exclusively in the one More menu**; it is not a standalone header gear or a Standard sidebar item.
 
 A full Notes page or Calendar page may still be reached from the global toolbar. Navigation placement is not a constraint on page capability.
 
@@ -97,7 +97,7 @@ A full Notes page or Calendar page may still be reached from the global toolbar.
 
 **Approved:** Show **exactly one More menu item** in the navbar. It must serve both as access to lower-priority global tools that do not fit and to supporting destinations such as Help/About/Welcome (final membership still pending). Do not render a separate overflow More alongside another support More. Assess whether the pinned Bootstrap 6 Nav overflow supports combining deliberate menu items with dynamically overflowed actions; if not, implement one coordinated menu without duplicate More triggers. The exact technical approach is still open. Bootstrap 6's [Menu component](https://getbootstrap.com/docs/6.0/components/menus/) and [Nav overflow](https://getbootstrap.com/docs/6.0/components/nav-overflow/) have different APIs.
 
-**Approved visibility priority:** Keep **Add New (+)** and **Search** directly visible in the narrow-screen navbar; other global tools may move into the **single More** menu as width requires. **Still open:** Search's interim behavior until its results feature exists; priority/order of other tools; precise More membership and Settings placement; brand breakpoint.
+**Approved visibility priority:** Keep **Add New (+)** and **Search** directly visible in the narrow-screen navbar; other global tools may move into the **single More** menu as width requires. **Still open:** Search's interim behavior until its results feature exists; priority/order of other tools; remaining More membership; brand breakpoint.
 
 ### Approved responsive search presentation (November 14, 2026)
 
@@ -120,7 +120,7 @@ A full Notes page or Calendar page may still be reached from the global toolbar.
 
 **Approved addition:** The global **Add New (+)** action belongs in the top navbar in both modes, using the approved responsive navbar presentation. It is an action menu, not a primary workspace or sidebar destination. Its menu entries and interactions remain to be designed.
 
-**Not yet decided:** Other tools/icons and order, what is always visible versus placed in overflow, whether Settings is a gear or a More item, and precise breakpoint/layout behavior. Do not treat the earlier candidate toolbar membership as approved.
+**Not yet decided:** Other tools/icons and order, what is always visible versus placed in overflow, the remaining contents of More, and precise breakpoint/layout behavior. Do not treat the earlier candidate toolbar membership as approved.
 
 **Acceptance implications:** Test header availability and access to every approved action in Simple and Standard Mode, including manual mode override on narrow and wide viewports; check touch targets, keyboard/focus, overflow menu usability, and no disruption to unsaved editor data.
 
@@ -153,7 +153,7 @@ The Standard Mode “About this workspace” panel should not be shown indiscrim
 | Tasks / Wish List | Global toolbar or a shared Lists overview | `/tasks`, `/wishlist` | Combined `/lists` candidate; distinct views remain accessible |
 | Search | **Global top navbar (approved): inline query on wide screens; icon-triggered panel below navbar on narrow screens** | `/search` | Target result URL `/search?q=...`; actual search engine remains later milestone |
 | Locations | Settings → Geographic Locations | `/locations` | No need for top-level sidebar link |
-| Settings | Header gear **or** More menu | `/settings` with return context | Avoid confusing simultaneous sidebar + gear access |
+| Settings | **Single navbar More menu only (approved)**; no dedicated gear icon or sidebar entry | `/settings` with return context | Preserve Close/return to originating context; direct URL still works |
 | Help / About / Welcome | More/support; Welcome revisitable | Existing/planned routes | First-run Welcome behavior vs parked optional carousel |
 | Global Add New | **Top navbar (approved)**, responsive in both modes | Routes and services remain authoritative | Menu choices, ordering, availability, dirty-state handling remain open |
 
@@ -167,7 +167,7 @@ This table records **candidates**, not a mandate to show all listed items at onc
 
 **Evaluate:** slim Standard sidebar; persistent top toolbar; More menu; global Add New; search affordance; `.container` versus `.container-fluid` for header (retain deliberate responsive padding); active location and keyboard/focus semantics. Decide exactly where every destination goes before changing source.
 
-**Open:** which tools deserve persistent top-level emphasis (Journal remains a primary workspace, not a permanent toolbar tool); dedicated Settings gear versus More; whether Add New offers New Journal Entry; how Simple Home relates to Standard Home; whether Welcome appears automatically under the existing V1 rule or an approved revision.
+**Open:** which tools deserve persistent top-level emphasis (Journal remains a primary workspace, not a permanent toolbar tool); whether Add New offers New Journal Entry; how Simple Home relates to Standard Home; whether Welcome appears automatically under the existing V1 rule or an approved revision.
 
 ### B. Gardens hub, discovery, and lifecycle
 
@@ -211,7 +211,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [x] Approve icon-only brand on narrow screens, with full wordmark on wider screens (threshold still open).
 - [x] Keep Add New (+) and Search directly visible at narrow widths, with **one** More navbar item collecting overflow/support destinations.
 - [ ] Approve the remaining toolbar tools/actions, ordering, and single-menu composition.
-- [ ] Decide Settings gear versus More, and Help/About/Welcome placement.
+- [x] Place Settings exclusively in the single navbar More menu; remove standalone gear and sidebar Settings entry in the redesign.
+- [ ] Finalize Help/About/Welcome placement and remaining More contents.
 - [x] Place global Add New (+) in the top navbar in both modes.
 - [ ] Define global Add New contents and whether it replaces or complements page-specific Create actions.
 - [x] Agree that the persistent top navbar exists in both Simple and Standard Mode, with different responsive presentations.
@@ -248,6 +249,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
+| 2026-11-14 | **Approved** | Settings appears exclusively inside the one navbar More menu, with no permanent gear icon or Standard sidebar entry; preserve the Settings route and return/Close behavior. |
 | 2026-11-14 | **Approved** | Search uses an inline navbar input on wide screens and an icon-triggered search panel below the navbar on narrow screens; Enter/Search targets `/search?q=...` once results exist. |
 | 2026-11-14 | **Approved** | Use only one navbar More menu; on narrow screens keep Add New and Search visible while lower-priority tools move into that menu as needed. Exact menu mechanism and membership remain open. |
 | 2026-11-14 | **Approved** | Global Search belongs in the persistent navbar; small-screen branding uses icon only instead of the full wordmark. Bootstrap 6 Nav overflow is favored pending pinned-version testing. |
@@ -256,7 +258,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 | 2026-11-14 | **Approved** | Keep the top navbar in both Simple and Standard Mode, adapting its presentation responsively; membership and breakpoints remain open. |
 | 2026-11-14 | Proposed | Separate routing from navigation placement; keep `preact-iso` and current functional services. |
 | 2026-11-14 | Proposed | Use historical three-layer concept: global toolbar, concise main navigation, contextual navigation; More for secondary/support links. |
-| 2026-11-14 | Open | Home versus Gardens default, remaining toolbar membership, Settings placement, Add New submenu contents, and screen-specific layouts. |
+| 2026-11-14 | Open | Home versus Gardens default, remaining toolbar membership, Add New submenu contents, and screen-specific layouts. |
 | 2026-11-14 | Open | Gardens hub, creation methods, grouped Notes, Lists overview, and future Search entry behavior. |
 
 **Next design session:** Agree on a destination map for Standard Mode and Simple Mode, then translate it into annotated shell layouts. Do not treat this working proposal as an approved Codex prompt.
