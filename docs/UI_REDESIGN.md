@@ -309,16 +309,126 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [ ] Define the boundary between this pre-8G UI redesign and UI work deferred until the relevant V1 feature exists.
 - [ ] Prepare and approve annotated layouts for the shell, Home, Gardens, Welcome, and Garden creation before implementation prompts are written.
 
-## 9. Proposed implementation slices (not scheduled or authorized)
+## 9. Implementation punch list — proposed sequence
 
-1. **Architecture-only refactor:** separate route definitions from navigation configuration; no deliberate visual or behavioral change. Update route/nav tests.
-2. **Shared shell/navigation:** Header, global action menu, More/support access, Standard sidebar, responsive states; keep deep links and Settings return behavior.
-3. **Home and Gardens hub:** simplify both modes; implement approved Garden grouping and discovery.
-4. **Creation flow presentation:** choice page and approved Wizard steps/validation visibility while preserving drafts/atomic operations.
-5. **Contextual refinements:** Templates, Notes, Lists entry points and related cards/empty states; leave feature implementation for later milestones when appropriate.
-6. **Integrated acceptance:** device testing and regression checks, resolve findings, then continue with 8G.
+**Plan:** nine separately reviewable steps. Step 1 is an architecture/inventory pass with no intended visual change; Steps 2–8 implement the redesign in focused slices; Step 9 is integrated acceptance. Do not combine these into one broad Codex task. Each step gets its own prompt, tests, review, and manual acceptance before proceeding.
 
-Before each slice, create a narrowly scoped Codex prompt with exact files/behavior, exclusions, tests, and manual acceptance criteria. Keep observation reports separate from implementation instructions.
+### Step 1 — Existing-code audit and route/navigation separation
+
+**Purpose:** Understand and prepare the infrastructure we already have; do not redesign the visible interface yet.
+
+- Audit the current shell and dependencies: `AppShell` in `src/index.jsx`, `Header`, `StandardNavigation`, `navigation.js`, `InterfaceModeContext`, `interfaceMode.js`, shared CSS, and existing tests.
+- Record which existing components/styles can be retained, extended, or retired. Avoid replacing working components just because the visual design is changing.
+- Separate route matching/definitions from visible navigation configuration. Today `navigation.js` combines route records, navigation groups, and route presentation metadata; change this only as much as needed to support the approved information architecture.
+- Preserve all existing paths, deep links, route matching, Garden/Note editor routes, unknown-route handling, and Settings return-to-origin behavior.
+- Remove the assumption that every route must belong to a user-facing “workspace” group. Navigation placement is a separate concern from route existence.
+- Add/update unit tests for route resolution and navigation configuration.
+
+**Acceptance:** No intentional visual change; all existing URLs and route behavior continue to work; tests cover route matching and Settings return behavior; a clear route-to-navigation map exists for the next step.
+
+### Step 2 — Generalize the existing AppDrawer
+
+**Purpose:** Extend the component already in the repository rather than build a second drawer system.
+
+- Add a placement API supporting `top`, `end`, `bottom`, and `start`; preserve `bottom` as the default so the existing contextual-information drawer remains unchanged for current callers.
+- Use shared base styling plus four placement modifiers. Keep placement-specific geometry in CSS: width/height, edge attachment, inner-facing border radius, transition direction, scrolling, and safe-area handling.
+- Separate the reusable dialog/drawer lifecycle from the current fixed information trigger so a caller such as Standard Navigation can provide its own trigger and drawer content. Keep the existing information-trigger experience working.
+- Reuse Bootstrap 6 Drawer and the current lifecycle/focus-restoration patterns. Avoid duplicating Bootstrap's dialog/focus behavior or adding another drawer dependency.
+- Keep the navigation drawer modal while open, with labelled close control, Escape/backdrop dismissal, keyboard operation, visible focus, and focus restoration. Define what happens when a navigation link is selected and when the viewport crosses a shell breakpoint.
+- Add component tests where practical and a manual placement matrix for all four directions; verify the existing bottom drawer at phone and desktop sizes.
+
+**Acceptance:** All four placements render and dismiss correctly; bottom remains the default and existing behavior is preserved; focus and keyboard behavior work; no duplicate or conflicting Bootstrap instances/listeners.
+
+### Step 3 — Standard Mode shell and navigation
+
+**Purpose:** Implement the approved Standard Mode application shell using the existing Header and StandardNavigation as starting points.
+
+- Build the persistent top navbar and its approved destinations/actions: logo/Home, primary navigation, global tools, Search, Add New, and one More menu.
+- Implement the large-screen layout (`lg` and up): expanded sidebar, provisionally 300px wide.
+- Implement the medium layout (`md` to below `lg`): persistent 60px iconbar; explicit control opens a provisionally 300px `start` Drawer overlay. The workspace must not move or resize.
+- Preserve the existing Settings mode selector and allow manually selected Standard Mode on phones. Before coding that phone layout, approve a compact Standard Mode wireframe; do not silently switch the selected mode to Simple.
+- Apply the agreed narrow-screen wordmark behavior and keep Add New, Search, and exactly one More trigger visible.
+- Implement active-route indication, accessible names for icon-only controls, touch targets, keyboard navigation, and focus behavior.
+- Do not implement new Search functionality or unrelated feature logic as part of the shell.
+
+**Acceptance:** Approved destinations are reachable; route/deep-link and Settings-return behavior remain intact; large/medium/phone Standard Mode layouts work at the selected breakpoints; the medium Drawer overlays without reflow; navigation is usable with keyboard and touch.
+
+### Step 4 — Simple Mode card-based navigation
+
+**Purpose:** Give Simple Mode its own focused presentation without changing routes, data, or feature behavior.
+
+- First approve the Simple Mode card inventory, labels, grouping, order, and representative phone/tablet/desktop arrangements. These details are still TBD; do not invent the final card set in the implementation prompt.
+- Implement the approved cards using existing route destinations and actions.
+- Adapt the card grid to available width, including manually selected Simple Mode on large screens.
+- Preserve the existing Automatic/Simple/Standard preference and resolver; do not add another selector.
+- Check card semantics, accessible names, focus states, and touch target sizing.
+
+**Acceptance:** Simple Mode is coherent at narrow and wide sizes; every card leads to the correct existing destination/action; changing mode does not change data or lose work.
+
+### Step 5 — Home dashboard
+
+**Purpose:** Implement the approved Home overview in both modes, with appropriate presentation density.
+
+- Implement the five approved sections in order: Current Gardens, Tasks, Wish List, Gallery, Previous Gardens.
+- Garden and Gallery content uses horizontal visual rails; Tasks and Wish List show up to five most recently added items as read-only previews.
+- Keep drafts off Home. Editing remains on the relevant full page.
+- Implement the approved Garden card fields, recent-image ordering, Previous Garden statuses, View all links, and per-section empty states.
+- Validate Bootstrap 6 Carousel touch/scroll behavior and responsive card counts before considering another library.
+- Reuse existing data services; do not duplicate editing or persistence logic in Home.
+
+**Acceptance:** Correct records and ordering appear; previews remain read-only; empty/loading/error states are distinct; rails work with touch, keyboard, and responsive layouts; no draft appears on Home.
+
+### Step 6 — Gardens hub and draft discovery
+
+**Purpose:** Make saved Gardens and unfinished creation sessions easy to distinguish and find.
+
+- Finalize the Gardens hub grouping/order for Current, Planned, and Previous; confirm the exact meaning of Current versus Active against the existing Garden status contract.
+- Implement the approved horizontal Draft Gardens rail on `/gardens`, containing all unfinished drafts with Continue/Resume actions.
+- Keep draft creation sessions distinct from saved Gardens, including saved Gardens with Planned status. Make unnamed drafts recognizable.
+- Finalize Garden card details, long-title treatment, Create Garden entry point, and Templates access.
+- Preserve existing draft IDs, autosave, recovery, mode selection, and atomic create/discard behavior. No obsolete alpha-data compatibility or migration work.
+
+**Acceptance:** Users can distinguish saved Gardens from drafts, find each Garden category, and resume every draft in its correct editor; existing Garden lifecycle and draft persistence tests pass.
+
+### Step 7 — Welcome and Garden creation presentation
+
+**Purpose:** Complete the first-run introduction and make Garden creation choices understandable.
+
+- Design and implement the approved Welcome startup preference and short, skippable Bootstrap 6 feature/Gardens carousel.
+- Preserve direct/deep links, Help access to Welcome, and the existing startup preference behavior.
+- Finalize the Quick Start/Wizard/Advanced choice presentation so the choices are clearly distinct and any carried-forward values are explicit and safe.
+- Finalize Wizard steps, validation visibility, resume behavior, and narrow-screen presentation.
+- Preserve existing draft recovery and editor workflows; do not create a second onboarding wizard or add steps for features that do not exist.
+
+**Acceptance:** First-run and returning-user behavior is correct; Welcome can be revisited; users understand the creation choices; Wizard/Advanced drafts survive reload and mode changes; create/discard safeguards remain intact.
+
+### Step 8 — Contextual and secondary page refinements
+
+**Purpose:** Finish the remaining page-level navigation and presentation work without expanding feature scope.
+
+- Refine Templates entry points and management presentation.
+- Refine Notes navigation, grouped browsing/search, and linked-Garden context where supported by current functionality.
+- Confirm Tasks/Wish List full-page editing boundaries and any Lists overview entry point.
+- Design Help/About, Settings access through More, Locations under Settings, and contextual Harvest access.
+- Keep unfinished Search behavior harmless until the Search feature is implemented.
+- Defer feature functionality that is not part of the approved V1 redesign.
+
+**Acceptance:** Every approved destination has a clear entry and return path; no obsolete duplicate Settings entry remains; existing page workflows continue to work.
+
+### Step 9 — Integrated responsive and regression acceptance
+
+- Test Automatic, Simple, and Standard preferences at phone, tablet portrait/landscape, and desktop sizes, including manually selected modes at non-default widths.
+- Test all four AppDrawer placements and the Standard navigation overlay, including keyboard, Escape, backdrop, focus entry/return, and breakpoint changes.
+- Re-run existing unit, component, and integration tests; add coverage for new navigation behavior.
+- Re-test Garden/Template creation, draft recovery, Notes, Lists, Settings return paths, and all important deep links.
+- Verify installed PWA startup, offline use, refresh/update behavior, and no accidental data loss.
+- Resolve review findings and update `UI_REVIEW_NOTES.md`, `UI_CONVENTIONS.md`, and this document as appropriate before resuming feature milestone 8G.
+
+**Acceptance:** All approved layouts and navigation paths pass manual and automated checks; existing accepted workflows remain intact; no redesign regression blocks continuing V1 development.
+
+---
+
+**Codex workflow:** Before each step, prepare one narrowly scoped prompt listing exact files to inspect/change, intended behavior, explicit exclusions, tests, and manual acceptance criteria. Codex should inspect the current implementation before proposing edits. Keep each step independently reviewable and committed. Do not issue the next step's implementation prompt until the current step passes acceptance.
 
 ## 10. Acceptance criteria to expand when design is approved
 
