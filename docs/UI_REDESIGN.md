@@ -129,7 +129,7 @@ A full Notes page or Calendar page may still be reached from the global toolbar.
 
 **Acceptance implications:** Test header availability and access to every approved action in Simple and Standard Mode, including manual mode override on narrow and wide viewports; check touch targets, keyboard/focus, overflow menu usability, and no disruption to unsaved editor data.
 
-## 5. Current implementation and proposed route/navigation separation
+## 5. Current implementation and agreed route/navigation separation
 
 The current [src/index.jsx](../src/index.jsx) already uses `preact-iso` and renders `applicationRoutes` from [src/navigation.js](../src/navigation.js). `navigation.js` currently mixes path/view definitions with `section` (Simple Home), `navigationGroup` (Standard sidebar/Home), labels, icons, and workspace-derived lists. [StandardNavigation.jsx](../src/components/StandardNavigation.jsx) and [Home/index.jsx](../src/pages/Home/index.jsx) expose that catalog directly.
 
@@ -185,7 +185,7 @@ The Welcome requirements are separate from the Home dashboard specification belo
 
 **Still open:** exact slide count and sequence; copy; illustrations/screenshots; CTA placement (final slide or throughout); control styling; and touch, keyboard, screen-reader, and responsive details. The checkbox/default, full-page route, startup behavior, deep-link exception, Help link, and carousel purpose are approved.
 
-### Home dashboard — approved mixed previews, design to validate (November 14, 2026)
+### Home dashboard — approved structure, visual design to finalize (November 14, 2026)
 
 **Home at `/` is a dashboard of real data, not a menu of category tiles. Unfinished Garden drafts are explicitly excluded from Home; they belong on `/gardens`.** Keep five overview sections in their already agreed order: **Current Gardens, Tasks, Wish List, Gallery, Previous Gardens**. Each section has a clear **View all** path to its corresponding workspace. Do not duplicate data or editing logic in Home.
 
