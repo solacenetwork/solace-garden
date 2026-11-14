@@ -56,7 +56,7 @@ This document is the **single consolidated design specification** for the UI red
 
 ---
 
-## 11. Design principles
+## 3. Design principles
 
 1. **Pages/routes and navigation placement are separate.** A URL can remain bookmarkable even if its link is reached through a submenu or contextual page. Not every route needs a primary navigation button.
 2. **Workspaces are a user-facing concept, not a routing requirement.** Do not require every destination to be classified as a workspace or replace the old taxonomy with another mandatory taxonomy full of exceptions.
@@ -68,7 +68,7 @@ This document is the **single consolidated design specification** for the UI red
 8. **Do not reproduce the old appearance.** Learn from the historical interface's organization, not its heavy borders, bright boxed controls, faux desktop chrome, or narrow touch targets.
 9. **Differentiate evidence from decisions.** Observations and screenshots suggest options; an idea here is not a Codex instruction until explicitly approved.
 
-## 11. Historical JavaScript UI reference
+## 4. Historical JavaScript UI reference
 
 The earlier vanilla-JavaScript Garden screenshots in [pics/](pics/) show a useful organization:
 
@@ -88,7 +88,7 @@ Reference images: [main UI](pics/js-app-garden-ui.png), [Add New](pics/js-app-ga
 
 A full Notes page or Calendar page may still be reached from the global toolbar. Navigation placement is not a constraint on page capability.
 
-## 11. Current implementation and proposed route/navigation separation
+## 5. Current implementation and proposed route/navigation separation
 
 The current [src/index.jsx](../src/index.jsx) already uses `preact-iso` and renders `applicationRoutes` from [src/navigation.js](../src/navigation.js). `navigation.js` currently mixes path/view definitions with `section` (Simple Home), `navigationGroup` (Standard sidebar/Home), labels, icons, and workspace-derived lists. [StandardNavigation.jsx](../src/components/StandardNavigation.jsx) and [Home/index.jsx](../src/pages/Home/index.jsx) expose that catalog directly.
 
@@ -100,7 +100,7 @@ Avoid a new broad “workspace manager” or elaborate route-kind hierarchy. Ret
 
 The Standard Mode “About this workspace” panel should not be shown indiscriminately on Settings, Templates, Help, etc. Reassess its purpose rather than blindly adapting every route to it.
 
-## 11. Navigation destination map — draft, not approved
+## 6. Navigation destination map — draft, not approved
 
 | Destination / action | Candidate placement | Keep URL / behavior | Open question |
 | --- | --- | --- | --- |
@@ -123,7 +123,7 @@ The Standard Mode “About this workspace” panel should not be shown indiscrim
 
 This table records **candidates**, not a mandate to show all listed items at once. On narrow screens, toolbar actions can collapse into accessible menus without removing functionality.
 
-## 11. Redesign workstreams
+## 7. Redesign workstreams
 
 ### A. Application shell and global navigation
 
@@ -167,7 +167,7 @@ This table records **candidates**, not a mandate to show all listed items at onc
 
 Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,” etc.) before V1 release. Review card ordering (Gardens first candidate; Tasks then Wish List), header alignment, logo treatments, responsive sidebar collapse, touch targets, keyboard navigation, focus and accessible labels. Follow [UI_CONVENTIONS.md](UI_CONVENTIONS.md) for native links/buttons, Bootstrap 6 Dialog/Drawer, explicit Save/Close semantics, and recoverable feedback. Test real devices and both interface mode overrides, not just viewport simulations.
 
-## 11. Design decisions to settle before Codex implementation
+## 8. Design decisions to settle before Codex implementation
 
 - [ ] Choose default landing experience: Home dashboard or Gardens hub; specify Simple and Standard behavior.
 - [ ] Approve the final desktop sidebar destinations and order.
@@ -181,7 +181,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [ ] Define what is in scope for this pre-8G redesign versus deferred until the corresponding V1 feature exists.
 - [ ] Prepare wireframes or annotated layouts for key pages/states, then explicitly approve them.
 
-## 11. Proposed implementation slices (not scheduled or authorized)
+## 9. Proposed implementation slices (not scheduled or authorized)
 
 1. **Architecture-only refactor:** separate route definitions from navigation configuration; no deliberate visual or behavioral change. Update route/nav tests.
 2. **Shared shell/navigation:** Header, global action menu, More/support access, Standard sidebar, responsive states; keep deep links and Settings return behavior.
@@ -192,7 +192,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 Before each slice, create a narrowly scoped Codex prompt with exact files/behavior, exclusions, tests, and manual acceptance criteria. Keep observation reports separate from implementation instructions.
 
-## 11. Acceptance criteria to expand when design is approved
+## 10. Acceptance criteria to expand when design is approved
 
 - All existing accepted Garden and Template flows still work, including draft recovery, deletion safeguards, Template fallback, reload, and normal persistence.
 - `/`, `/gardens`, `/templates`, `/locations`, `/settings`, and existing Garden/Notes deep links resolve correctly; unknown routes retain a useful fallback.
