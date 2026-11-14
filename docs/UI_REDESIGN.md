@@ -133,7 +133,7 @@ A full Notes page or Calendar page may still be reached from the global toolbar.
 
 The current [src/index.jsx](../src/index.jsx) already uses `preact-iso` and renders `applicationRoutes` from [src/navigation.js](../src/navigation.js). `navigation.js` currently mixes path/view definitions with `section` (Simple Home), `navigationGroup` (Standard sidebar/Home), labels, icons, and workspace-derived lists. [StandardNavigation.jsx](../src/components/StandardNavigation.jsx) and [Home/index.jsx](../src/pages/Home/index.jsx) expose that catalog directly.
 
-**Proposed direction:** Keep `preact-iso`, stable route IDs, existing paths, and route resolution, but separate **route definitions** from **navigation/presentation configuration**. `index.jsx` can continue to render an explicit route registry; there is no need to move every `<Route>` declaration inline, and no new router is required.
+**Agreed architecture direction:** Keep `preact-iso`, stable route IDs, existing paths, and route resolution, while separating **route definitions** from **navigation/presentation configuration**. `index.jsx` can continue to render an explicit route registry; there is no need to move every `<Route>` declaration inline, and no new router is required. The exact refactor scope should be confirmed against current consumers and tests before implementation.
 
 A route answers **what page exists**; navigation configuration answers **where a link/action appears**; a page answers **what contextual controls it needs**.
 
