@@ -1,6 +1,6 @@
 # SOLACE Garden — UI Redesign Plan
 
-**Status:** Consolidated working design specification — synthesis underway; detailed layouts still require approval.  
+**Status:** Authoritative UI decision record — approved direction consolidated; detailed layouts and responsive states remain open.  
 **Started:** November 14, 2026  
 **Development position:** Post-8F UI review, before Milestone 8G.
 
@@ -10,12 +10,13 @@ Improve SOLACE Garden's navigation, layout, terminology, and common workflows be
 
 This document is the **single consolidated design specification** for the UI redesign. It synthesizes prior discussions, historical interfaces, Markdown planning, and real-device test reports. When complete it must describe Simple and Standard Mode layouts, navigation destinations, interactions, responsive states, and acceptance tests clearly enough to produce scoped Codex prompts. It is not another raw notes dump.
 
-- [UI_REVIEW_NOTES.md](UI_REVIEW_NOTES.md) remains the source of observations and possible remedies.
-- The November 10–14, 2026 structured observation collector export (`submissions.json`, supplied for review) contains 11 repeatable reports: five tablet, six laptop; no report was explicitly classified as a functional defect, and severity was recorded as zero for all reports (do not interpret zero as confirmed low severity).
-- [PARKING_LOT.md](PARKING_LOT.md) retains speculative/deferred alternatives.
-- [GOALS.md](GOALS.md), [TECH_SPEC.md](TECH_SPEC.md), [ROADMAP.md](ROADMAP.md), and [UI_CONVENTIONS.md](UI_CONVENTIONS.md) constrain approved behavior. After decisions here are accepted, reconcile any changed requirements with those documents rather than quietly overriding them.
+- **This document is authoritative for SOLACE Garden UI redesign decisions:** approved navigation placement, page composition, interaction patterns, responsive behavior, and remaining design questions.
+- [UI_REVIEW_NOTES.md](UI_REVIEW_NOTES.md) is the evidence/observation record; observations and suggested remedies do not override decisions here.
+- The November 10–14, 2026 structured observation collector export (`submissions.json`) contains 11 repeatable reports: five tablet and six laptop. No report was explicitly classified as a functional defect; recorded severity zero must not be interpreted as confirmed low impact.
+- [PARKING_LOT.md](PARKING_LOT.md) retains deferred alternatives and future ideas only. It is not a second source of current UI decisions.
+- [GOALS.md](GOALS.md), [TECH_SPEC.md](TECH_SPEC.md), and [UI_CONVENTIONS.md](UI_CONVENTIONS.md) remain authoritative for product goals, data contracts, and implementation conventions. [ROADMAP.md](ROADMAP.md) remains authoritative for delivery sequence. Where older UI wording conflicts with a decision recorded here, update the summary documents to match this design record; do not silently change data or technical contracts.
 
-**Statuses used below:** `Existing/accepted` = behavior or architecture already implemented/accepted; `Historical reference` = a useful earlier pattern, not a requirement; `Proposed` = candidate for approval; `Open` = requires a decision; `Deferred` = outside this redesign unless explicitly promoted.
+**Statuses used below:** `Approved` = explicit design decision; `Existing/accepted` = implemented behavior to preserve; `Open` = a design choice still required; `Preferred implementation approach` = direction to test against the pinned stack; `Deferred` = intentionally outside current V1 redesign scope.
 
 ## 2. Evidence synthesis and decision provenance
 
@@ -46,13 +47,13 @@ This document is the **single consolidated design specification** for the UI red
 
 ### 2.3 Previously established vs genuinely open
 
-**Established direction:** retain Preact + `preact-iso`, Bootstrap 6, shared Simple/Standard modes and existing routes/data services; decouple routes from link placement; use a compact main navigation plus global shortcuts and contextual navigation; preserve the historical layout *principle* without recreating its appearance.
+**Approved direction:** Keep Preact + `preact-iso`, Bootstrap 6, the existing routes and data services, and both selectable interface modes. The navbar is persistent in both modes. Home is reached only through the SOLACE logo; primary navigation is **Gardens → Journal → Gallery → PlantDB** (PlantDB last); the app-wide tools are **Tasks → Notes → Wish List → Calendar**; Search and Add New are in the top navbar; and one More menu contains Help, About, and Settings. Welcome is linked from Help. Detailed placements and remaining behaviors are consolidated in Sections 5–8 below.
 
-**Favored, not yet final:** primary sidebar ordered **Gardens → Journal → Gallery → PlantDB** (approved), with no separate Home item; global toolbar tools **Tasks → Notes → Wish List → Calendar** (approved order); a More menu for **Help, About, and Settings (approved)**, with Welcome linked from Help; global Add New in the top navbar (now approved); Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
+**Approved Home direction:** `/` is an overview dashboard with Current Gardens, Tasks, Wish List, Gallery, and Previous Gardens. Garden and Gallery content uses horizontal visual rails; Tasks and Wish List use short, read-only previews of the five most recently added items. Unfinished Garden drafts do not appear on Home.
 
-**Approved direction:** the logo-linked Home route presents an **overview dashboard**, not the Gardens hub. **Still open:** the precise Home cards, order, and Simple/Standard layouts; responsive toolbar overflow priority (membership/order of the four app-wide tools is approved); whether global Add New includes New Journal Entry; Search availability before the later Search feature milestone; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
+**Approved Welcome direction:** A fresh installation defaults **Show Welcome at startup** to checked. Normal launches show the full-page `/welcome` while enabled and Home (`/`) when disabled; direct/deep links are preserved. Welcome is revisitable from Help. Its short, skippable Bootstrap 6 carousel introduces the app and Gardens and leads to **Create Your First Garden** in the existing Wizard. Slide count, copy, imagery, and controls remain open.
 
-**Approved November 14:** Restore the historical **Show Welcome at startup** checkbox, enabled by default on new installations. Normal launches display `/welcome` while enabled and the Home overview (`/`) when disabled. Use existing local UI settings, respect deep links, and do not mix this behavior with the obsolete one-time `welcomeSeen` rule. This replaces the earlier startup contract in [GOALS.md](GOALS.md) §2.13b and [ROADMAP.md](ROADMAP.md); the **Welcome carousel's purpose is approved**: a quick overview of main app features, an introduction to Gardens, and a clear **Create Your First Garden** call to action. Exact number of slides, artwork, content, and interaction details remain to design.
+**Still open:** detailed responsive shell layouts and breakpoints; exact icons and overflow membership; Add New menu contents; Simple/Standard page composition; card details; Gardens hub grouping and routes; creation choice and Wizard design; and remaining Templates, Notes, Lists, Help/About, and contextual-page presentation.
 
 ---
 
@@ -138,47 +139,49 @@ Avoid a new broad “workspace manager” or elaborate route-kind hierarchy. Ret
 
 The Standard Mode “About this workspace” panel should not be shown indiscriminately on Settings, Templates, Help, etc. Reassess its purpose rather than blindly adapting every route to it.
 
-## 6. Navigation destination map — draft, not approved
+## 6. Navigation destination map — approved placement and remaining details
 
-| Destination / action | Candidate placement | Keep URL / behavior | Open question |
+This is the authoritative placement map. An approved placement does not mean its detailed visual treatment, icon, responsive breakpoint, or underlying feature implementation is complete.
+
+| Destination / action | Approved access / placement | Route or behavior | Remaining detail |
 | --- | --- | --- | --- |
-| Home | **SOLACE navbar logo only (approved)**; no additional Home button or sidebar item | `/` | Overview dashboard; exact cards/layout remain open |
-| Gardens | **Primary sidebar position 1 (approved)**; first Simple Home card candidate | `/gardens` | Hub layout and categories |
-| Current / Planned / Drafts / Previous | Within Gardens | Existing Gardens service/records | Tabs, rails, filtered routes, or hybrid |
-| Templates | Under Gardens, not global top-level | `/templates` | Contextual menu vs hub link |
-| PlantDB / Plants | **Primary sidebar position 4 / last (approved)** | `/plants` currently | Distinguish reference PlantDB from garden plant groups as features arrive |
-| Harvest | Garden activity; possibly lower Simple Home placement | `/harvest` | Exact entry point |
-| Gallery / Photos | **Primary sidebar position 3 (approved)** | `/photos` | Global versus Garden scope |
-| Journal | **Primary sidebar position 2 (approved)**; not a permanent global toolbar shortcut | `/journal` | “New Journal Entry” in global Add New is a candidate, not yet approved |
-| Calendar | **Fourth app-wide toolbar tool (approved)** | `/calendar` | Placement in Simple Home still to be decided |
-| Notes | **Second app-wide toolbar tool (approved)**, complete page | `/notes` and editor routes | Grouped Notes navigation within page |
-| Tasks / Wish List | **First and third app-wide toolbar tools respectively (approved)** | `/tasks`, `/wishlist` | Combined `/lists` candidate; distinct views remain accessible |
-| Search | **Global top navbar (approved): inline query on wide screens; icon-triggered panel below navbar on narrow screens** | `/search` | Target result URL `/search?q=...`; actual search engine remains later milestone |
-| Locations | Settings → Geographic Locations | `/locations` | No need for top-level sidebar link |
-| Settings | **Single navbar More menu only (approved)**; no dedicated gear icon or sidebar entry | `/settings` with return context | Preserve Close/return to originating context; direct URL still works |
-| Help / About | **Single navbar More menu (approved)** | `/help`, `/about` | Keep ordinary routes and navigation |
-| Welcome | **Link from Help page (approved)**, not a More entry | `/welcome` (planned) | Existing first-run behavior remains; optional carousel is a separate parked proposal |
-| Global Add New | **Top navbar (approved)**, responsive in both modes | Routes and services remain authoritative | Menu choices, ordering, availability, dirty-state handling remain open |
+| Home | SOLACE logo only; no separate Home button or sidebar entry | `/` | Exact dashboard layout is in Section 7A. |
+| Gardens | Primary navigation position 1 | `/gardens` | Simple Mode presentation and hub/category layout remain open. |
+| Current / Planned / Drafts / Previous | Within Gardens; Drafts are creation sessions, not saved Gardens | Existing Garden records and draft services | Other category presentation, ordering, filters, and dedicated routes remain open. V1 Draft rail is in Section 7B. |
+| Templates | Under Gardens; not a global primary destination | `/templates` | Hub link versus contextual Gardens menu remains open. |
+| Journal | Primary navigation position 2; not a permanent global toolbar tool | `/journal` | Whether Add New includes New Journal Entry remains open. |
+| Gallery / Photos | Primary navigation position 3 | `/photos` | Garden-specific versus global browsing details depend on Gallery design. |
+| PlantDB / Plants | Primary navigation position 4 (last) | `/plants` | Distinguish catalog/reference browsing from Garden plant groups as those features develop. |
+| Tasks | App-wide navbar tool position 1 | `/tasks` | Responsive overflow and exact icon remain open. |
+| Notes | App-wide navbar tool position 2 | `/notes` and editor routes | Grouped Notes navigation remains open. |
+| Wish List | App-wide navbar tool position 3 | `/wishlist` | Responsive overflow and exact icon remain open. |
+| Calendar | App-wide navbar tool position 4 | `/calendar` | Simple Mode placement and responsive overflow remain open. |
+| Search | Global top navbar | Wide: inline query field. Narrow: icon opens full-width panel below navbar. Target results route `/search?q=...`. | Search engine is a later feature; interim behavior and responsive threshold remain open. |
+| Add New (+) | Global top navbar in both modes | Opens a global action menu | Menu entries/order and relationship to page-specific Create actions remain open. |
+| More | Exactly one More item in navbar | Contains Help, About, Settings, and any global tools overflowed at narrower widths | Technical integration of intentional menu items with Bootstrap 6 overflow remains to validate. |
+| Help / About | Inside the single More menu | `/help`, `/about` | Page content and layout remain open. |
+| Settings | Inside the single More menu only; no separate gear or sidebar item | `/settings`; preserve return-to-origin/Close behavior and direct URL | Exact More menu presentation remains open. |
+| Welcome | Link from Help; not a separate primary or More destination | `/welcome`; startup behavior in Section 7A | Carousel slide design remains open. |
+| Locations | Settings → Geographic Locations | `/locations` | Settings/context presentation remains open. |
+| Harvest | Garden-related activity | `/harvest` | Exact navigation entry point remains open. |
 
-This table records **candidates**, not a mandate to show all listed items at once. On narrow screens, toolbar actions can collapse into accessible menus without removing functionality.
+**Primary navigation order:** Gardens → Journal → Gallery → PlantDB. **Global tool order:** Tasks → Notes → Wish List → Calendar. Keep the top navbar in both Simple and Standard Mode. At narrow widths, Add New and Search remain directly visible and exactly one More trigger remains; lower-priority tools may overflow into it. On narrow screens, show the logo without the full “SOLACE Garden” wordmark. The actual width threshold and precise overflow behavior must be tested on the pinned Bootstrap 6 alpha and real devices.
 
 ## 7. Redesign workstreams
 
 ### A. Application shell and global navigation
 
-**Evidence:** Tablet landscape navigation requires scrolling through too many equal-priority buttons; “workspace” wording is overused; Settings access from sidebar behaves awkwardly with its return/Close action; header logo/settings spacing is overly inset.
+**Approved structure:** persistent top navbar in both Simple and Standard Mode; SOLACE logo as the only Home link; primary navigation order Gardens → Journal → Gallery → PlantDB; global tools order Tasks → Notes → Wish List → Calendar; global Search and Add New in the navbar; one More item containing Help, About, Settings, and any tools overflowed at narrow widths. Keep Add New and Search visible on narrow screens. Hide the full wordmark on narrow screens and retain the logo. See the authoritative destination map in Section 6.
 
-**Evaluate:** slim Standard sidebar; persistent top toolbar; More menu; global Add New; search affordance; `.container` versus `.container-fluid` for header (retain deliberate responsive padding); active location and keyboard/focus semantics. Decide exactly where every destination goes before changing source.
+**Open:** exact icons and labels; actual breakpoint thresholds; Standard sidebar width/collapse and Simple Mode navigation composition; priority of the four tools when space is constrained; how deliberate More destinations combine with Bootstrap 6 Nav overflow; Add New menu entries/order and how they relate to page-specific Create actions; header container/padding; focus restoration and keyboard/touch details; and exact screen-specific shell layouts. Journal remains a primary navigation destination, not a permanent toolbar tool. Welcome design details are in Section 7A.
 
-**Open:** which tools deserve persistent top-level emphasis (Journal remains a primary workspace, not a permanent toolbar tool); whether Add New offers New Journal Entry; how Simple Home relates to Standard Home; and the exact Welcome carousel composition. Welcome's startup checkbox and carousel purpose are approved.
+### Welcome page and startup behavior — approved direction, details open
 
-### Approved Home overview and historical first-run entry
+The Welcome requirements are separate from the Home dashboard specification below. A fresh installation defaults **Show Welcome at startup** to checked. While checked, normal launches show the full-page `/welcome`; when unchecked, normal launches go to Home (`/`). Direct/deep links to other destinations are preserved. Skipping or choosing Go to Gardens does not silently change the preference. Welcome remains available from Help regardless of the preference. Store the explicit setting in existing local UI preferences; do not revive the obsolete one-time `welcomeSeen` rule or add alpha compatibility work.
 
-**Home is a dashboard, not a sidebar item or a shortcut to Gardens.** The navbar logo navigates to the Home overview at `/`. The historical Home screen gave an at-a-glance view of **Current Gardens, Tasks, Wish List, Gallery, and Previous Gardens**. Preserve those five categories as the *starting content inventory* for redesign; exact card layout, information density, relative ordering, and differences between Simple and Standard Mode remain to be designed. Use concise summaries and direct links to the corresponding workspaces; do not duplicate entire workspaces in the dashboard.
+**Approved presentation direction:** Use a short, skippable **Bootstrap 6 carousel** to introduce the main app features, explain the purpose of Gardens, and lead to **Create Your First Garden** in the existing Garden creation Wizard. This is an introduction, not a second onboarding wizard or a gate to normal use. Keep visible Skip Introduction / Go to Gardens access. The Welcome page also carries the beta/local-storage/backup guidance required by GOALS.md and ROADMAP.md.
 
-**Approved startup sequence (restored from the historical UI):** A fresh installation shows the full-page `/welcome` with **Show Welcome at startup** checked by default. While checked, normal launches continue to show Welcome; unchecking switches later normal launches to the Home dashboard at `/`. Skip Introduction / Go to Gardens never silently changes the checkbox. Deep links bypass Welcome and are preserved. Welcome remains revisitable via Help regardless of preference. Store the explicit setting with existing local UI preferences; no alpha data migration or one-time `welcomeSeen` mechanism. **Approved carousel direction:** On Welcome, use a short, skippable Bootstrap 6 carousel to briefly introduce major features, explain what a Garden is/why to create one, and finish with an obvious **Create Your First Garden** action leading into the **existing Garden creation Wizard** (not a second onboarding flow). Preserve Skip Introduction / Go to Gardens, the Show Welcome at startup preference, and normal navigation. Final slide count, copy, images, ordering, and whether the CTA appears throughout or on the final slide remain open.
-
-**Design questions still open:** How much of each dashboard summary to show, where to place actions to continue a draft, the exact empty-state wording, and the exact carousel slide content and interaction details. Home remains accessible through the logo regardless of Welcome settings.
+**Still open:** exact slide count and sequence; copy; illustrations/screenshots; CTA placement (final slide or throughout); control styling; and touch, keyboard, screen-reader, and responsive details. The checkbox/default, full-page route, startup behavior, deep-link exception, Help link, and carousel purpose are approved.
 
 ### Home dashboard — approved mixed previews, design to validate (November 14, 2026)
 
@@ -207,7 +210,7 @@ Keep these states simple and usable in both modes. A user may have Previous Gard
 
 **Responsive behavior:** Use separate, independently swipeable **Bootstrap 6 Carousel** rails for the Garden and Gallery categories, aiming for roughly **two usable cards on narrow phones and up to six on wider screens**, without squeezing content. Prefer testing the pinned Bootstrap 6 Carousel (scroll snap, touch and multi-item behavior) before installing SwiperJS; see [Bootstrap 6 Carousel docs](https://getbootstrap.com/docs/6.0/components/carousel/). Disable autoplay and avoid surprise looping. Lists should reflow naturally instead of forcing Tasks and Wish List into carousel controls.
 
-**Open details:** title/subtitle/start-date field mapping and missing-value behavior; status grouping and Garden ordering; card dimensions and thumbnail treatment; item labels and date presentation in each five-item list preview; image metadata and Gallery readiness; exact empty-state copy and available actions as features arrive; the exact Simple/Standard Mode layout. The mixed-rail-and-list structure, short five-item recent previews, and full-page editing boundary are **approved**. Exact visual styling remains to test.
+**Open details:** exact Garden field mapping and missing-value presentation; Garden status grouping and ordering; card dimensions and thumbnail treatment; item labels/date presentation and the stable sort fallback for five-item previews; Gallery metadata/readiness; final empty-state wording; and the exact Simple/Standard Mode composition. The mixed-rail-and-list structure, five-most-recent-item read-only previews, section order, and full-page editing boundary are **approved**. The horizontal rails target roughly two usable cards on narrow phones and up to six on wider screens; validate the pinned Bootstrap 6 Carousel's touch/scroll-snap behavior before considering another library. No autoplay or surprise looping.
 
 ### B. Gardens hub, discovery, and lifecycle
 
@@ -215,13 +218,13 @@ Keep these states simple and usable in both modes. A user may have Previous Gard
 
 **Approved separation:** Garden drafts **never appear on the Home dashboard** or inside Current/Planned/Previous Gardens collections. They are unfinished creation sessions, not existing Gardens.
 
-**Favored layout for drafts:** On `/gardens`, replace the potentially tall stack of unfinished drafts with a **dedicated horizontally scrolling Draft Gardens filmstrip**. Show all unfinished drafts within the rail (rather than an arbitrary handful), with each card providing its recognizable draft context and a **Continue/Resume** action to the appropriate existing Wizard or Advanced editor. The rail should have a small, predictable vertical footprint, work with touch scrolling, and not visually dominate actual Gardens. Keep draft persistence and editor recovery behavior unchanged. Test the pinned Bootstrap 6 Carousel before introducing SwiperJS. The exact rail position, card metadata, and overflow cues remain open.
+**Approved V1 direction:** On `/gardens`, show unfinished Garden creation drafts in a **dedicated horizontal Draft Gardens filmstrip**, rather than a vertically stacked list. Include all drafts in the horizontally scrollable rail; do not arbitrarily limit the collection to five. Each card identifies the draft and offers **Continue/Resume** into its existing Wizard or Advanced editor. The intent is to reduce the rail's vertical footprint while keeping every draft discoverable. This changes presentation only: preserve existing draft IDs, autosave, recovery, mode selection, and atomic create/discard behavior. Use the pinned Bootstrap 6 Carousel if its touch/scroll behavior meets requirements; do not add SwiperJS without a demonstrated need.
+
+**Still open:** where the rail sits relative to Current/Planned/Previous; exact card metadata and actions; empty-state treatment; and how the other Garden categories are browsed.
 
 **Deferred (possibly V2):** A **Show drafts on Garden dashboard** checkbox could show the Draft Gardens filmstrip on `/gardens` when checked or replace it with a **Drafts** button to a proposed `/drafts` page when unchecked. Drafts remain intact and resumable in either case; they never appear on Home. **Do not implement the toggle or new route in V1.** See [PARKING_LOT.md](PARKING_LOT.md) for unresolved details.
 
-**Evaluate:** a central `/gardens` hub with clear Current, Draft, Planned, Previous groupings; horizontal card rails for drafts are favored while the presentation of other groups (rails, tabs, or hybrid) remains open. Make Current and newly created Gardens easy to find. Consider a contextual Templates entry, Garden-specific actions, and a clear Create Garden action. A “What do you want to do?” selector is parked as an alternative, not assumed required.
-
-**Open:** grouping order, definitions of Current versus Active, location of the proposed Draft Gardens rail, number of other cards shown per device, whether dedicated filtered routes are worth adding, and title clamping versus a proposed ~200-character input limit.
+**Open:** order and presentation of Current, Planned, and Previous groups; whether Current means Active only; whether other groups use rails, tabs, lists, or a hybrid; whether filtered routes are useful; where Templates and Create Garden actions appear; and Garden card title clamping/maximum-length policy. **Planned is a saved Garden status, not a draft.** The old “What do you want to do?” selector and visibility preference remain alternatives in PARKING_LOT.md, not V1 requirements.
 
 ### C. Quick Start, Wizard, Advanced, and drafts
 
@@ -249,39 +252,43 @@ Keep these states simple and usable in both modes. A user may have Previous Gard
 
 Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,” etc.) before V1 release. Review card ordering (Gardens first candidate; Tasks then Wish List), header alignment, logo treatments, responsive sidebar collapse, touch targets, keyboard navigation, focus and accessible labels. Follow [UI_CONVENTIONS.md](UI_CONVENTIONS.md) for native links/buttons, Bootstrap 6 Dialog/Drawer, explicit Save/Close semantics, and recoverable feedback. Test real devices and both interface mode overrides, not just viewport simulations.
 
-## 8. Design decisions to settle before Codex implementation
+## 8. Consolidated decision status before Codex implementation
 
-- [x] Use only the navbar SOLACE logo to navigate Home (`/`); no separate Home button or sidebar item.
-- [x] Approve the logo-linked Home (`/`) as an overview dashboard: Current Gardens, Tasks, Wish List, Gallery, Previous Gardens (historical content inventory).
-- [x] Approve real data in the five Home sections, with **View all** links; Garden and Gallery records display as horizontal cards, rather than category-only placeholder tiles.
-- [x] Approve Garden card information (Title, Subtitle, Start Date; later optional thumbnail), recent-added-images Gallery rail, and Previous Gardens membership (Closed/Completed/Archived).
-- [x] Approve **Tasks and Wish List compact read-only five-most-recent-item previews** on Home (Nextcloud dashboard style); edits happen only in `/tasks` and `/wishlist`.
-- [ ] Validate **Garden and Gallery horizontal rails**: approximately 2 cards on phones and up to 6 on wide screens, without unreadable cards.
-- [x] Approve clear per-section Home empty states with simple, relevant actions (no CTA required for Previous Gardens); distinguish empty from loading/error.
-- [ ] Design Home card contents and responsive differences for Simple and Standard Mode; test Bootstrap 6 Carousel touch and scroll-snap on the pinned alpha before considering SwiperJS.
-- [x] Restore the **Show Welcome at startup** checkbox, enabled by default, replacing the old one-time V1 rule; reconcile GOALS.md, ROADMAP.md, and PARKING_LOT.md.
-- [x] Approve the Welcome carousel's goal: quick main-feature overview, introduction to Gardens, and **Create Your First Garden** CTA to the existing creation workflow.
-- [ ] Design and approve the carousel slides, copy, CTA placement, and accessible controls.
-- [x] Approve primary sidebar destinations and order: **Gardens, Journal, Gallery, PlantDB** (PlantDB last).
-- [x] Approve top-navbar placement and responsive presentation for global Search: inline input on wide screens; icon-triggered below-navbar field on narrow screens.
-- [x] Approve icon-only brand on narrow screens, with full wordmark on wider screens (threshold still open).
-- [x] Keep Add New (+) and Search directly visible at narrow widths, with **one** More navbar item collecting overflow/support destinations.
-- [x] Approve the four app-wide tools and their order: **Tasks, Notes, Wish List, Calendar**.
-- [ ] Specify exact navbar icon choices and overflow behavior while keeping this relative order.
-- [x] Place Settings exclusively in the single navbar More menu; remove standalone gear and sidebar Settings entry in the redesign.
-- [x] Place Help and About in the single navbar More menu; link to Welcome from Help, not from More.
-- [ ] Finalize remaining responsive overflow membership.
-- [x] Place global Add New (+) in the top navbar in both modes.
-- [ ] Define global Add New contents and whether it replaces or complements page-specific Create actions.
-- [x] Agree that the persistent top navbar exists in both Simple and Standard Mode, with different responsive presentations.
-- [ ] Define responsive collapse behavior for portrait tablet, landscape tablet, narrow phone, and desktop; preserve manually selected mode.
-- [x] Exclude unfinished Garden drafts from Home entirely; preserve them on `/gardens` as separate creation sessions.
-- [ ] Validate the favored **Draft Gardens horizontal filmstrip on `/gardens`**, showing all drafts with a direct Continue/Resume action, and choose its position alongside Current/Planned/Previous.
-- [ ] Choose the remaining Gardens hub/category navigation model and Templates entry point.
-- [ ] Choose Garden creation entry presentation and Wizard refactor boundaries.
-- [ ] Decide how Lists and Notes are presented without expanding the current data model.
-- [ ] Define what is in scope for this pre-8G redesign versus deferred until the corresponding V1 feature exists.
-- [ ] Prepare wireframes or annotated layouts for key pages/states, then explicitly approve them.
+### Approved decisions
+
+- [x] Shared Preact + `preact-iso` application, Bootstrap 6, existing routes/data services, and both selectable Simple/Standard modes remain the foundation.
+- [x] Persistent navbar in both modes; SOLACE logo is the sole Home link; no separate Home button or sidebar entry.
+- [x] Primary navigation order: **Gardens → Journal → Gallery → PlantDB** (PlantDB last).
+- [x] Global tool order: **Tasks → Notes → Wish List → Calendar**; Journal is not a permanent toolbar tool.
+- [x] Exactly one navbar More item contains Help, About, Settings, and any global tools overflowed at narrow widths. Welcome is linked from Help, not directly from More.
+- [x] Settings has no separate gear or sidebar item; preserve its route and return/Close behavior.
+- [x] Add New (+) and Search are global navbar actions in both modes. At narrow widths keep Add New and Search visible; use one More trigger for overflow/support destinations.
+- [x] Wide Search uses an inline query field; narrow Search uses an icon that opens a full-width panel immediately below the navbar. The target results URL is `/search?q=...`; the cross-feature engine remains a later feature.
+- [x] Hide the full “SOLACE Garden” wordmark on narrow screens and retain the logo icon; exact breakpoint remains open.
+- [x] Home (`/`) is an overview dashboard with five sections, in order: **Current Gardens, Tasks, Wish List, Gallery, Previous Gardens**.
+- [x] Home uses real data and View all links, not category-only tiles. Garden cards show Title, Subtitle, Start Date, with thumbnail support later; Previous includes Closed, Completed, Archived.
+- [x] Gallery preview is a horizontal rail of most recently added images, newest first.
+- [x] Tasks and Wish List show five most recently added items (or fewer) as read-only, Nextcloud-style previews; editing remains on `/tasks` and `/wishlist`.
+- [x] Home empty states are concise, per-section, and distinct from loading/errors; use useful actions where appropriate, with no forced CTA for Previous Gardens.
+- [x] No unfinished drafts on Home. V1 `/gardens` uses a compact horizontal Draft Gardens rail containing all drafts and Continue/Resume actions; exact rail placement and card details remain open.
+- [x] Show Welcome at startup defaults on for new installations; full-page Welcome, direct links preserved, Welcome reachable from Help, and startup preference stored in existing local UI settings.
+- [x] Welcome carousel purpose: short, skippable Bootstrap 6 feature overview, introduce Gardens, and lead to Create Your First Garden in the existing Wizard.
+
+### Still open for design
+
+- [ ] Navbar iconography, exact widths/breakpoints, overflow priorities, and the pinned Bootstrap 6 Nav overflow/More integration.
+- [ ] Complete Simple Mode first-screen/navigation layout and Standard sidebar layout/collapse behavior across phone, tablet portrait/landscape, and desktop.
+- [ ] Add New menu contents, ordering, and relationship to page-specific Create actions (including whether New Journal Entry belongs there).
+- [ ] Home card dimensions, field mapping/missing values, preview row labels/dates/sort fallback, Gallery image sizing/metadata, and Simple/Standard density differences.
+- [ ] Validate Bootstrap 6 Carousel touch/scroll-snap behavior for Home and Draft Gardens rails on real devices; confirm card widths, visible count, scroll affordances, and keyboard access.
+- [ ] Gardens hub order and presentation for Current, Planned, Previous; meaning of Current versus Active; Draft rail placement; Templates/Create Garden entry points; need for any filtered routes.
+- [ ] Garden card long-title clamp and whether to enforce a generous name-length limit.
+- [ ] Welcome slide count, copy, artwork, CTA placement, and accessible responsive controls.
+- [ ] Quick Start/Wizard/Advanced choice screen, safe carry-forward behavior, actual Wizard steps, validation visibility, and resume-step behavior.
+- [ ] Templates and Notes contextual UI; grouped Notes/search/linked-Garden indicators; whether a combined Lists overview is worthwhile.
+- [ ] Help/About content and contextual navigation treatment; Harvest placement; Search's harmless interim state until the search feature exists.
+- [ ] Define the boundary between this pre-8G UI redesign and UI work deferred until the relevant V1 feature exists.
+- [ ] Prepare and approve annotated layouts for the shell, Home, Gardens, Welcome, and Garden creation before implementation prompts are written.
 
 ## 9. Proposed implementation slices (not scheduled or authorized)
 
@@ -307,29 +314,18 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 ## 11. Decision log
 
-| Date | Status | Decision / question |
-| --- | --- | --- |
-| 2026-11-14 | **Approved / favored** | No unfinished Garden drafts on Home; drafts remain only in the Gardens workspace. Favor a compact horizontally scrolling rail on `/gardens` showing all drafts and their Resume actions, pending responsive layout validation. |
-| 2026-11-14 | **Approved** | Use simple, per-section Home empty states: create first Garden, add Task, add Wish List item, open Gallery if available; no forced CTA for Previous Gardens. Do not confuse no records with loading/errors. |
-| 2026-11-14 | **Approved** | Garden rails show Title, Subtitle, Start Date (thumbnail later); Gallery shows recently added images; Previous Gardens includes Closed, Completed, Archived. Tasks and Wish List show five most recently added items as read-only dashboard previews; full pages handle edits. |
-| 2026-11-14 | **Approved** | Home sections show real records with View all access to their complete workspaces, not static category navigation tiles. |
-| 2026-11-14 | **Favored design** | Home uses independent Netflix-style horizontal rails for the five overview categories, adapting roughly 2–6 visible cards by width. Prefer testing Bootstrap 6 Carousel scroll-snap/touch rather than adding SwiperJS without need. Exact visuals and behavior remain open. |
-| 2026-11-14 | **Approved direction** | Welcome uses a short, skippable feature-introduction carousel culminating in **Create Your First Garden**, routed to the existing Garden creation Wizard. Slide content/count and controls remain to be designed. |
-| 2026-11-14 | **Approved** | Restore Welcome's **Show Welcome at startup** checkbox, initially on. Normal launches show Welcome while enabled and Home when disabled; direct links are unaffected. The carousel remains a candidate. |
-| 2026-11-14 | **Approved direction** | Home (`/`) is an overview dashboard with Current Gardens, Tasks, Wish List, Gallery, and Previous Gardens. Welcome startup preference is separately approved; precise dashboard composition remains open. |
-| 2026-11-14 | **Approved** | Home is accessed exclusively through the SOLACE logo in the navbar; no standalone Home button. Primary sidebar order is Gardens, Journal, Gallery, PlantDB, with PlantDB last. |
-| 2026-11-14 | **Approved** | The four app-wide navbar tools appear in this order: Tasks, Notes, Wish List, Calendar. Their responsive overflow behavior remains to be designed. |
-| 2026-11-14 | **Approved** | Help and About belong in the single navbar More menu; Welcome is accessible from Help rather than appearing in More. Preserve existing first-run Welcome requirements unless separately revised. |
-| 2026-11-14 | **Approved** | Settings appears exclusively inside the one navbar More menu, with no permanent gear icon or Standard sidebar entry; preserve the Settings route and return/Close behavior. |
-| 2026-11-14 | **Approved** | Search uses an inline navbar input on wide screens and an icon-triggered search panel below the navbar on narrow screens; Enter/Search targets `/search?q=...` once results exist. |
-| 2026-11-14 | **Approved** | Use only one navbar More menu; on narrow screens keep Add New and Search visible while lower-priority tools move into that menu as needed. Exact menu mechanism and membership remain open. |
-| 2026-11-14 | **Approved** | Global Search belongs in the persistent navbar; small-screen branding uses icon only instead of the full wordmark. Bootstrap 6 Nav overflow is favored pending pinned-version testing. |
-| 2026-11-14 | **Approved** | Global Add New (+) belongs in the persistent top navbar, not the sidebar; its submenu contents remain open. |
-| 2026-11-14 | **Approved direction** | Journal stays in primary workspace navigation, not as a permanent top-navbar tool. “New Journal Entry” in Add New remains a candidate. |
-| 2026-11-14 | **Approved** | Keep the top navbar in both Simple and Standard Mode, adapting its presentation responsively; membership and breakpoints remain open. |
-| 2026-11-14 | Proposed | Separate routing from navigation placement; keep `preact-iso` and current functional services. |
-| 2026-11-14 | Proposed | Use historical three-layer concept: global toolbar, concise main navigation, contextual navigation; More for secondary/support links. |
-| 2026-11-14 | Open | dashboard and Welcome carousel composition, responsive toolbar presentation, Add New submenu contents, and screen-specific layouts. |
-| 2026-11-14 | Open | Gardens hub, creation methods, grouped Notes, Lists overview, and future Search entry behavior. |
+This log summarizes the approved decisions. Sections 6–8 are the detailed source of truth for placement, rationale, and unresolved design details.
 
-**Next design session:** Agree on a destination map for Standard Mode and Simple Mode, then translate it into annotated shell layouts. Do not treat this working proposal as an approved Codex prompt.
+| Date | Status | Decision |
+| --- | --- | --- |
+| 2026-11-14 | **Approved** | Keep the persistent navbar in both modes; logo-only Home access; primary navigation order Gardens, Journal, Gallery, PlantDB; global tools order Tasks, Notes, Wish List, Calendar. |
+| 2026-11-14 | **Approved** | One More menu contains Help, About, Settings, and tools overflowed at narrow widths. Add New and Search stay visible on narrow screens. Settings has no separate gear/sidebar entry. |
+| 2026-11-14 | **Approved** | Search is inline in the wide navbar and opens a full-width below-navbar panel from an icon on narrow screens; results target `/search?q=...` when the later Search feature exists. |
+| 2026-11-14 | **Approved** | Narrow-screen branding shows the logo without the full wordmark. Global Add New is in the navbar in both modes; its menu contents remain open. |
+| 2026-11-14 | **Approved** | Home is a real-data dashboard: Current Gardens, Tasks, Wish List, Gallery, Previous Gardens. Garden and Gallery rails; five-item read-only Tasks/Wish List previews; per-section empty states; no drafts on Home. |
+| 2026-11-14 | **Approved** | Garden cards show Title, Subtitle, Start Date; thumbnail support may be added later. Previous Gardens includes Closed, Completed, Archived. Gallery shows most recently added images. |
+| 2026-11-14 | **Approved** | On `/gardens`, show all unfinished drafts in a compact horizontal rail with Continue/Resume actions. Other Garden group layout/order remains open. |
+| 2026-11-14 | **Approved** | Welcome startup preference defaults on for new installations; full-page Welcome, direct links preserved, Help revisit, and a short skippable feature/Gardens carousel leading to the existing Wizard. Carousel slide details remain open. |
+| 2026-11-14 | **Agreed direction** | Retain Preact + `preact-iso` and separate route existence from navigation placement; avoid a new routing framework or a mandatory “workspace” taxonomy. Implementation/refactor scope remains to be validated. |
+
+**Next design session:** Finalize the application shell and responsive layouts first. Then complete the Home/Gardens, Welcome, and creation wireframes. Do not issue broad Codex implementation prompts until the relevant page/state layout and acceptance criteria are approved.
