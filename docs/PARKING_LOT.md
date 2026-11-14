@@ -101,6 +101,19 @@ After the current A–F implementation work, we could do a documentation cleanup
 
 **Boundary:** The startup preference is an approved redesign requirement, **not yet implemented**. The carousel's goal is approved, but exact screen composition and implementation remain for the UI redesign. No application code change is authorized by this parking-lot note alone.
 
+## Future candidate (possibly V2): Show Drafts on Gardens dashboard preference
+
+**Status:** Parked future enhancement from November 14, 2026. **Not in V1 scope.** No new `/drafts` route or preference yet.
+
+- Add a **Show drafts on Garden dashboard** checkbox governing unfinished drafts on `/gardens` (not Home `/`).
+- **Checked:** show the compact Draft Gardens horizontal filmstrip, with resume actions.
+- **Unchecked:** replace that filmstrip with a **Drafts** button linking to a possible `/drafts` page listing all unfinished drafts and resume actions.
+- The setting affects **presentation only**: drafts, autosave, resume mode, and operational data integrity remain unchanged. Hiding the rail never deletes drafts.
+- If implemented later, use the existing local UI preferences rather than a special store; no obsolete alpha data compatibility migrations.
+- **Future decisions:** default checkbox state, where its control lives, whether `/drafts` or a nested Gardens route is preferable, and responsive accessibility.
+
+**V1 direction:** compact drafts rail on `/gardens`; no drafts on Home.
+
 ## Future UI Review (after 8F): Garden-grouped Notes navigation
 
 **Status:** Parked UX concept from November 8, 2026; evaluate during the app-wide post-8F UI sweep, not during 8F3/8F4. No implementation or data-contract change approved yet.
