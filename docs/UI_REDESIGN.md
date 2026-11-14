@@ -48,9 +48,9 @@ This document is the **single consolidated design specification** for the UI red
 
 **Established direction:** retain Preact + `preact-iso`, Bootstrap 6, shared Simple/Standard modes and existing routes/data services; decouple routes from link placement; use a compact main navigation plus global shortcuts and contextual navigation; preserve the historical layout *principle* without recreating its appearance.
 
-**Favored, not yet final:** main sidebar centered on Gardens, PlantDB, Gallery; global access to Tasks, Notes, Wish List, Calendar; a More menu for **Help, About, and Settings (approved)**, with Welcome linked from Help; global Add New in the top navbar (now approved); Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
+**Favored, not yet final:** main sidebar centered on Gardens, PlantDB, Gallery; global toolbar tools **Tasks → Notes → Wish List → Calendar** (approved order); a More menu for **Help, About, and Settings (approved)**, with Welcome linked from Help; global Add New in the top navbar (now approved); Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
 
-**Still open:** Home dashboard versus Gardens as startup view; precise toolbar membership and overflow; whether global Add New includes New Journal Entry; Search availability before the later Search feature milestone; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
+**Still open:** Home dashboard versus Gardens as startup view; responsive toolbar overflow priority (membership/order of the four app-wide tools is approved); whether global Add New includes New Journal Entry; Search availability before the later Search feature milestone; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
 
 **Conflict to settle rather than silently rewrite:** the existing GOALS/TECH_SPEC first-run Welcome behavior is an informational page shown once; PARKING_LOT explores an optional carousel and show-at-startup preference. The current requirement remains in force until deliberately revised.
 
@@ -120,7 +120,7 @@ A full Notes page or Calendar page may still be reached from the global toolbar.
 
 **Approved addition:** The global **Add New (+)** action belongs in the top navbar in both modes, using the approved responsive navbar presentation. It is an action menu, not a primary workspace or sidebar destination. Its menu entries and interactions remain to be designed.
 
-**Not yet decided:** Other tools/icons and order, what is always visible versus placed in overflow, the remaining contents of More, and precise breakpoint/layout behavior. Do not treat the earlier candidate toolbar membership as approved.
+**Not yet decided:** Exact icon artwork and what is always visible versus placed in overflow, the remaining contents of More, and precise breakpoint/layout behavior. Do not treat the earlier candidate toolbar membership as approved.
 
 **Acceptance implications:** Test header availability and access to every approved action in Simple and Standard Mode, including manual mode override on narrow and wide viewports; check touch targets, keyboard/focus, overflow menu usability, and no disruption to unsaved editor data.
 
@@ -148,9 +148,9 @@ The Standard Mode “About this workspace” panel should not be shown indiscrim
 | Harvest | Garden activity; possibly lower Simple Home placement | `/harvest` | Exact entry point |
 | Gallery / Photos | Primary or garden contextual destination | `/photos` | Global versus Garden scope |
 | Journal | **Primary workspace (approved direction)**; not a permanent global toolbar shortcut | `/journal` | “New Journal Entry” in global Add New is a candidate, not yet approved |
-| Calendar | Global toolbar candidate | `/calendar` | Placement in Simple Home |
-| Notes | Global toolbar candidate, complete page | `/notes` and editor routes | Grouped Notes navigation within page |
-| Tasks / Wish List | Global toolbar or a shared Lists overview | `/tasks`, `/wishlist` | Combined `/lists` candidate; distinct views remain accessible |
+| Calendar | **Fourth app-wide toolbar tool (approved)** | `/calendar` | Placement in Simple Home still to be decided |
+| Notes | **Second app-wide toolbar tool (approved)**, complete page | `/notes` and editor routes | Grouped Notes navigation within page |
+| Tasks / Wish List | **First and third app-wide toolbar tools respectively (approved)** | `/tasks`, `/wishlist` | Combined `/lists` candidate; distinct views remain accessible |
 | Search | **Global top navbar (approved): inline query on wide screens; icon-triggered panel below navbar on narrow screens** | `/search` | Target result URL `/search?q=...`; actual search engine remains later milestone |
 | Locations | Settings → Geographic Locations | `/locations` | No need for top-level sidebar link |
 | Settings | **Single navbar More menu only (approved)**; no dedicated gear icon or sidebar entry | `/settings` with return context | Preserve Close/return to originating context; direct URL still works |
@@ -211,7 +211,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [x] Approve top-navbar placement and responsive presentation for global Search: inline input on wide screens; icon-triggered below-navbar field on narrow screens.
 - [x] Approve icon-only brand on narrow screens, with full wordmark on wider screens (threshold still open).
 - [x] Keep Add New (+) and Search directly visible at narrow widths, with **one** More navbar item collecting overflow/support destinations.
-- [ ] Approve the remaining toolbar tools/actions, ordering, and single-menu composition.
+- [x] Approve the four app-wide tools and their order: **Tasks, Notes, Wish List, Calendar**.
+- [ ] Specify exact navbar icon choices and overflow behavior while keeping this relative order.
 - [x] Place Settings exclusively in the single navbar More menu; remove standalone gear and sidebar Settings entry in the redesign.
 - [x] Place Help and About in the single navbar More menu; link to Welcome from Help, not from More.
 - [ ] Finalize remaining responsive overflow membership.
@@ -251,6 +252,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
+| 2026-11-14 | **Approved** | The four app-wide navbar tools appear in this order: Tasks, Notes, Wish List, Calendar. Their responsive overflow behavior remains to be designed. |
 | 2026-11-14 | **Approved** | Help and About belong in the single navbar More menu; Welcome is accessible from Help rather than appearing in More. Preserve existing first-run Welcome requirements unless separately revised. |
 | 2026-11-14 | **Approved** | Settings appears exclusively inside the one navbar More menu, with no permanent gear icon or Standard sidebar entry; preserve the Settings route and return/Close behavior. |
 | 2026-11-14 | **Approved** | Search uses an inline navbar input on wide screens and an icon-triggered search panel below the navbar on narrow screens; Enter/Search targets `/search?q=...` once results exist. |
