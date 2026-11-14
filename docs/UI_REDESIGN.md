@@ -1,6 +1,6 @@
 # SOLACE Garden — UI Redesign Plan
 
-**Status:** Working design proposal — discussion and testing in progress; **not yet approved for implementation**.  
+**Status:** Consolidated working design specification — synthesis underway; detailed layouts still require approval.  
 **Started:** November 14, 2026  
 **Development position:** Post-8F UI review, before Milestone 8G.
 
@@ -8,7 +8,7 @@
 
 Improve SOLACE Garden's navigation, layout, terminology, and common workflows before continuing V1 feature development. Milestones 8E (Gardens) and 8F (Templates) passed their functional acceptance tests, but repeated real-device use exposed confusing organization, redundant entry points, and presentation friction.
 
-This document is the **candidate design and eventual implementation specification**. It should become concrete enough to describe the intended Simple and Standard Mode layouts, navigation destinations, user interactions, responsive states, and acceptance tests before Codex is asked to implement the redesign.
+This document is the **single consolidated design specification** for the UI redesign. It synthesizes prior discussions, historical interfaces, Markdown planning, and real-device test reports. When complete it must describe Simple and Standard Mode layouts, navigation destinations, interactions, responsive states, and acceptance tests clearly enough to produce scoped Codex prompts. It is not another raw notes dump.
 
 - [UI_REVIEW_NOTES.md](UI_REVIEW_NOTES.md) remains the source of observations and possible remedies.
 - The November 10–14, 2026 structured observation collector export (`submissions.json`, supplied for review) contains 11 repeatable reports: five tablet, six laptop; no report was explicitly classified as a functional defect, and severity was recorded as zero for all reports (do not interpret zero as confirmed low severity).
@@ -17,7 +17,46 @@ This document is the **candidate design and eventual implementation specificatio
 
 **Statuses used below:** `Existing/accepted` = behavior or architecture already implemented/accepted; `Historical reference` = a useful earlier pattern, not a requirement; `Proposed` = candidate for approval; `Open` = requires a decision; `Deferred` = outside this redesign unless explicitly promoted.
 
-## 2. Design principles
+## 2. Evidence synthesis and decision provenance
+
+### 2.1 Sources and their status
+
+| Source | Contribution | Authority |
+| --- | --- | --- |
+| November 10 conversation, “The original navigation model” | Sidebar for main areas, persistent toolbar tools, optional More menu | Previously agreed **organizational direction**; precise controls still need confirmation |
+| [Historical screenshots](pics/) | Top toolbar, left sidebar, Add New popup, PlantDB-local browser | Historical reference, **not** a visual specification |
+| [UI_REVIEW_NOTES.md](UI_REVIEW_NOTES.md) | Observed friction and “Ideas to evaluate” | Observation is evidence; suggested fixes are candidates |
+| November 10–14 `submissions.json` | Eleven repeatable observations: 5 tablet, 6 laptop | Direct tester feedback; severity 0 is not evidence of low impact |
+| [PARKING_LOT.md](PARKING_LOT.md) Future UI Review/Tweaks | Alternatives for Welcome, Notes, Gardens hub, Wizard, cards, navigation | Parked concepts, not automatic requirements |
+| [GOALS.md](GOALS.md), [TECH_SPEC.md](TECH_SPEC.md), [ROADMAP.md](ROADMAP.md), [UI_CONVENTIONS.md](UI_CONVENTIONS.md) | Accepted functionality, constraints, sequence, interaction standards | Preserve unless explicitly changed by an approved redesign decision |
+
+**Decision statuses:** (1) Accepted existing behavior; (2) Previously agreed design direction; (3) Favored but unapproved proposal; (4) Open; (5) Deferred. Record rationale and evidence when promoting a proposal to a decision. If a new decision changes existing GOALS/TECH_SPEC/ROADMAP language, reconcile those documents explicitly.
+
+### 2.2 Consolidated findings
+
+| Repeated issue | Evidence | Design implication |
+| --- | --- | --- |
+| Too many equally prominent navigation entries | Tablet landscape sidebar scrolling; “everything is a workspace”; Settings both sidebar and gear | Distinguish primary destinations, global tools, contextual links, and support |
+| Navigation reflects implementation rather than gardener expectations | Templates as top-level vs Gardens; Locations top-level vs Settings; placeholder Home wording | Organize by user task and relationship, preserving existing direct URLs |
+| Garden creation methods appear sequential but are independent | Laptop `/gardens/new`; earlier lost Quick Start name on Wizard/Advanced | Make the three creation choices genuinely distinct, or explicitly define safe carry-forward behavior |
+| Garden overview conflates unfinished work and saved Garden lifecycle | Drafts appearing above new Gardens; duplicate names | Clear Draft versus Planned/Active/Previous grouping and discovery |
+| Everyday shortcuts require extra navigation | Search page before query; Tasks and Wish List dispersed | Consider header Search and shared Lists overview without inventing new data models |
+| Secondary identifiers/feedback distract or hide outcomes | Template UUID cards; long Garden names; validation below fold | Improve information hierarchy and immediate, accessible feedback |
+| Tablet and desktop presentation need purposeful adaptation | Inset header, too many sidebar buttons, legacy fixed styling | Design breakpoint-specific layout within both selectable modes |
+
+### 2.3 Previously established vs genuinely open
+
+**Established direction:** retain Preact + `preact-iso`, Bootstrap 6, shared Simple/Standard modes and existing routes/data services; decouple routes from link placement; use a compact main navigation plus global shortcuts and contextual navigation; preserve the historical layout *principle* without recreating its appearance.
+
+**Favored, not yet final:** main sidebar centered on Gardens, PlantDB, Gallery; global access to Tasks, Notes, Wish List, Calendar; a More menu for Help/About/Welcome and potentially Settings; global Add New; Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
+
+**Still open:** Home dashboard versus Gardens as startup view; precise toolbar membership and overflow; Settings gear versus More; Journal placement; Search field versus icon on phones; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
+
+**Conflict to settle rather than silently rewrite:** the existing GOALS/TECH_SPEC first-run Welcome behavior is an informational page shown once; PARKING_LOT explores an optional carousel and show-at-startup preference. The current requirement remains in force until deliberately revised.
+
+---
+
+## 11. Design principles
 
 1. **Pages/routes and navigation placement are separate.** A URL can remain bookmarkable even if its link is reached through a submenu or contextual page. Not every route needs a primary navigation button.
 2. **Workspaces are a user-facing concept, not a routing requirement.** Do not require every destination to be classified as a workspace or replace the old taxonomy with another mandatory taxonomy full of exceptions.
@@ -29,7 +68,7 @@ This document is the **candidate design and eventual implementation specificatio
 8. **Do not reproduce the old appearance.** Learn from the historical interface's organization, not its heavy borders, bright boxed controls, faux desktop chrome, or narrow touch targets.
 9. **Differentiate evidence from decisions.** Observations and screenshots suggest options; an idea here is not a Codex instruction until explicitly approved.
 
-## 3. Historical JavaScript UI reference
+## 11. Historical JavaScript UI reference
 
 The earlier vanilla-JavaScript Garden screenshots in [pics/](pics/) show a useful organization:
 
@@ -49,7 +88,7 @@ Reference images: [main UI](pics/js-app-garden-ui.png), [Add New](pics/js-app-ga
 
 A full Notes page or Calendar page may still be reached from the global toolbar. Navigation placement is not a constraint on page capability.
 
-## 4. Current implementation and proposed route/navigation separation
+## 11. Current implementation and proposed route/navigation separation
 
 The current [src/index.jsx](../src/index.jsx) already uses `preact-iso` and renders `applicationRoutes` from [src/navigation.js](../src/navigation.js). `navigation.js` currently mixes path/view definitions with `section` (Simple Home), `navigationGroup` (Standard sidebar/Home), labels, icons, and workspace-derived lists. [StandardNavigation.jsx](../src/components/StandardNavigation.jsx) and [Home/index.jsx](../src/pages/Home/index.jsx) expose that catalog directly.
 
@@ -61,7 +100,7 @@ Avoid a new broad “workspace manager” or elaborate route-kind hierarchy. Ret
 
 The Standard Mode “About this workspace” panel should not be shown indiscriminately on Settings, Templates, Help, etc. Reassess its purpose rather than blindly adapting every route to it.
 
-## 5. Navigation destination map — draft, not approved
+## 11. Navigation destination map — draft, not approved
 
 | Destination / action | Candidate placement | Keep URL / behavior | Open question |
 | --- | --- | --- | --- |
@@ -84,7 +123,7 @@ The Standard Mode “About this workspace” panel should not be shown indiscrim
 
 This table records **candidates**, not a mandate to show all listed items at once. On narrow screens, toolbar actions can collapse into accessible menus without removing functionality.
 
-## 6. Redesign workstreams
+## 11. Redesign workstreams
 
 ### A. Application shell and global navigation
 
@@ -128,7 +167,7 @@ This table records **candidates**, not a mandate to show all listed items at onc
 
 Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,” etc.) before V1 release. Review card ordering (Gardens first candidate; Tasks then Wish List), header alignment, logo treatments, responsive sidebar collapse, touch targets, keyboard navigation, focus and accessible labels. Follow [UI_CONVENTIONS.md](UI_CONVENTIONS.md) for native links/buttons, Bootstrap 6 Dialog/Drawer, explicit Save/Close semantics, and recoverable feedback. Test real devices and both interface mode overrides, not just viewport simulations.
 
-## 7. Design decisions to settle before Codex implementation
+## 11. Design decisions to settle before Codex implementation
 
 - [ ] Choose default landing experience: Home dashboard or Gardens hub; specify Simple and Standard behavior.
 - [ ] Approve the final desktop sidebar destinations and order.
@@ -142,7 +181,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [ ] Define what is in scope for this pre-8G redesign versus deferred until the corresponding V1 feature exists.
 - [ ] Prepare wireframes or annotated layouts for key pages/states, then explicitly approve them.
 
-## 8. Proposed implementation slices (not scheduled or authorized)
+## 11. Proposed implementation slices (not scheduled or authorized)
 
 1. **Architecture-only refactor:** separate route definitions from navigation configuration; no deliberate visual or behavioral change. Update route/nav tests.
 2. **Shared shell/navigation:** Header, global action menu, More/support access, Standard sidebar, responsive states; keep deep links and Settings return behavior.
@@ -153,7 +192,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 Before each slice, create a narrowly scoped Codex prompt with exact files/behavior, exclusions, tests, and manual acceptance criteria. Keep observation reports separate from implementation instructions.
 
-## 9. Acceptance criteria to expand when design is approved
+## 11. Acceptance criteria to expand when design is approved
 
 - All existing accepted Garden and Template flows still work, including draft recovery, deletion safeguards, Template fallback, reload, and normal persistence.
 - `/`, `/gardens`, `/templates`, `/locations`, `/settings`, and existing Garden/Notes deep links resolve correctly; unknown routes retain a useful fallback.
@@ -164,7 +203,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 - Installed offline PWA startup, normal navigation, and non-disruptive update behavior remain intact.
 - No migration/backward-compatibility work is introduced merely to preserve obsolete alpha test data.
 
-## 10. Decision log
+## 11. Decision log
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
