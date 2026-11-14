@@ -95,9 +95,9 @@ A full Notes page or Calendar page may still be reached from the global toolbar.
 - On **small/narrow screens**, hide the long **“SOLACE Garden” text SVG/wordmark** and retain the recognizable **logo icon** as the brand/home affordance. Wider presentations may show the full wordmark. Choose the actual threshold after measuring the available header space; keep an accessible app name on the icon-only link.
 - **Bootstrap 6 Nav overflow (Priority+)** is the favored responsive solution for handling navbar items that no longer fit. See [Bootstrap 6 Nav overflow](https://getbootstrap.com/docs/6.0/components/nav-overflow/). The component moves overflowed navigation items into a generated **More** menu based on *container width*, with `.nav-overflow` and `data-bs-toggle="nav-overflow"`. Confirm behavior against the exact pinned Bootstrap 6 alpha package before implementing.
 
-**Important distinction:** Bootstrap's *automatically generated overflow More* menu and the proposed *deliberate support/utilities More* grouping serve different purposes. Do not automatically create two confusing controls with the same name. The final design must decide whether and how they coexist (for example, one coordinated overflow entry or different clearly named menus) without hiding required tools. Bootstrap 6's separate [Menu component](https://getbootstrap.com/docs/6.0/components/menus/) can provide an intentional, static options menu; its API is not the same as the Nav overflow behavior.
+**Approved:** Show **exactly one More menu item** in the navbar. It must serve both as access to lower-priority global tools that do not fit and to supporting destinations such as Help/About/Welcome (final membership still pending). Do not render a separate overflow More alongside another support More. Assess whether the pinned Bootstrap 6 Nav overflow supports combining deliberate menu items with dynamically overflowed actions; if not, implement one coordinated menu without duplicate More triggers. The exact technical approach is still open. Bootstrap 6's [Menu component](https://getbootstrap.com/docs/6.0/components/menus/) and [Nav overflow](https://getbootstrap.com/docs/6.0/components/nav-overflow/) have different APIs.
 
-**Still open:** Search field vs Search icon on narrow screens; handling Search until the results feature is implemented; priority/order of overflowed actions; whether Add New and Search stay directly visible; More/support arrangement and Settings placement; exact brand breakpoint.
+**Approved visibility priority:** Keep **Add New (+)** and **Search** directly visible in the narrow-screen navbar; other global tools may move into the **single More** menu as width requires. **Still open:** Search input versus icon on wider screens; Search's interim behavior until its results feature exists; priority/order of other tools; precise More membership and Settings placement; brand breakpoint.
 
 ### Approved shell behavior — persistent navbar (November 14, 2026)
 
@@ -196,7 +196,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [ ] Approve the final desktop sidebar destinations and order.
 - [x] Approve top-navbar placement for global Search (presentation still open).
 - [x] Approve icon-only brand on narrow screens, with full wordmark on wider screens (threshold still open).
-- [ ] Approve the remaining toolbar tools/actions and their ordering, including overflow priority.
+- [x] Keep Add New (+) and Search directly visible at narrow widths, with **one** More navbar item collecting overflow/support destinations.
+- [ ] Approve the remaining toolbar tools/actions, ordering, and single-menu composition.
 - [ ] Decide Settings gear versus More, and Help/About/Welcome placement.
 - [x] Place global Add New (+) in the top navbar in both modes.
 - [ ] Define global Add New contents and whether it replaces or complements page-specific Create actions.
@@ -234,6 +235,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
+| 2026-11-14 | **Approved** | Use only one navbar More menu; on narrow screens keep Add New and Search visible while lower-priority tools move into that menu as needed. Exact menu mechanism and membership remain open. |
 | 2026-11-14 | **Approved** | Global Search belongs in the persistent navbar; small-screen branding uses icon only instead of the full wordmark. Bootstrap 6 Nav overflow is favored pending pinned-version testing. |
 | 2026-11-14 | **Approved** | Global Add New (+) belongs in the persistent top navbar, not the sidebar; its submenu contents remain open. |
 | 2026-11-14 | **Approved direction** | Journal stays in primary workspace navigation, not as a permanent top-navbar tool. “New Journal Entry” in Add New remains a candidate. |
