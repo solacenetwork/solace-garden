@@ -50,7 +50,7 @@ This document is the **single consolidated design specification** for the UI red
 
 **Favored, not yet final:** main sidebar centered on Gardens, PlantDB, Gallery; global access to Tasks, Notes, Wish List, Calendar; a More menu for Help/About/Welcome and potentially Settings; global Add New; Templates under Gardens; Locations under Settings. The earlier conversation's wording supports the direction, but not a fully approved ordering, icon set, or breakpoint behavior.
 
-**Still open:** Home dashboard versus Gardens as startup view; precise toolbar membership and overflow; Settings gear versus More; Journal placement; Search field versus icon on phones; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
+**Still open:** Home dashboard versus Gardens as startup view; precise toolbar membership and overflow; Settings gear versus More; whether global Add New includes New Journal Entry; Search field versus icon on phones; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
 
 **Conflict to settle rather than silently rewrite:** the existing GOALS/TECH_SPEC first-run Welcome behavior is an informational page shown once; PARKING_LOT explores an optional carousel and show-at-startup preference. The current requirement remains in force until deliberately revised.
 
@@ -121,7 +121,7 @@ The Standard Mode “About this workspace” panel should not be shown indiscrim
 | PlantDB / Plants | Primary destination or context-sensitive garden activity | `/plants` currently | Distinguish reference PlantDB from garden plant groups as features arrive |
 | Harvest | Garden activity; possibly lower Simple Home placement | `/harvest` | Exact entry point |
 | Gallery / Photos | Primary or garden contextual destination | `/photos` | Global versus Garden scope |
-| Journal | Primary area **or** global toolbar tool | `/journal` | Historical top bar included Journal |
+| Journal | **Primary workspace (approved direction)**; not a permanent global toolbar shortcut | `/journal` | “New Journal Entry” in global Add New is a candidate, not yet approved |
 | Calendar | Global toolbar candidate | `/calendar` | Placement in Simple Home |
 | Notes | Global toolbar candidate, complete page | `/notes` and editor routes | Grouped Notes navigation within page |
 | Tasks / Wish List | Global toolbar or a shared Lists overview | `/tasks`, `/wishlist` | Combined `/lists` candidate; distinct views remain accessible |
@@ -141,7 +141,7 @@ This table records **candidates**, not a mandate to show all listed items at onc
 
 **Evaluate:** slim Standard sidebar; persistent top toolbar; More menu; global Add New; search affordance; `.container` versus `.container-fluid` for header (retain deliberate responsive padding); active location and keyboard/focus semantics. Decide exactly where every destination goes before changing source.
 
-**Open:** which four or fewer tools deserve persistent top-level emphasis; dedicated Settings gear versus More; how Simple Home relates to Standard Home; whether Welcome appears automatically under the existing V1 rule or an approved revision.
+**Open:** which tools deserve persistent top-level emphasis (Journal remains a primary workspace, not a permanent toolbar tool); dedicated Settings gear versus More; whether Add New offers New Journal Entry; how Simple Home relates to Standard Home; whether Welcome appears automatically under the existing V1 rule or an approved revision.
 
 ### B. Gardens hub, discovery, and lifecycle
 
@@ -218,6 +218,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
+| 2026-11-14 | **Approved direction** | Journal stays in primary workspace navigation, not as a permanent top-navbar tool. “New Journal Entry” in Add New remains a candidate. |
 | 2026-11-14 | **Approved** | Keep the top navbar in both Simple and Standard Mode, adapting its presentation responsively; membership and breakpoints remain open. |
 | 2026-11-14 | Proposed | Separate routing from navigation placement; keep `preact-iso` and current functional services. |
 | 2026-11-14 | Proposed | Use historical three-layer concept: global toolbar, concise main navigation, contextual navigation; More for secondary/support links. |
