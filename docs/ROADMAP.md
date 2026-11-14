@@ -41,12 +41,11 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 - [ ] **Automatic breakpoint:** Test responsive layouts and choose the threshold(s) for switching effective modes; do not assume browser desktop-site mode crosses a particular breakpoint.
 - [ ] **Mode switch placement:** Determine how gardeners quickly find/change the preference outside Settings, if desired; define behavior on resize/rotation, including while editing an unsaved form.
 - [ ] **Simple Mode scope:** Decide which quick actions are on its home view and which detailed screens remain accessible. Candidates: plant-phase updates, harvest entry, photo capture, task checkoff, calendar entry, and quick notes.
-- [ ] **Landing experience:** Decide whether Garden opens on a dashboard, a garden, recent activity, or a mode-specific home; no choice has been made.
-- [ ] **Navigation:** Decide desktop navigation (sidebar/top bar/hybrid), mobile navigation (bottom bar/offcanvas/etc.), and shared information architecture.
-- [ ] **Core views:** Choose presentation patterns for garden overview/detail, plant groups, lists, Gallery, Journal, Calendar, Search, Settings, Templates and Locations.
-- [ ] **Interaction details:** Confirm responsive cards vs tables, dialogs vs dedicated forms, accessible date/time pickers, camera import flow, clear cancel/save/undo behavior, empty states, and feedback for offline or storage errors.
-- [ ] **Visual language:** Choose SOLACE Garden colors, typography, icon conventions, spacing, theme behavior, and component patterns consistent with Bootstrap.
-- [ ] **Wireframes/prototypes:** Produce and review representative phone/tablet/desktop layouts for the primary workflows, including at least one Simple Mode data-entry flow and its Standard Mode counterpart.
+- [x] **Landing experience:** Home (`/`) is the overview dashboard, reached through the SOLACE logo. A fresh installation shows the full-page Welcome route when **Show Welcome at startup** is enabled (default); otherwise normal launch opens Home. Direct/deep links are preserved. See [GOALS.md](GOALS.md) §2.13b and the detailed [UI_REDESIGN.md](UI_REDESIGN.md).
+- [ ] **Navigation and core views:** Detailed destinations, navbar/sidebar structure, Simple/Standard presentation, and page-level UI are maintained in the authoritative [UI_REDESIGN.md](UI_REDESIGN.md). Do not maintain a parallel navigation or page-layout decision list here.
+- [ ] **Interaction details:** Finalize any cross-page interaction and accessibility requirements in UI_REDESIGN.md and [UI_CONVENTIONS.md](UI_CONVENTIONS.md), including responsive cards, dialogs/forms, save/cancel behavior, empty states, and offline/storage feedback.
+- [ ] **Visual language:** Refine colors, typography, icon conventions, spacing, and theme behavior consistently with Bootstrap and UI_CONVENTIONS.md.
+- [ ] **Wireframes/prototypes:** Produce and review representative phone/tablet/desktop layouts for the approved shell, Home, Gardens, Welcome, and Garden creation workflows before implementation prompts.
 
 ### 1.3 Deliverables / definition of done
 
