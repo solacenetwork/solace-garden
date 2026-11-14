@@ -88,6 +88,16 @@ Reference images: [main UI](pics/js-app-garden-ui.png), [Add New](pics/js-app-ga
 
 A full Notes page or Calendar page may still be reached from the global toolbar. Navigation placement is not a constraint on page capability.
 
+### Approved shell behavior — persistent navbar (November 14, 2026)
+
+**Decision:** The application top navbar remains available in **both Simple Mode and Standard Mode**, with responsive presentations appropriate to screen size. Switching modes does not remove the navbar or deny access to its actions. An explicitly selected mode remains selected even as the viewport changes; responsive arrangement continues within that mode.
+
+**Intent:** Preserve the persistent, app-wide access pattern from the historical JavaScript UI. On wider screens the toolbar may show more directly accessible tools; on narrow phones it may compact or use an accessible overflow menu rather than shrinking controls or hiding functionality.
+
+**Not yet decided:** Exact tools/icons and order, what is always visible versus placed in overflow, whether Settings is a gear or a More item, and precise breakpoint/layout behavior. Do not treat the earlier candidate toolbar membership as approved.
+
+**Acceptance implications:** Test header availability and access to every approved action in Simple and Standard Mode, including manual mode override on narrow and wide viewports; check touch targets, keyboard/focus, overflow menu usability, and no disruption to unsaved editor data.
+
 ## 5. Current implementation and proposed route/navigation separation
 
 The current [src/index.jsx](../src/index.jsx) already uses `preact-iso` and renders `applicationRoutes` from [src/navigation.js](../src/navigation.js). `navigation.js` currently mixes path/view definitions with `section` (Simple Home), `navigationGroup` (Standard sidebar/Home), labels, icons, and workspace-derived lists. [StandardNavigation.jsx](../src/components/StandardNavigation.jsx) and [Home/index.jsx](../src/pages/Home/index.jsx) expose that catalog directly.
@@ -174,6 +184,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [ ] Approve the final toolbar tools/actions and their ordering.
 - [ ] Decide Settings gear versus More, and Help/About/Welcome placement.
 - [ ] Define global Add New contents and whether it replaces or complements page-specific Create actions.
+- [x] Agree that the persistent top navbar exists in both Simple and Standard Mode, with different responsive presentations.
 - [ ] Define responsive collapse behavior for portrait tablet, landscape tablet, narrow phone, and desktop; preserve manually selected mode.
 - [ ] Choose the Gardens hub/category navigation model and Templates entry point.
 - [ ] Choose Garden creation entry presentation and Wizard refactor boundaries.
@@ -207,6 +218,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
+| 2026-11-14 | **Approved** | Keep the top navbar in both Simple and Standard Mode, adapting its presentation responsively; membership and breakpoints remain open. |
 | 2026-11-14 | Proposed | Separate routing from navigation placement; keep `preact-iso` and current functional services. |
 | 2026-11-14 | Proposed | Use historical three-layer concept: global toolbar, concise main navigation, contextual navigation; More for secondary/support links. |
 | 2026-11-14 | Open | Home versus Gardens default, toolbar membership, Settings placement, global Add New, and screen-specific layouts. |
