@@ -175,7 +175,15 @@ This is the authoritative placement map. An approved placement does not mean its
 
 **Approved structure:** persistent top navbar in both Simple and Standard Mode; SOLACE logo as the only Home link; primary navigation order Gardens → Journal → Gallery → PlantDB; global tools order Tasks → Notes → Wish List → Calendar; global Search and Add New in the navbar; one More item containing Help, About, Settings, and any tools overflowed at narrow widths. Keep Add New and Search visible on narrow screens. Hide the full wordmark on narrow screens and retain the logo. See the authoritative destination map in Section 6.
 
-**Open:** exact icons and labels; actual breakpoint thresholds; Standard sidebar width/collapse and Simple Mode navigation composition; priority of the four tools when space is constrained; how deliberate More destinations combine with Bootstrap 6 Nav overflow; Add New menu entries/order and how they relate to page-specific Create actions; header container/padding; focus restoration and keyboard/touch details; and exact screen-specific shell layouts. Journal remains a primary navigation destination, not a permanent toolbar tool. Welcome design details are in Section 7A.
+**Approved responsive shell direction (based on the three layout sketches):**
+
+- **Large screens — Standard Mode presentation:** persistent top navbar, full expanded left sidebar, and the regular workspace occupying the remaining content area.
+- **Medium screens — Standard Mode presentation:** persistent top navbar and a narrow, persistent vertical iconbar. An explicit expand control opens the full navigation sidebar as an **overlay above the workspace**; it does not push the workspace aside or change its width. The iconbar remains the collapsed state when the full sidebar is closed.
+- **Small screens — Simple Mode presentation:** persistent top navbar, no permanently visible sidebar, and a card-based presentation for primary navigation/actions. The supplied sketch illustrates a two-column card area with wider, full-row cards where appropriate; exact card contents, grouping, and breakpoints remain to be designed.
+- The sketches describe the intended **Automatic** responsive presentations, not a restriction on mode choice. Simple Mode and Standard Mode remain manually selectable at any viewport width; each mode must still adapt to the available space when explicitly selected.
+- Sidebar expansion must be explicitly activated and usable by touch and keyboard; do not rely on hover. The overlay must not reflow or resize the underlying workspace.
+
+**Still open:** exact icons and labels; actual breakpoint thresholds; Standard sidebar/iconbar dimensions; Simple Mode card contents, grouping and arrangement; behavior of a manually selected Standard Mode on a narrow phone and manually selected Simple Mode on a large screen; overlay dismissal/focus behavior; priority of the four tools when space is constrained; how deliberate More destinations combine with Bootstrap 6 Nav overflow; Add New menu entries/order and their relationship to page-specific Create actions; header container/padding; and exact device-specific layouts. Journal remains a primary navigation destination, not a permanent toolbar tool. Welcome design details are in Section 7A.
 
 ### Welcome page and startup behavior — approved direction, details open
 
@@ -260,6 +268,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 - [x] Shared Preact + `preact-iso` application, Bootstrap 6, existing routes/data services, and both selectable Simple/Standard modes remain the foundation.
 - [x] Persistent navbar in both modes; SOLACE logo is the sole Home link; no separate Home button or sidebar entry.
+- [x] Approve the typical responsive shell presentations shown in the three sketches: large Standard Mode with expanded sidebar; medium Standard Mode with collapsed iconbar and an explicitly opened overlay sidebar that does not push/reflow the workspace; small Simple Mode with card-based navigation/actions and no persistent sidebar.
+- [x] Preserve manual Simple/Standard selection at every viewport width; the sketches describe the intended Automatic presentations, not device restrictions.
 - [x] Primary navigation order: **Gardens → Journal → Gallery → PlantDB** (PlantDB last).
 - [x] Global tool order: **Tasks → Notes → Wish List → Calendar**; Journal is not a permanent toolbar tool.
 - [x] Exactly one navbar More item contains Help, About, Settings, and any global tools overflowed at narrow widths. Welcome is linked from Help, not directly from More.
@@ -279,7 +289,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 ### Still open for design
 
 - [ ] Navbar iconography, exact widths/breakpoints, overflow priorities, and the pinned Bootstrap 6 Nav overflow/More integration.
-- [ ] Complete Simple Mode first-screen/navigation layout and Standard sidebar layout/collapse behavior across phone, tablet portrait/landscape, and desktop.
+- [ ] Finalize exact breakpoints, iconbar/sidebar dimensions, Simple Mode card contents and grouping, narrow-phone behavior for manually selected Standard Mode, large-screen behavior for manually selected Simple Mode, and accessible overlay dismissal/focus handling.
 - [ ] Add New menu contents, ordering, and relationship to page-specific Create actions (including whether New Journal Entry belongs there).
 - [ ] Home card dimensions, field mapping/missing values, preview row labels/dates/sort fallback, Gallery image sizing/metadata, and Simple/Standard density differences.
 - [ ] Validate Bootstrap 6 Carousel touch/scroll-snap behavior for Home and Draft Gardens rails on real devices; confirm card widths, visible count, scroll affordances, and keyboard access.
@@ -324,6 +334,7 @@ This log summarizes the approved decisions. Sections 6–8 are the detailed sour
 | 2026-11-14 | **Approved** | One More menu contains Help, About, Settings, and tools overflowed at narrow widths. Add New and Search stay visible on narrow screens. Settings has no separate gear/sidebar entry. |
 | 2026-11-14 | **Approved** | Search is inline in the wide navbar and opens a full-width below-navbar panel from an icon on narrow screens; results target `/search?q=...` when the later Search feature exists. |
 | 2026-11-14 | **Approved** | Narrow-screen branding shows the logo without the full wordmark. Global Add New is in the navbar in both modes; its menu contents remain open. |
+| 2026-11-14 | **Approved** | Responsive shell direction: large Standard Mode uses an expanded sidebar; medium Standard Mode uses a collapsed iconbar with an explicitly opened overlay sidebar that does not push the workspace; small Simple Mode uses card-based navigation/actions without a persistent sidebar. Manual mode selection remains available at every viewport width. Exact breakpoints and detailed layouts remain open. |
 | 2026-11-14 | **Approved** | Home is a real-data dashboard: Current Gardens, Tasks, Wish List, Gallery, Previous Gardens. Garden and Gallery rails; five-item read-only Tasks/Wish List previews; per-section empty states; no drafts on Home. |
 | 2026-11-14 | **Approved** | Garden cards show Title, Subtitle, Start Date; thumbnail support may be added later. Previous Gardens includes Closed, Completed, Archived. Gallery shows most recently added images. |
 | 2026-11-14 | **Approved** | On `/gardens`, show all unfinished drafts in a compact horizontal rail with Continue/Resume actions. Other Garden group layout/order remains open. |
