@@ -180,13 +180,22 @@ This table records **candidates**, not a mandate to show all listed items at onc
 
 **Design questions still open:** How much of each dashboard summary to show, where to place actions to continue a draft, how empty states behave, and the exact carousel slide content and interaction details. Home remains accessible through the logo regardless of Welcome settings.
 
-### Home dashboard filmstrip — approved behavior, presentation to validate (November 14, 2026)
+### Home dashboard — approved mixed previews, design to validate (November 14, 2026)
 
-**Approved:** Home uses a **Netflix-style dashboard of independent horizontal card rails containing real records**, not a static grid of overview panels or category-only navigation cards. Each card represents an individual Garden, Task, Wish List item, or Gallery photo (as appropriate for its rail), links to that record's appropriate detail/editor/view, and presents meaningful identifying information. Each rail includes a **View all** link to the corresponding complete workspace/list. The dashboard reuses existing data/services instead of maintaining duplicate Home-only records. The starting five rails are **Current Gardens, Tasks, Wish List, Gallery, Previous Gardens**, in that order. On a narrow phone, show approximately **two useful-sized cards** with optional next-card peek; at wider widths progressively show more, potentially **up to six** if content remains readable. These are adaptive targets, not fixed widths or a mandate to squeeze six cards into every desktop window.
+**Home at `/` is a dashboard of real data, not a menu of category tiles.** Keep five overview sections in their already agreed order: **Current Gardens, Tasks, Wish List, Gallery, Previous Gardens**. Each section has a clear **View all** path to its corresponding workspace. Do not duplicate data or editing logic in Home.
 
-**Preferred implementation:** Test the pinned **Bootstrap 6 Carousel** before introducing SwiperJS. Its updated CSS scroll-snap engine supports native touch dragging/momentum, keyboard scrolling, multiple simultaneously visible items, optional peeking, variable slide widths, and CSS variables `--bs-carousel-items`, `--bs-carousel-items-gap`, and `--bs-carousel-items-peek`. See [official Bootstrap 6 Carousel docs](https://getbootstrap.com/docs/6.0/components/carousel/). A separate rail per category with an obvious **View all** link and optional previous/next controls is the working model. Disable autoplay; favor `data-bs-ends="stop"` so users aren't surprised by looping. Test actual touch/swipe responsiveness and Preact lifecycle against the project's pinned alpha, not only the latest docs.
+**Garden filmstrips (approved):**
+- **Current Gardens:** horizontal cards showing **Title, Subtitle, Start Date**; eventually an optional **thumbnail** when available. Do not make thumbnails or new media storage prerequisites for V1.
+- **Previous Gardens:** horizontal cards using the same basic Garden information. Include Gardens whose lifecycle status is **Closed, Completed, or Archived**. Verify precise status field/value names against the current Garden data contract before coding; these are the user's intended visible categories, not permission to invent extra states.
+- Each Garden card opens that Garden's appropriate detail view; the section's View all opens the Gardens view (filtered where relevant).
 
-**Still to design:** precise record selection, sorting and limits for Home; card imagery vs text/data summaries for each rail; exact card widths, dynamic empty states, current versus prior Garden ordering, whether draft Gardens need a separate rail or actionable resume cue, rail overflow/arrow behavior, and the differences between Simple and Standard Mode. Avoid installing SwiperJS before testing whether Bootstrap 6 satisfies these requirements. The **real-record cards and View all behavior are approved**; the specific Bootstrap carousel styling and responsive behavior still need validation with visual mockups and real devices before authorizing implementation.
+**Gallery filmstrip (approved):** A horizontal rail of the **most recently added images**, newest first, each opening the corresponding photo/viewer when implemented. View all opens Gallery. It is about **date added**, not necessarily when the photo was taken; use the existing supported metadata when the Gallery feature is built.
+
+**Tasks and Wish List (favored change):** Unlike the visual filmstrips, show each as a **compact list preview** of actual items. Home is **read-only for editing**: users go to `/tasks` or `/wishlist` to edit, complete, or otherwise modify entries. No inline checkbox toggles, item editor, or hidden writes on Home. Each section's View all goes to its corresponding full page. Whether a preview row navigates to the full page, and exactly how it identifies an item, remain to design. Do not build an entire second Lists interface in the dashboard.
+
+**Responsive behavior:** Use separate, independently swipeable **Bootstrap 6 Carousel** rails for the Garden and Gallery categories, aiming for roughly **two usable cards on narrow phones and up to six on wider screens**, without squeezing content. Prefer testing the pinned Bootstrap 6 Carousel (scroll snap, touch and multi-item behavior) before installing SwiperJS; see [Bootstrap 6 Carousel docs](https://getbootstrap.com/docs/6.0/components/carousel/). Disable autoplay and avoid surprise looping. Lists should reflow naturally instead of forcing Tasks and Wish List into carousel controls.
+
+**Open details:** title/subtitle/start-date field mapping and missing-value behavior; status grouping and Garden ordering; card dimensions and thumbnail treatment; number of rows and ordering in each list preview; image metadata and Gallery readiness; empty states; drafts/resume visibility; and exact Simple/Standard Mode layout. The core mixed-rail-and-list structure is the design direction; the *list preview presentation* remains a favored proposal pending explicit approval.
 
 ### B. Gardens hub, discovery, and lifecycle
 
@@ -226,8 +235,10 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 - [x] Use only the navbar SOLACE logo to navigate Home (`/`); no separate Home button or sidebar item.
 - [x] Approve the logo-linked Home (`/`) as an overview dashboard: Current Gardens, Tasks, Wish List, Gallery, Previous Gardens (historical content inventory).
-- [x] Approve **real individual record cards** in five Home rails (Current Gardens, Tasks, Wish List, Gallery, Previous Gardens), each with **View all** access to the full destination; no category-only placeholder tiles.
-- [ ] Validate **Netflix-style horizontal rails**: approximately 2 cards on phones and up to 6 on wide screens, without unreadable cards.
+- [x] Approve real data in the five Home sections, with **View all** links; Garden and Gallery records display as horizontal cards, rather than category-only placeholder tiles.
+- [x] Approve Garden card information (Title, Subtitle, Start Date; later optional thumbnail), recent-added-images Gallery rail, and Previous Gardens membership (Closed/Completed/Archived).
+- [ ] Confirm favored **Tasks and Wish List compact read-only preview lists** on Home; edits happen only in `/tasks` and `/wishlist`.
+- [ ] Validate **Garden and Gallery horizontal rails**: approximately 2 cards on phones and up to 6 on wide screens, without unreadable cards.
 - [ ] Design Home card contents, empty states, and responsive differences for Simple and Standard Mode; test Bootstrap 6 Carousel touch and scroll-snap on the pinned alpha before considering SwiperJS.
 - [x] Restore the **Show Welcome at startup** checkbox, enabled by default, replacing the old one-time V1 rule; reconcile GOALS.md, ROADMAP.md, and PARKING_LOT.md.
 - [x] Approve the Welcome carousel's goal: quick main-feature overview, introduction to Gardens, and **Create Your First Garden** CTA to the existing creation workflow.
@@ -277,7 +288,8 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
-| 2026-11-14 | **Approved** | Home rails display real individual Garden, Task, Wish List, and Photo records, with each card opening its corresponding record and a View all link to the full workspace; no category-only tiles. |
+| 2026-11-14 | **Approved / favored refinement** | Garden rails show Title, Subtitle, Start Date (thumbnail later); Gallery shows recently added images; Previous Gardens includes Closed, Completed, Archived. Tasks and Wish List as compact non-editable lists is favored; editing stays on their full pages. |
+| 2026-11-14 | **Approved** | Home sections show real records with View all access to their complete workspaces, not static category navigation tiles. |
 | 2026-11-14 | **Favored design** | Home uses independent Netflix-style horizontal rails for the five overview categories, adapting roughly 2–6 visible cards by width. Prefer testing Bootstrap 6 Carousel scroll-snap/touch rather than adding SwiperJS without need. Exact visuals and behavior remain open. |
 | 2026-11-14 | **Approved direction** | Welcome uses a short, skippable feature-introduction carousel culminating in **Create Your First Garden**, routed to the existing Garden creation Wizard. Slide content/count and controls remain to be designed. |
 | 2026-11-14 | **Approved** | Restore Welcome's **Show Welcome at startup** checkbox, initially on. Normal launches show Welcome while enabled and Home when disabled; direct links are unaffected. The carousel remains a candidate. |
