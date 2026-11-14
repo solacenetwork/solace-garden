@@ -24,14 +24,14 @@ This document is the **single consolidated design specification** for the UI red
 
 | Source | Contribution | Authority |
 | --- | --- | --- |
-| November 10 conversation, “The original navigation model” | Sidebar for main areas, persistent toolbar tools, optional More menu | Previously agreed **organizational direction**; precise controls still need confirmation |
+| November 10 conversation, “The original navigation model” | Sidebar for main areas, persistent toolbar tools, More menu | Source of the organizational direction; the current approved placements are recorded in Sections 6–8 |
 | [Historical screenshots](pics/) | Top toolbar, left sidebar, Add New popup, PlantDB-local browser | Historical reference, **not** a visual specification |
 | [UI_REVIEW_NOTES.md](UI_REVIEW_NOTES.md) | Observed friction and “Ideas to evaluate” | Observation is evidence; suggested fixes are candidates |
 | November 10–14 `submissions.json` | Eleven repeatable observations: 5 tablet, 6 laptop | Direct tester feedback; severity 0 is not evidence of low impact |
-| [PARKING_LOT.md](PARKING_LOT.md) Future UI Review/Tweaks | Alternatives for Welcome, Notes, Gardens hub, Wizard, cards, navigation | Parked concepts, not automatic requirements |
-| [GOALS.md](GOALS.md), [TECH_SPEC.md](TECH_SPEC.md), [ROADMAP.md](ROADMAP.md), [UI_CONVENTIONS.md](UI_CONVENTIONS.md) | Accepted functionality, constraints, sequence, interaction standards | Preserve unless explicitly changed by an approved redesign decision |
+| [PARKING_LOT.md](PARKING_LOT.md) | Earlier alternatives for Welcome, Notes, Gardens hub, Wizard, cards, navigation | Retains only deferred alternatives and future ideas; current decisions are summarized here |
+| [GOALS.md](GOALS.md), [TECH_SPEC.md](TECH_SPEC.md), [ROADMAP.md](ROADMAP.md), [UI_CONVENTIONS.md](UI_CONVENTIONS.md) | Product requirements, data/technical contracts, delivery sequence, interaction standards | Remain authoritative in their respective domains; UI presentation decisions are consolidated here |
 
-**Decision statuses:** (1) Accepted existing behavior; (2) Previously agreed design direction; (3) Favored but unapproved proposal; (4) Open; (5) Deferred. Record rationale and evidence when promoting a proposal to a decision. If a new decision changes existing GOALS/TECH_SPEC/ROADMAP language, reconcile those documents explicitly.
+**Decision statuses:** `Approved` = explicit design decision; `Existing/accepted` = behavior already implemented and to preserve; `Open` = a design choice still required; `Preferred implementation approach` = direction to test against the pinned stack; `Deferred` = intentionally outside the current V1 redesign.
 
 ### 2.2 Consolidated findings
 
@@ -81,11 +81,13 @@ The earlier vanilla-JavaScript Garden screenshots in [pics/](pics/) show a usefu
 
 Reference images: [main UI](pics/js-app-garden-ui.png), [Add New](pics/js-app-garden-menu.png), [PlantDB](pics/js-app-garden-plantdb.png), [large menu](pics/js-app-solace-menu-large.png), [small menu](pics/js-app-solace-menu-small.png). These are **development references**, not assets to package in the PWA.
 
-**Proposed model to evaluate:**
-1. **Global toolbar:** small set of frequently used tools/actions available from every major view.
-2. **Primary navigation:** small set of main application areas; Gardens is prominent.
-3. **Contextual navigation:** subviews, filters, and management actions owned by the active area (e.g., Gardens categories/Templates or PlantDB browsing). This may be tabs, inline controls, accordion, or a local panel; it does not always require a third sidebar.
-4. **More/support menu:** lower-frequency informational/support destinations. **Settings belongs exclusively in the one More menu**; it is not a standalone header gear or a Standard sidebar item.
+**Navigation model carried forward from the historical UI and approved in the current redesign:**
+1. **Global toolbar:** frequently used tools/actions available from major views.
+2. **Primary navigation:** a concise set of main application destinations; approved order is Gardens, Journal, Gallery, PlantDB.
+3. **Contextual navigation:** subviews, filters, and management actions owned by the active area (e.g. Garden categories/Templates or PlantDB browsing). The exact component may be tabs, inline controls, accordion, or a local panel; a third sidebar is not assumed.
+4. **More/support menu:** one More entry contains Help, About, Settings, and global tools overflowed at narrow widths. Settings is not a standalone header gear or Standard sidebar item.
+
+The detailed placement map and remaining responsive questions are in Section 6; this historical section explains the organizing principle, not a separate alternative proposal.
 
 A full Notes page or Calendar page may still be reached from the global toolbar. Navigation placement is not a constraint on page capability.
 
@@ -123,7 +125,7 @@ A full Notes page or Calendar page may still be reached from the global toolbar.
 
 **Approved Home access:** The SOLACE logo is the sole Home navigation affordance in the navbar on both wide and narrow screens. There is **no separate Home button or sidebar entry**. The `/` route is the **Home overview dashboard**; exact responsive composition remains to be designed.
 
-**Not yet decided:** Exact icon artwork and what is always visible versus placed in overflow, the remaining contents of More, and precise breakpoint/layout behavior. Do not treat the earlier candidate toolbar membership as approved.
+**Still open:** exact icon artwork and labels, width thresholds, overflow priority among the four global tools, the precise More menu composition/implementation, and the Simple/Standard responsive layouts. The approved membership and ordering are recorded in Section 6; do not reopen them while resolving presentation details.
 
 **Acceptance implications:** Test header availability and access to every approved action in Simple and Standard Mode, including manual mode override on narrow and wide viewports; check touch targets, keyboard/focus, overflow menu usability, and no disruption to unsaved editor data.
 
