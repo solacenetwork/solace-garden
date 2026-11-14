@@ -52,7 +52,7 @@ This document is the **single consolidated design specification** for the UI red
 
 **Approved direction:** the logo-linked Home route presents an **overview dashboard**, not the Gardens hub. **Still open:** the precise Home cards, order, and Simple/Standard layouts; responsive toolbar overflow priority (membership/order of the four app-wide tools is approved); whether global Add New includes New Journal Entry; Search availability before the later Search feature milestone; contextual navigation type per page; complete Simple Mode first-screen layout; Garden hub tabs/rails/list; creation entry page and Wizard step sequence.
 
-**Approved November 14:** Restore the historical **Show Welcome at startup** checkbox, enabled by default on new installations. Normal launches display `/welcome` while enabled and the Home overview (`/`) when disabled. Use existing local UI settings, respect deep links, and do not mix this behavior with the obsolete one-time `welcomeSeen` rule. This replaces the earlier startup contract in [GOALS.md](GOALS.md) §2.13b and [ROADMAP.md](ROADMAP.md); the short introductory carousel remains a separate proposal.
+**Approved November 14:** Restore the historical **Show Welcome at startup** checkbox, enabled by default on new installations. Normal launches display `/welcome` while enabled and the Home overview (`/`) when disabled. Use existing local UI settings, respect deep links, and do not mix this behavior with the obsolete one-time `welcomeSeen` rule. This replaces the earlier startup contract in [GOALS.md](GOALS.md) §2.13b and [ROADMAP.md](ROADMAP.md); the **Welcome carousel's purpose is approved**: a quick overview of main app features, an introduction to Gardens, and a clear **Create Your First Garden** call to action. Exact number of slides, artwork, content, and interaction details remain to design.
 
 ---
 
@@ -170,15 +170,15 @@ This table records **candidates**, not a mandate to show all listed items at onc
 
 **Evaluate:** slim Standard sidebar; persistent top toolbar; More menu; global Add New; search affordance; `.container` versus `.container-fluid` for header (retain deliberate responsive padding); active location and keyboard/focus semantics. Decide exactly where every destination goes before changing source.
 
-**Open:** which tools deserve persistent top-level emphasis (Journal remains a primary workspace, not a permanent toolbar tool); whether Add New offers New Journal Entry; how Simple Home relates to Standard Home; and whether Welcome adopts the proposed carousel. Welcome's startup checkbox behavior is approved.
+**Open:** which tools deserve persistent top-level emphasis (Journal remains a primary workspace, not a permanent toolbar tool); whether Add New offers New Journal Entry; how Simple Home relates to Standard Home; and the exact Welcome carousel composition. Welcome's startup checkbox and carousel purpose are approved.
 
 ### Approved Home overview and historical first-run entry
 
 **Home is a dashboard, not a sidebar item or a shortcut to Gardens.** The navbar logo navigates to the Home overview at `/`. The historical Home screen gave an at-a-glance view of **Current Gardens, Tasks, Wish List, Gallery, and Previous Gardens**. Preserve those five categories as the *starting content inventory* for redesign; exact card layout, information density, relative ordering, and differences between Simple and Standard Mode remain to be designed. Use concise summaries and direct links to the corresponding workspaces; do not duplicate entire workspaces in the dashboard.
 
-**Approved startup sequence (restored from the historical UI):** A fresh installation shows the full-page `/welcome` with **Show Welcome at startup** checked by default. While checked, normal launches continue to show Welcome; unchecking switches later normal launches to the Home dashboard at `/`. Skip Introduction / Go to Gardens never silently changes the checkbox. Deep links bypass Welcome and are preserved. Welcome remains revisitable via Help regardless of preference. Store the explicit setting with existing local UI preferences; no alpha data migration or one-time `welcomeSeen` mechanism. Whether to present the information in a three- or four-slide Bootstrap 6 carousel remains **proposed, not approved**.
+**Approved startup sequence (restored from the historical UI):** A fresh installation shows the full-page `/welcome` with **Show Welcome at startup** checked by default. While checked, normal launches continue to show Welcome; unchecking switches later normal launches to the Home dashboard at `/`. Skip Introduction / Go to Gardens never silently changes the checkbox. Deep links bypass Welcome and are preserved. Welcome remains revisitable via Help regardless of preference. Store the explicit setting with existing local UI preferences; no alpha data migration or one-time `welcomeSeen` mechanism. **Approved carousel direction:** On Welcome, use a short, skippable Bootstrap 6 carousel to briefly introduce major features, explain what a Garden is/why to create one, and finish with an obvious **Create Your First Garden** action leading into the **existing Garden creation Wizard** (not a second onboarding flow). Preserve Skip Introduction / Go to Gardens, the Show Welcome at startup preference, and normal navigation. Final slide count, copy, images, ordering, and whether the CTA appears throughout or on the final slide remain open.
 
-**Design questions still open:** How much of each dashboard summary to show, where to place actions to continue a draft, how empty states behave, and whether the optional introductory carousel improves Welcome. Home remains accessible through the logo regardless of Welcome settings.
+**Design questions still open:** How much of each dashboard summary to show, where to place actions to continue a draft, how empty states behave, and the exact carousel slide content and interaction details. Home remains accessible through the logo regardless of Welcome settings.
 
 ### B. Gardens hub, discovery, and lifecycle
 
@@ -220,7 +220,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [x] Approve the logo-linked Home (`/`) as an overview dashboard: Current Gardens, Tasks, Wish List, Gallery, Previous Gardens (historical content inventory).
 - [ ] Design Home dashboard summaries and responsive layouts for Simple and Standard Mode.
 - [x] Restore the **Show Welcome at startup** checkbox, enabled by default, replacing the old one-time V1 rule; reconcile GOALS.md, ROADMAP.md, and PARKING_LOT.md.
-- [ ] Decide whether Welcome should use the optional short Bootstrap 6 carousel.
+- [x] Approve the Welcome carousel's goal: quick main-feature overview, introduction to Gardens, and **Create Your First Garden** CTA to the existing creation workflow.
+- [ ] Design and approve the carousel slides, copy, CTA placement, and accessible controls.
 - [x] Approve primary sidebar destinations and order: **Gardens, Journal, Gallery, PlantDB** (PlantDB last).
 - [x] Approve top-navbar placement and responsive presentation for global Search: inline input on wide screens; icon-triggered below-navbar field on narrow screens.
 - [x] Approve icon-only brand on narrow screens, with full wordmark on wider screens (threshold still open).
@@ -266,6 +267,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 
 | Date | Status | Decision / question |
 | --- | --- | --- |
+| 2026-11-14 | **Approved direction** | Welcome uses a short, skippable feature-introduction carousel culminating in **Create Your First Garden**, routed to the existing Garden creation Wizard. Slide content/count and controls remain to be designed. |
 | 2026-11-14 | **Approved** | Restore Welcome's **Show Welcome at startup** checkbox, initially on. Normal launches show Welcome while enabled and Home when disabled; direct links are unaffected. The carousel remains a candidate. |
 | 2026-11-14 | **Approved direction** | Home (`/`) is an overview dashboard with Current Gardens, Tasks, Wish List, Gallery, and Previous Gardens. Welcome startup preference is separately approved; precise dashboard composition remains open. |
 | 2026-11-14 | **Approved** | Home is accessed exclusively through the SOLACE logo in the navbar; no standalone Home button. Primary sidebar order is Gardens, Journal, Gallery, PlantDB, with PlantDB last. |
@@ -280,7 +282,7 @@ Before each slice, create a narrowly scoped Codex prompt with exact files/behavi
 | 2026-11-14 | **Approved** | Keep the top navbar in both Simple and Standard Mode, adapting its presentation responsively; membership and breakpoints remain open. |
 | 2026-11-14 | Proposed | Separate routing from navigation placement; keep `preact-iso` and current functional services. |
 | 2026-11-14 | Proposed | Use historical three-layer concept: global toolbar, concise main navigation, contextual navigation; More for secondary/support links. |
-| 2026-11-14 | Open | dashboard composition and Welcome preference, responsive toolbar presentation, Add New submenu contents, and screen-specific layouts. |
+| 2026-11-14 | Open | dashboard and Welcome carousel composition, responsive toolbar presentation, Add New submenu contents, and screen-specific layouts. |
 | 2026-11-14 | Open | Gardens hub, creation methods, grouped Notes, Lists overview, and future Search entry behavior. |
 
 **Next design session:** Agree on a destination map for Standard Mode and Simple Mode, then translate it into annotated shell layouts. Do not treat this working proposal as an approved Codex prompt.
