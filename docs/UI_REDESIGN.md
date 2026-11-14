@@ -268,7 +268,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 - [x] Shared Preact + `preact-iso` application, Bootstrap 6, existing routes/data services, and both selectable Simple/Standard modes remain the foundation.
 - [x] Persistent navbar in both modes; SOLACE logo is the sole Home link; no separate Home button or sidebar entry.
-- [x] Approve the typical responsive shell presentations shown in the three sketches: large Standard Mode with expanded sidebar; medium Standard Mode with collapsed iconbar and an explicitly opened overlay sidebar that does not push/reflow the workspace; small Simple Mode with card-based navigation/actions and no persistent sidebar.
+- [x] Typical responsive shell presentations from the three sketches are approved: large Standard Mode with expanded sidebar; medium Standard Mode with collapsed iconbar and an explicitly opened overlay sidebar that does not push/reflow the workspace; small Simple Mode with card-based navigation/actions and no persistent sidebar.
 - [x] Preserve manual Simple/Standard selection at every viewport width; the sketches describe the intended Automatic presentations, not device restrictions.
 - [x] Primary navigation order: **Gardens → Journal → Gallery → PlantDB** (PlantDB last).
 - [x] Global tool order: **Tasks → Notes → Wish List → Calendar**; Journal is not a permanent toolbar tool.
