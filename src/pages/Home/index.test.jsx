@@ -4,8 +4,13 @@ const mode = vi.hoisted(() => ({ effectiveMode: 'simple' }));
 vi.mock('../../context/InterfaceModeContext.jsx', () => ({
 	useInterfaceMode: () => ({ effectiveMode: mode.effectiveMode }),
 }));
+vi.mock('./HomeDashboard.jsx', () => ({
+	HomeDashboard: () => <div data-home-dashboard />,
+}));
 
 import { Home } from './index.jsx';
+import { HomeDashboard } from './HomeDashboard.jsx';
+import { SimpleNavigationCards } from './SimpleNavigationCards.jsx';
 
 function nodes(node) {
 	if (!node || typeof node !== 'object') return [];
@@ -21,18 +26,21 @@ beforeEach(() => {
 });
 
 describe('Home interface-mode presentations', () => {
-	it('renders only the seven cards in Simple Mode', () => {
+	it('renders the seven cards before the shared dashboard in Simple Mode', () => {
 		const tree = Home();
 		expect(simpleLinks(tree)).toHaveLength(7);
-		expect(nodes(tree).some(({ props }) => props.class?.includes('workspace-directory'))).toBe(false);
-		expect(nodes(tree).some(({ props }) => props.class === 'standard-home')).toBe(false);
+		const children = tree.props.children.flat(Infinity).filter(Boolean);
+		expect(children.findIndex(({ type }) => type === SimpleNavigationCards)).toBeLessThan(
+			children.findIndex(({ type }) => type === HomeDashboard),
+		);
 	});
 
-	it('keeps the existing Standard Home separate from Simple cards', () => {
+	it('shows the dashboard directly without navigation cards in Standard Mode', () => {
 		mode.effectiveMode = 'standard';
 		const tree = Home();
 		expect(simpleLinks(tree)).toHaveLength(0);
-		expect(typeof tree.type).toBe('function');
-		expect(tree.type(tree.props).props.class).toBe('container standard-home');
+		expect(tree.props.class).toBe('container home-page home-page--standard');
+		expect(nodes(tree).filter(({ props }) => props['data-home-dashboard'] !== undefined)).toHaveLength(1);
+		expect(nodes(tree).some(({ props }) => props.class?.includes('standard-home__grid'))).toBe(false);
 	});
 });

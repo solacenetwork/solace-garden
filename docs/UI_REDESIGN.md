@@ -376,11 +376,19 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ### Step 4.5B — Reusable Preact CardCarousel
 
-**Implementation status (November 15, 2026):** The generic production `CardCarousel` is implemented with a children-based API, accessible label, optional explicit ID/class, stable generated instance identity, explicit Bootstrap construction/disposal, local overflow observation, and local recreation for actual child membership/order mutations. Container-query defaults carry the accepted two-to-six-card responsive behavior into constrained content areas as well as full-width pages. The `/dev/carousel` harness now exercises the production component with static, short, dynamic, and constrained collections. Step 5 remains unstarted; physical-device regression testing follows this implementation review.
+**Implementation status (November 15, 2026):** The generic production `CardCarousel` is implemented with a children-based API, accessible label, optional explicit ID/class, stable generated instance identity, explicit Bootstrap construction/disposal, local overflow observation, and local recreation for actual child membership/order mutations. Container-query defaults carry the accepted two-to-six-card responsive behavior into constrained content areas as well as full-width pages. The `/dev/carousel` harness now exercises the production component with static, short, dynamic, and constrained collections. Step 5 now consumes two independent production instances without changing the component; physical-device regression testing remains with the developer.
 
 ### Step 5 — Home dashboard
 
 **Purpose:** Implement the approved Home overview in both modes, with appropriate presentation density.
+
+**Implementation status (November 15, 2026):** Complete. Simple Mode retains the accepted seven navigation cards first and adds the shared dashboard below a restrained divider; Standard Mode removes its workspace directory and shows the same dashboard directly. `HomeDashboard` performs one Garden service read plus independent Task and Wish List service reads on every mount, suppresses outdated async results on unmount, and provides section-specific Retry actions. No Home interaction writes data.
+
+- Saved Gardens are sorted newest-valid-`updatedAt` first with an ascending ID tie-breaker, then classified mutually exclusively: open Planned/Active Gardens are Current; closed, Completed, or Archived Gardens are Previous. Drafts are not returned by the Garden service and unmatched lifecycle records are not promoted into either group.
+- Current and Previous use separate `CardCarousel` instances and record-specific `GardenPreviewCard` children. Cards link with the stored Garden ID, show optional subtitle/start date without placeholders for missing text, format date-only values without local-time shifts, use a neutral non-photo visual, and add Closed/Completed/Archived labels to Previous cards.
+- Tasks and Wish List each call the existing List service with their real kind, sort copies by `createdAt` descending with an ID tie-breaker, limit to five, and render compact read-only rows. Completion and purchased states are informational; empty actions target the verified `#lists-quick-text` fragment on the existing pages.
+- Gallery remains the fourth section and honestly reports that it is unavailable. Its known `/photos` link is labelled as a placeholder; no media repository, fake records, stock photos, or Gallery carousel were added.
+- Every section remains visible across loading, empty, error, and ready states. Garden, Task, and Wish List failures are isolated by source; the Gallery availability state is static. The accepted container-query carousel sizing continues to provide roughly two through six cards according to actual rail width.
 
 - Implement the five approved sections in order: Current Gardens, Tasks, Wish List, Gallery, Previous Gardens.
 - Garden and Gallery content uses horizontal visual rails; Tasks and Wish List show up to five most recently added items as read-only previews.
