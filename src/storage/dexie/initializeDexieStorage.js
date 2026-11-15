@@ -1,3 +1,4 @@
+import { startupDiagnostics } from './startupDiagnostics.js';
 import {
 	CONTROL_STORE_NAME,
 	MAIN_CONFIG_ID,
@@ -67,13 +68,14 @@ const RECOVERY_DETAILS = {
 	},
 };
 
-function recoveryRequired(code) {
+function recoveryRequired(code, stage, cause) {
 	return {
 		status: 'recovery-required',
 		error: {
 			code,
 			title: 'Garden storage needs attention',
 			...RECOVERY_DETAILS[code],
+			diagnostics: startupDiagnostics(code, stage, cause),
 		},
 	};
 }
@@ -89,53 +91,68 @@ export async function initializeDexieStorage({
 	let hasControlDatabase;
 	let locationsRepository;
 	let gardenTypesRepository;
-	let initializationStage = 'open';
+	let initializationStage = 'control-existence';
+	const recover = (code, cause) => recoveryRequired(code, initializationStage, cause);
 
 	try {
 		hasControlDatabase = await controlDatabaseExists(dependencies);
-	} catch {
-		return recoveryRequired('CONTROL_DATABASE_CHECK_FAILED');
+	} catch (error) {
+		return recover('CONTROL_DATABASE_CHECK_FAILED', error);
 	}
 
 	if (!hasControlDatabase) {
 		let databaseNames;
 
 		try {
+			initializationStage = 'database-enumeration';
 			databaseNames = await discoverDatabaseNames(dependencies);
-		} catch {
-			return recoveryRequired('DATABASE_DISCOVERY_UNAVAILABLE');
+		} catch (error) {
+			return recover('DATABASE_DISCOVERY_UNAVAILABLE', error);
 		}
 
 		if (findGardenDatabaseNames(databaseNames).length > 0) {
-			return recoveryRequired('CONTROL_DATABASE_MISSING');
+			return recover('CONTROL_DATABASE_MISSING');
 		}
 	}
 
 	try {
-		controlDatabase = createControlDatabase({ dependencies, randomUUID });
+		initializationStage = 'control-create';
+		controlDatabase = createControlDatabase({
+			dependencies,
+			randomUUID,
+			onStage: (stage) => { initializationStage = stage; },
+		});
+		initializationStage = 'control-open';
 		await controlDatabase.open();
+		initializationStage = 'control-schema';
 		if (!validateControlSchema(controlDatabase)) {
 			controlDatabase.close();
-			return recoveryRequired('CONFIGURATION_INVALID');
+			return recover('CONFIGURATION_INVALID');
 		}
-	} catch {
+	} catch (error) {
 		controlDatabase?.close();
-		return recoveryRequired('CONTROL_OPEN_FAILED');
+		return recover('CONTROL_OPEN_FAILED', error);
 	}
 
-	const configuration = await controlDatabase
-		.table(CONTROL_STORE_NAME)
-		.get(MAIN_CONFIG_ID)
-		.catch(() => undefined);
+	let configuration;
+	try {
+		initializationStage = 'configuration-read';
+		configuration = await controlDatabase.table(CONTROL_STORE_NAME).get(MAIN_CONFIG_ID);
+	} catch (error) {
+		controlDatabase.close();
+		return recover('CONFIGURATION_INVALID', error);
+	}
+	initializationStage = 'configuration-validation';
 
 	if (!validateConfiguration(configuration)) {
 		controlDatabase.close();
-		return recoveryRequired('CONFIGURATION_INVALID');
+		return recover('CONFIGURATION_INVALID');
 	}
 
 	const initializationInProgress = isInitialConfiguration(configuration);
 
 	try {
+		initializationStage = 'garden-open';
 		gardenDatabase = await openGarden(configuration.activeDatabase, {
 			allowCreate: initializationInProgress,
 			dependencies,
@@ -148,6 +165,7 @@ export async function initializeDexieStorage({
 		gardenTypesRepository = createGardenTypesRepository(gardenDatabase);
 
 		if (initializationInProgress) {
+			initializationStage = 'configuration-finalize';
 			await markInitializationComplete(controlDatabase);
 		}
 	} catch (error) {
@@ -155,16 +173,16 @@ export async function initializeDexieStorage({
 		controlDatabase.close();
 
 		if (initializationInProgress) {
-			return recoveryRequired('INITIALIZATION_INCOMPLETE');
+			return recover('INITIALIZATION_INCOMPLETE', error);
 		}
 
-		return recoveryRequired(error?.code === 'GARDEN_DATABASE_MISSING'
+		return recover(error?.code === 'GARDEN_DATABASE_MISSING'
 			? 'GARDEN_DATABASE_MISSING'
 			: initializationStage === 'garden-types'
 				? 'GARDEN_TYPE_INITIALIZATION_FAILED'
 				: gardenDatabase
 					? 'LOCATION_INITIALIZATION_FAILED'
-					: 'GARDEN_OPEN_FAILED');
+					: 'GARDEN_OPEN_FAILED', error);
 	}
 
 	controlDatabase.close();

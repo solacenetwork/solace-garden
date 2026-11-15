@@ -1,3 +1,4 @@
+import { createUUID } from '../../utils/uuid.js';
 import { StorageError, ValidationError } from '../errors.js';
 import {
 	validateNewNote,
@@ -20,7 +21,7 @@ function throwStorageError(operation, error) {
 }
 
 export function createNotesRepository(database, {
-	randomUUID = () => globalThis.crypto.randomUUID(),
+	randomUUID = createUUID,
 } = {}) {
 	const table = database.table('notes');
 	const gardens = database.table('gardens');

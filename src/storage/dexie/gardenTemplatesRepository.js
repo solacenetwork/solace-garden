@@ -1,3 +1,4 @@
+import { createUUID } from '../../utils/uuid.js';
 import { StorageError, ValidationError } from '../errors.js';
 import { validateGardenTypeSelection } from '../gardenTypeValidation.js';
 import { validateGardenRecord } from '../gardenValidation.js';
@@ -21,7 +22,7 @@ function copyTemplate(template) {
 }
 
 export function createGardenTemplatesRepository(database, {
-	randomUUID = () => globalThis.crypto.randomUUID(),
+	randomUUID = createUUID,
 } = {}) {
 	const templates = database.table('gardenTemplates');
 	const gardens = database.table('gardens');

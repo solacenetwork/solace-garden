@@ -1,3 +1,4 @@
+import { createUUID } from '../utils/uuid.js';
 import { ValidationError } from '../storage/errors.js';
 import { DEFAULT_LOCATION_ID } from './locations.js';
 
@@ -66,7 +67,7 @@ function requireGardenDraft(draft) {
 
 export function createGardenDraftsService(repository, {
 	now = () => new Date().toISOString(),
-	randomUUID = () => globalThis.crypto.randomUUID(),
+	randomUUID = createUUID,
 } = {}) {
 	return Object.freeze({
 		async create({ preferredEditor = 'wizard' } = {}) {

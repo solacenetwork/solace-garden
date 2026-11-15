@@ -1,3 +1,4 @@
+import { createUUID } from '../../utils/uuid.js';
 import { StorageError, ValidationError } from '../errors.js';
 import {
 	validateListItemChanges,
@@ -27,7 +28,7 @@ function sortByOrder(records) {
 }
 
 export function createListItemsRepository(database, {
-	randomUUID = () => globalThis.crypto.randomUUID(),
+	randomUUID = createUUID,
 } = {}) {
 	const table = database.table('listItems');
 	const gardens = database.table('gardens');

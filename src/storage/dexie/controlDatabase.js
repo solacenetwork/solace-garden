@@ -26,7 +26,7 @@ function createInitialConfig(randomUUID) {
 	};
 }
 
-export function createControlDatabase({ dependencies, randomUUID } = {}) {
+export function createControlDatabase({ dependencies, randomUUID, onStage = () => {} } = {}) {
 	const database = new Dexie(CONTROL_DATABASE_NAME, dependencies);
 	database.version(CONTROL_DATABASE_VERSION).stores({
 		[CONTROL_STORE_NAME]: 'id',
@@ -35,11 +35,12 @@ export function createControlDatabase({ dependencies, randomUUID } = {}) {
 	// Dexie's populate event runs in the database-creation transaction. Writing
 	// the pointer and its initialization marker here avoids a blank control
 	// database if the first startup is interrupted.
-	database.on('populate', (transaction) =>
-		transaction
-			.table(CONTROL_STORE_NAME)
-			.add(createInitialConfig(randomUUID)),
-	);
+	database.on('populate', (transaction) => {
+		onStage('configuration-populate-uuid');
+		const configuration = createInitialConfig(randomUUID);
+		onStage('configuration-populate-write');
+		return transaction.table(CONTROL_STORE_NAME).add(configuration);
+	});
 
 	return database;
 }

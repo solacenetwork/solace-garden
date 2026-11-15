@@ -1,9 +1,10 @@
+import { createUUID } from '../../utils/uuid.js';
 import { GARDEN_DATABASE_PREFIX } from './constants.js';
 
 const UUID_PATTERN =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-export function createGardenDatabaseName(randomUUID = () => crypto.randomUUID()) {
+export function createGardenDatabaseName(randomUUID = createUUID) {
 	return `${GARDEN_DATABASE_PREFIX}${randomUUID()}`;
 }
 

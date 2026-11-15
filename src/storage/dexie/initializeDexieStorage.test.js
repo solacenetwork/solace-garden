@@ -89,6 +89,27 @@ describe('Dexie storage initialization', () => {
 		result.close();
 	});
 
+	it('initializes and reopens with valid records when native randomUUID is absent on HTTP', async () => {
+		const getRandomValues = globalThis.crypto.getRandomValues.bind(globalThis.crypto);
+		vi.stubGlobal('crypto', { getRandomValues });
+		let first;
+		let second;
+		try {
+			first = await initialize({ randomUUID: undefined });
+			expect(first.status).toBe('ready');
+			const note = await first.repositories.notes.create({ text: 'Private regression note', gardenId: null, createdAt: '2026-11-15T12:00:00.000Z', updatedAt: '2026-11-15T12:00:00.000Z' });
+			first.close();
+			second = await initialize({ randomUUID: undefined });
+			expect(second.status).toBe('ready');
+			expect(second.databaseName).toBe(first.databaseName);
+			expect(await second.repositories.notes.getById(note.id)).toMatchObject({ text: 'Private regression note' });
+		} finally {
+			first?.close?.();
+			second?.close?.();
+			vi.unstubAllGlobals();
+		}
+	});
+
 	it('requires recovery when Garden data exists without the control database', async () => {
 		const databaseName = `solace-garden-data-${UUID_TWO}`;
 		createdDatabases.add(databaseName);
@@ -449,5 +470,56 @@ describe('Dexie storage initialization', () => {
 
 		retried.close();
 	});
+	it('reports UUID population failure separately from IndexedDB opening and rolls back creation', async () => {
+		const deletion = vi.spyOn(indexedDB, 'deleteDatabase');
+		const result = await initialize({ randomUUID() { throw new TypeError('crypto.randomUUID is not a function'); } });
+		expect(result.error).toMatchObject({ code: 'CONTROL_OPEN_FAILED', diagnostics: {
+			stage: 'configuration-populate-uuid',
+			exceptions: expect.arrayContaining([{ name: 'TypeError', message: 'crypto.randomUUID is not a function' }]),
+		} });
+		expect(await indexedDB.databases()).toEqual([]);
+		expect(deletion).not.toHaveBeenCalled();
+		deletion.mockRestore();
+	});
+
+	it('reports a truly unavailable IndexedDB without creating or deleting anything', async () => {
+		const result = await initializeDexieStorage({ dependencies: { indexedDB: {}, IDBKeyRange } });
+		expect(result.error).toMatchObject({ code: 'CONTROL_DATABASE_CHECK_FAILED', diagnostics: {
+			stage: 'control-existence', exceptions: [{ name: 'Error', message: 'IndexedDB is unavailable.' }],
+		} });
+		expect(await indexedDB.databases()).toEqual([]);
+	});
+
+	it('reports blocked probes without deletion', async () => {
+		const deleteDatabase = vi.fn();
+		const result = await initializeDexieStorage({ dependencies: { IDBKeyRange, indexedDB: {
+			deleteDatabase,
+			open() { const request = {}; queueMicrotask(() => request.onblocked()); return request; },
+		} } });
+		expect(result.error.diagnostics).toMatchObject({ stage: 'control-existence', exceptions: [
+			{ name: 'Error', message: 'The database existence check was blocked.' },
+		] });
+		expect(deleteDatabase).not.toHaveBeenCalled();
+	});
+
+	it('preserves valid records when the actual control open fails after a successful probe', async () => {
+		const first = await initialize();
+		first.close();
+		const deletion = vi.spyOn(indexedDB, 'deleteDatabase');
+		const originalOpen = indexedDB.open.bind(indexedDB);
+		let calls = 0;
+		const open = vi.spyOn(indexedDB, 'open').mockImplementation((...args) => {
+			if (++calls === 2) throw new DOMException('Access denied', 'SecurityError');
+			return originalOpen(...args);
+		});
+		const result = await initialize();
+		open.mockRestore();
+		expect(result.error).toMatchObject({ code: 'CONTROL_OPEN_FAILED', diagnostics: { stage: 'control-open' } });
+		expect(deletion).not.toHaveBeenCalled();
+		expect((await readConfiguration()).activeDatabase).toBe(first.databaseName);
+		expect(await indexedDB.databases()).toHaveLength(2);
+		deletion.mockRestore();
+	});
+
 });
 

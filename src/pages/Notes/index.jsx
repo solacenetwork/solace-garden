@@ -1,3 +1,4 @@
+import { createUUID } from '../../utils/uuid.js';
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useStorage } from '../../context/StorageContext.jsx';
@@ -125,7 +126,7 @@ function NoteLoadError({ message }) { return <div class="container notes-page"><
 
 export function NewNote() {
 	const { route } = useLocation();
-	useEffect(() => { route(`/notes/new/${globalThis.crypto.randomUUID()}`, true); }, [route]);
+	useEffect(() => { route(`/notes/new/${createUUID()}`, true); }, [route]);
 	return <LoadingNote />;
 }
 
