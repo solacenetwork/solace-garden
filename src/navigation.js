@@ -24,3 +24,8 @@ export const secondaryDestinationIds = [
 
 export const primaryActions = primaryActionIds.map(findRouteById);
 export const secondaryDestinations = secondaryDestinationIds.map(findRouteById);
+
+// Shared shell placement; legacy Home configuration above remains independent.
+export const standardPrimaryIds = ['gardens', 'journal', 'photos', 'plants'];
+export const globalToolIds = ['tasks', 'notes', 'wishlist', 'calendar'];
+export const moreDestinationIds = ['help', 'about', 'settings'];

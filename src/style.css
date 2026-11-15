@@ -100,16 +100,13 @@ body {
 	gap: 1rem;
 	align-items: center;
 	justify-content: space-between;
+	padding: 0.5rem clamp(0.5rem, 2vw, 1.5rem);
+	width: 100%;
 }
 
 .garden-brand {
 	min-height: 2.75rem;
-}
-
-.app-settings-link {
-	color: var(--sg-color-text-muted);
-	font-size: 1.25rem;
-	border-radius: 0.75rem;
+	flex: 0 0 auto;
 }
 
 .icon-control {
@@ -120,12 +117,6 @@ body {
 	min-height: 3rem;
 	text-decoration: none;
 	place-items: center;
-}
-
-.app-settings-link:hover,
-.app-settings-link[aria-current="page"] {
-	color: var(--sg-color-primary-strong);
-	background: var(--sg-color-primary-soft);
 }
 
 .app-brand {
@@ -141,7 +132,6 @@ body {
 }
 
 .app-brand:focus-visible,
-.app-settings-link:focus-visible,
 .app-button:focus-visible,
 .icon-control:focus-visible {
 	outline: 3px solid var(--sg-color-focus);
@@ -430,7 +420,6 @@ body {
 }
 
 .garden-brand__wordmark {
-  display: block;
   width: auto;
   height: 1.6rem;
   max-width: 100%;
@@ -519,5 +508,153 @@ body {
 
 	.app-shell--standard .app-main {
 		padding-block: 1.25rem 2rem;
+	}
+}
+
+
+/* Shared Header: Preact owns toolbar membership; Bootstrap owns Menu behavior. */
+.header-toolbar {
+	display: flex;
+	min-width: 0;
+	flex: 1;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.35rem;
+}
+
+.header-tool,
+.header-control {
+	color: var(--sg-color-primary-strong);
+	font-weight: 650;
+	text-decoration: none;
+	background: transparent;
+	border: 0;
+	border-radius: 0.7rem;
+}
+
+.header-tool {
+	display: inline-flex;
+	min-height: 3rem;
+	padding: 0.5rem 0.65rem;
+	font-size: 0.875rem;
+	white-space: nowrap;
+	flex: 0 0 auto;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.header-control {
+	font-size: 1.25rem;
+	flex: 0 0 auto;
+}
+
+.header-tool:hover,
+.header-control:hover,
+.header-tool[aria-current="page"],
+.header-menu__link[aria-current="page"] {
+	color: var(--sg-color-primary-strong);
+	background: var(--sg-color-primary-soft);
+}
+
+.header-tool:focus-visible,
+.header-control:focus-visible,
+.header-menu__link:focus-visible {
+	outline: 3px solid var(--sg-color-focus);
+	outline-offset: -3px;
+}
+
+.header-menu {
+	flex: 0 0 auto;
+}
+
+.header-menu__panel {
+	min-inline-size: 15rem;
+	max-inline-size: calc(100vw - 2rem);
+	max-block-size: calc(100vh - 5rem);
+	max-block-size: calc(100dvh - 5rem);
+	overflow-y: auto;
+	color: var(--sg-color-text);
+	background: var(--sg-color-surface);
+	border-color: var(--sg-color-border);
+}
+
+.header-menu__link {
+	display: flex;
+	min-height: 3rem;
+	align-items: center;
+	gap: 0.65rem;
+	white-space: normal;
+}
+
+.header-toolbar__measurement {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.header-toolbar__measure-tools {
+	display: flex;
+	width: max-content;
+}
+
+.header-search-slot {
+	width: 3rem;
+	flex: 0 0 auto;
+}
+
+.header-search__panel {
+	position: absolute;
+	inset-block-start: 100%;
+	inset-inline: 0;
+	display: grid;
+	padding: 0.75rem;
+	margin: 0;
+	background: var(--sg-color-surface);
+	border-block-end: 1px solid var(--sg-color-border);
+	box-shadow: var(--sg-shadow-soft);
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.header-search__input {
+	min-width: 0;
+	min-height: 3rem;
+}
+
+.header-search__status {
+	grid-column: 1 / -1;
+	margin: 0;
+	color: var(--sg-color-text-muted);
+	font-size: 0.875rem;
+}
+
+@media (min-width: 1024px) {
+	.header-search-slot {
+		width: clamp(12rem, 20vw, 18rem);
+	}
+
+	.header-search__panel {
+		position: relative;
+		inset: auto;
+		padding: 0;
+		background: transparent;
+		border: 0;
+		box-shadow: none;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 0.25rem;
+	}
+
+	.header-search__status {
+		position: absolute;
+		inset-block-start: calc(100% + 0.5rem);
+		inset-inline: 0;
+		padding: 0.75rem;
+		background: var(--sg-color-surface);
+		border: 1px solid var(--sg-color-border);
+		border-radius: 0.7rem;
 	}
 }

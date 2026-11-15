@@ -67,7 +67,7 @@ function editFields(item) {
 }
 
 export function Lists() {
-	const { path } = useLocation();
+	const { path, url } = useLocation();
 	const kind = resolveListKind(path);
 	const config = LISTS[kind];
 	const storage = useStorage();
@@ -89,6 +89,14 @@ export function Lists() {
 	const [reordering, setReordering] = useState(false);
 	const [message, setMessage] = useState('');
 	const routePending = state.kind !== kind;
+
+	// A fragment requests the existing quick-add field without changing the
+	// list route or introducing a second editor. Wait until route reuse enables it.
+	useEffect(() => {
+		if (url?.endsWith('#lists-quick-text') && !routePending && !adding) {
+			quickInput.current?.focus();
+		}
+	}, [url, routePending, adding]);
 
 	const loadItems = useCallback(async (showLoading = true) => {
 		const currentRequest = ++requestId.current;

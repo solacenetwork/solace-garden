@@ -1,22 +1,12 @@
-import { useLocation } from 'preact-iso';
-import { getSettingsHref } from '../routes.js';
 import { GardenBrand } from './GardenBrand';
+import { HeaderToolbar } from './HeaderToolbar.jsx';
 
 export function Header() {
-	const { path } = useLocation();
-
 	return (
 		<header class="app-header">
-			<div class="container app-header__inner">
+			<div class="app-header__inner">
 				<GardenBrand />
-				<a
-					class="icon-control app-settings-link"
-					href={getSettingsHref(path)}
-					aria-label="Settings"
-					aria-current={path === '/settings' ? 'page' : undefined}
-				>
-					<i class="bi bi-gear" aria-hidden="true"></i>
-				</a>
+				<HeaderToolbar />
 			</div>
 		</header>
 	);
