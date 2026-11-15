@@ -42,9 +42,9 @@ function NavigationLinks({ currentId, iconsOnly = false, onNavigate }) {
 
 export function StandardNavigation() {
 	const { path } = useLocation();
-	const currentId = findRoute(path)?.id;
+	const currentRoute = findRoute(path);
+	const currentId = currentRoute?.id;
 	const [presentation, setPresentation] = useState(presentationFor);
-	const [isExpanded, setIsExpanded] = useState(false);
 	const root = useRef(null);
 	const currentDestination = useRef(null);
 	const pendingFocus = useRef(null);
@@ -62,7 +62,6 @@ export function StandardNavigation() {
 			if (element.contains(doc.activeElement)) {
 				pendingFocus.current = doc.activeElement.closest('[data-standard-destination]')?.dataset.standardDestination
 					?? currentDestination.current ?? 'gardens';
-				if (next === 'small') setIsExpanded(true);
 			}
 			setPresentation(next);
 		};
@@ -85,6 +84,10 @@ export function StandardNavigation() {
 		const frame = requestAnimationFrame(() => {
 			const id = pendingFocus.current;
 			pendingFocus.current = null;
+			if (presentation === 'small') {
+				root.current.querySelector('[aria-controls="standard-navigation-drawer"]')?.focus({ preventScroll: true });
+				return;
+			}
 			const navigation = root.current.querySelector('.standard-navigation--icons') ?? root.current;
 			const links = Array.from(navigation.querySelectorAll('[data-standard-destination]'));
 			(links.find((link) => link.dataset.standardDestination === id) ?? links[0])?.focus({ preventScroll: true });
@@ -94,14 +97,24 @@ export function StandardNavigation() {
 
 	return (
 		<aside class={`standard-sidebar standard-sidebar--${presentation}`} ref={root}>
-			{presentation === 'medium' ? (
+			{presentation !== 'large' ? (
 				<>
 					<AppDrawer
+						key={presentation}
 						id="standard-navigation-drawer"
 						title="Navigation"
 						placement="start"
 						style={{ '--app-drawer-width': '300px' }}
-						renderTrigger={(triggerProps) => (
+						renderTrigger={(triggerProps) => presentation === 'small' ? (
+							<div class="standard-navigation__phone-strip">
+								<button class="standard-navigation__phone-trigger" {...triggerProps}>
+									<i class="bi bi-list" aria-hidden="true"></i><span>Navigation</span>
+								</button>
+								<span class="standard-navigation__current" title={currentRoute ? labelFor(currentRoute) : 'Navigation'}>
+									{currentRoute ? labelFor(currentRoute) : 'Navigation'}
+								</span>
+							</div>
+						) : (
 							<button class="icon-control standard-navigation__expand" {...triggerProps} aria-label="Open navigation" title="Open navigation">
 								<i class="bi bi-list" aria-hidden="true"></i>
 							</button>
@@ -109,20 +122,14 @@ export function StandardNavigation() {
 					>
 						{({ close }) => <nav class="standard-navigation" aria-label="Standard Mode workspaces"><NavigationLinks currentId={currentId} onNavigate={close} /></nav>}
 					</AppDrawer>
-					<nav class="standard-navigation standard-navigation--icons" aria-label="Standard Mode workspaces">
+					{presentation === 'medium' && <nav class="standard-navigation standard-navigation--icons" aria-label="Standard Mode workspaces">
 						<NavigationLinks currentId={currentId} iconsOnly />
-					</nav>
+					</nav>}
 				</>
 			) : (
-				<>
-					{presentation === 'small' && <button class="standard-sidebar__toggle" type="button" aria-controls="standard-navigation" aria-expanded={isExpanded} onClick={() => setIsExpanded((expanded) => !expanded)}>
-						<i class="bi bi-list" aria-hidden="true"></i><span>Browse workspaces</span>
-						<i class={`bi bi-chevron-${isExpanded ? 'up' : 'down'}`} aria-hidden="true"></i>
-					</button>}
-					<nav id="standard-navigation" class={`standard-navigation${isExpanded ? ' is-expanded' : ''}`} aria-label="Standard Mode workspaces">
-						<NavigationLinks currentId={currentId} onNavigate={() => setIsExpanded(false)} />
-					</nav>
-				</>
+				<nav id="standard-navigation" class="standard-navigation" aria-label="Standard Mode workspaces">
+					<NavigationLinks currentId={currentId} />
+				</nav>
 			)}
 		</aside>
 	);

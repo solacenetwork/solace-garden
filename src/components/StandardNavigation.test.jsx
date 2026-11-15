@@ -21,6 +21,7 @@ vi.mock('preact/hooks', () => ({
 }));
 import { StandardNavigation } from './StandardNavigation.jsx';
 import { AppDrawer } from './AppDrawer.jsx';
+import { routeCatalog } from '../routes.js';
 import { navigationGroups, primaryActionIds, secondaryDestinationIds } from '../navigation.js';
 
 function nodes(node) {
@@ -32,7 +33,6 @@ function nodes(node) {
 const links = (tree) => nodes(tree).filter(({ type }) => type === 'a');
 const ids = (tree) => links(tree).map(({ props }) => props['data-standard-destination']);
 const drawer = (tree) => nodes(tree).find(({ type }) => type === AppDrawer);
-const toggle = (tree) => nodes(tree).find(({ props }) => props.class === 'standard-sidebar__toggle');
 function mount(width = 1280) {
 	const media = new Map();
 	const frames = new Map();
@@ -41,8 +41,9 @@ function mount(width = 1280) {
 	const logo = { focus: vi.fn() };
 	const doc = { activeElement: null, querySelector: vi.fn(() => logo) };
 	const focus = vi.fn();
+	const phoneTrigger = { focus: vi.fn() };
 	const root = {
-		ownerDocument: doc, isConnected: true, querySelector: vi.fn(() => null),
+		ownerDocument: doc, isConnected: true, querySelector: vi.fn((selector) => selector.includes('aria-controls') ? phoneTrigger : null),
 		contains: (target) => Boolean(target?.insideNavigation),
 		querySelectorAll: () => links(tree).map(({ props }) => ({ dataset: { standardDestination: props['data-standard-destination'] }, focus: (options) => focus(props['data-standard-destination'], options) })),
 	};
@@ -65,7 +66,7 @@ function mount(width = 1280) {
 	};
 	render();
 	return {
-		render, doc, focus, media, root, logo,
+		render, doc, focus, media, root, logo, phoneTrigger,
 		flush() { const callbacks = [...frames.values()]; frames.clear(); callbacks.forEach((callback) => callback()); },
 		resize(next) {
 			const changed = [];
@@ -127,8 +128,8 @@ describe('StandardNavigation', () => {
 		view.cleanup();
 	});
 
-	it('shares expanded content and delegates ordinary link dismissal without blocking routing', () => {
-		const view = mount(900);
+	it.each([375, 900])('shares expanded content and delegates ordinary link dismissal at %ipx without blocking routing', (width) => {
+		const view = mount(width);
 		const close = vi.fn();
 		const content = drawer(view.render()).props.children({ close });
 		expect(ids(content)).toEqual(['gardens', 'templates', 'journal', 'photos', 'plants']);
@@ -144,19 +145,61 @@ describe('StandardNavigation', () => {
 		view.cleanup();
 	});
 
-	it.each([375, 576, 767])('retains the temporary full-width collapsible navigation at %ipx', (width) => {
+	it.each([320, 375, 576, 767])('renders only the compact phone strip and shared Drawer at %ipx', (width) => {
 		const view = mount(width);
-		expect(toggle(view.render()).props['aria-expanded']).toBe(false);
-		toggle(view.render()).props.onClick();
-		expect(toggle(view.render()).props['aria-expanded']).toBe(true);
-		expect(ids(view.render())).toEqual(['gardens', 'templates', 'journal', 'photos', 'plants']);
-		expect(drawer(view.render())).toBeUndefined();
-		links(view.render())[1].props.onClick(normalClick());
-		expect(toggle(view.render()).props['aria-expanded']).toBe(false);
+		const tree = view.render();
+		const panel = drawer(tree);
+		expect(tree.props.class).toBe('standard-sidebar standard-sidebar--small');
+		expect(links(tree)).toHaveLength(0);
+		expect(nodes(tree).filter(({ type }) => type === AppDrawer)).toHaveLength(1);
+		expect(panel.props).toMatchObject({ id: 'standard-navigation-drawer', title: 'Navigation', placement: 'start', style: { '--app-drawer-width': '300px' } });
+		const supplied = { ref: { current: null }, type: 'button', onClick: vi.fn(), 'aria-controls': panel.props.id, 'aria-expanded': true, hidden: true };
+		const strip = panel.props.renderTrigger(supplied);
+		const button = nodes(strip).find(({ type }) => type === 'button');
+		expect(button.ref).toBe(supplied.ref);
+		const { ref, ...nativeProps } = supplied;
+		expect(button.props).toMatchObject(nativeProps);
+		expect(nodes(button).find(({ type }) => type === 'span').props.children).toBe('Navigation');
+		expect(nodes(strip).find(({ props }) => props.class === 'standard-navigation__current').props.children).toBe('Gardens');
+		expect(nodes(strip).some(({ type }) => type === 'a')).toBe(false);
+		expect(nodes(tree).some(({ props }) => props.class?.includes('standard-navigation--icons') || props.class === 'standard-sidebar__toggle')).toBe(false);
+		const content = panel.props.children({ close: vi.fn() });
+		expect(ids(content)).toEqual(['gardens', 'templates', 'journal', 'photos', 'plants']);
+		const primaryList = nodes(content).find(({ type }) => type === 'ul');
+		expect(primaryList.props.children).toHaveLength(4);
+		expect(ids(primaryList.props.children[0])).toEqual(['gardens', 'templates']);
 		view.cleanup();
 	});
 
-	it('unmounts the medium Drawer and focuses the corresponding visible destination across breakpoints', () => {
+	it.each([
+		...routeCatalog.map((route) => [route.path, ({ photos: 'Gallery', plants: 'PlantDB' })[route.id] ?? route.label]),
+		['/gardens/new', 'Gardens'], ['/gardens/garden-1', 'Gardens'], ['/gardens/garden-1/edit', 'Gardens'],
+		['/gardens/new/wizard/draft-1', 'Gardens'], ['/notes/new/draft-1', 'Notes'], ['/missing-destination', 'Navigation'],
+	])('identifies %s with the noninteractive phone label %s', (path, expected) => {
+		hooks.path = path;
+		const view = mount(375);
+		const strip = drawer(view.render()).props.renderTrigger({});
+		const indicator = nodes(strip).find(({ props }) => props.class === 'standard-navigation__current');
+		expect(indicator.type).toBe('span');
+		expect(indicator.props.children).toBe(expected);
+		expect(indicator.props.title).toBe(expected);
+		expect(indicator.props.href).toBeUndefined();
+		view.cleanup();
+	});
+
+	it('keeps the Drawer stable within each presentation and remounts only across its breakpoints', () => {
+		const view = mount(320);
+		expect(drawer(view.render()).key).toBe('small');
+		expect(drawer(view.resize(767)).key).toBe('small');
+		expect(drawer(view.resize(768)).key).toBe('medium');
+		expect(drawer(view.resize(1023)).key).toBe('medium');
+		expect(drawer(view.resize(1024))).toBeUndefined();
+		expect(drawer(view.resize(1023)).key).toBe('medium');
+		expect(drawer(view.resize(767)).key).toBe('small');
+		view.cleanup();
+	});
+
+	it('disposes or remounts the Drawer and focuses visible controls across breakpoints', () => {
 		const view = mount(900);
 		view.doc.activeElement = { insideNavigation: true, closest: () => ({ dataset: { standardDestination: 'templates' } }) };
 		expect(drawer(view.resize(1024))).toBeUndefined();
@@ -168,10 +211,9 @@ describe('StandardNavigation', () => {
 		expect(view.focus).toHaveBeenLastCalledWith('gardens', { preventScroll: true });
 		view.doc.activeElement = { insideNavigation: true, closest: () => null };
 		const small = view.resize(767);
-		expect(drawer(small)).toBeUndefined();
-		expect(toggle(small).props['aria-expanded']).toBe(true);
+		expect(drawer(small).key).toBe('small');
 		view.flush();
-		expect(view.focus).toHaveBeenLastCalledWith('gardens', { preventScroll: true });
+		expect(view.phoneTrigger.focus).toHaveBeenCalledWith({ preventScroll: true });
 		view.cleanup();
 	});
 
