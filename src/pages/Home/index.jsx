@@ -1,8 +1,7 @@
+import { findRouteById, getSettingsHref } from '../../routes.js';
 import {
 	primaryActions,
-	getSettingsHref,
 	navigationGroups,
-	routeCatalog,
 	secondaryDestinations,
 } from '../../navigation.js';
 import { useInterfaceMode } from '../../context/InterfaceModeContext.jsx';
@@ -86,9 +85,8 @@ function StandardHome() {
 			</section>
 
 			{navigationGroups.map((group) => {
-				const destinations = routeCatalog.filter(
-					(route) =>
-						route.navigationGroup === group.id && route.path !== '/',
+				const destinations = group.destinationIds.map(findRouteById).filter(
+					(route) => route.path !== '/',
 				);
 
 				if (destinations.length === 0) {

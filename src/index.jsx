@@ -8,7 +8,7 @@ import { StandardNavigation } from './components/StandardNavigation.jsx';
 import { StorageRecoveryScreen } from './components/StorageRecoveryScreen.jsx';
 import { InterfaceModeProvider, useInterfaceMode } from './context/InterfaceModeContext.jsx';
 import { StorageProvider } from './context/StorageContext.jsx';
-import { applicationRoutes, findRoute } from './navigation.js';
+import { applicationRoutes, findRoute } from './routes.js';
 import { Home } from './pages/Home/index.jsx';
 import { Lists } from './pages/Lists/index.jsx';
 import { Gardens, GardenDetail } from './pages/Gardens/index.jsx';

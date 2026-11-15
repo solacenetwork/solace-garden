@@ -1,11 +1,7 @@
 import { useLocation } from 'preact-iso';
 import { useState } from 'preact/hooks';
-import {
-	findRoute,
-	getSettingsHref,
-	navigationGroups,
-	routeCatalog,
-} from '../navigation.js';
+import { findRoute, findRouteById, getSettingsHref } from '../routes.js';
+import { navigationGroups } from '../navigation.js';
 
 export function StandardNavigation() {
 	const { path } = useLocation();
@@ -35,9 +31,7 @@ export function StandardNavigation() {
 				aria-label="Standard Mode workspaces"
 			>
 				{navigationGroups.map((group) => {
-					const routes = routeCatalog.filter(
-						(route) => route.navigationGroup === group.id,
-					);
+					const routes = group.destinationIds.map(findRouteById);
 
 					return (
 						<section

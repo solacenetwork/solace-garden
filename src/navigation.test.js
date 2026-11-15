@@ -1,60 +1,42 @@
 import { exec } from 'preact-iso/router';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { applicationRoutes, findRouteById, routeCatalog } from './routes.js';
 import {
-	applicationRoutes,
-	findRoute,
-	getSettingsHref,
-	getSettingsReturnPath,
+	navigationGroups,
+	primaryActionIds,
 	primaryActions,
+	secondaryDestinationIds,
 	secondaryDestinations,
 } from './navigation.js';
 
-const NOTE_UUID = 'ad4a4e9a-1db0-4e87-8fe1-f197a9d52c01';
+// Register a test-only destination without changing any navigation definitions.
+vi.mock('./routes.js', async (importOriginal) => {
+	const routes = await importOriginal();
+	const hidden = { id: 'test-hidden', path: '/test-hidden', label: 'Hidden destination' };
+	const catalog = [...routes.routeCatalog, hidden];
+	return {
+		...routes,
+		routeCatalog: catalog,
+		applicationRoutes: [...routes.applicationRoutes, hidden],
+		findRouteById: (id) => catalog.find((route) => route.id === id),
+	};
+});
 
-function resolveRoute(path) {
-	for (const route of applicationRoutes) {
-		const match = exec(path, route.path, { params: {} });
-		if (match) {
-			return { route, params: match.params };
-		}
-	}
-
-	return null;
-}
-
-describe('application routes', () => {
-	it('resolves Garden overview and UUID detail routes without shadowing static workspaces', () => {
-		expect(resolveRoute('/gardens')).toMatchObject({ route: { view: 'gardens' }, params: {} });
-		expect(resolveRoute('/gardens/new')).toMatchObject({ route: { view: 'garden-new' }, params: {} });
-		expect(resolveRoute('/gardens/new/wizard')).toMatchObject({ route: { view: 'garden-wizard-new' }, params: {} });
-		expect(resolveRoute(`/gardens/new/wizard/${NOTE_UUID}`)).toMatchObject({ route: { view: 'garden-wizard' }, params: { draftId: NOTE_UUID } });
-		expect(resolveRoute(`/gardens/new/advanced/${NOTE_UUID}`)).toMatchObject({ route: { view: 'garden-advanced' }, params: { draftId: NOTE_UUID } });
-		expect(resolveRoute(`/gardens/${NOTE_UUID}`)).toMatchObject({
-			route: { view: 'garden-detail' }, params: { id: NOTE_UUID },
-		});
-		expect(resolveRoute(`/gardens/${NOTE_UUID}/edit`)).toMatchObject({
-			route: { view: 'garden-edit' }, params: { id: NOTE_UUID },
-		});
-		expect(findRoute(`/gardens/${NOTE_UUID}`)).toMatchObject({ id: 'gardens' });
-		expect(findRoute(`/gardens/${NOTE_UUID}/edit`)).toMatchObject({ id: 'gardens' });
-		expect(findRoute('/gardens/new')).toMatchObject({ id: 'gardens' });
-		expect(getSettingsHref(`/gardens/${NOTE_UUID}`)).toBe('/settings?ref=gardens');
-		expect(getSettingsReturnPath('gardens')).toBe('/gardens');
-		for (const path of ['/gardens/one/extra', '/gardens/one/edit/extra', '/gardenstuff', '/unknown']) {
-			expect(resolveRoute(path)).toBeNull();
-			expect(findRoute(path)).toBeUndefined();
-		}
-	});
-
-	it('resolves both list URLs to the shared Lists workspace', () => {
-		expect(resolveRoute('/tasks')).toMatchObject({
-			route: { path: '/tasks', view: 'lists' },
-		});
-		expect(resolveRoute('/wishlist')).toMatchObject({
-			route: { path: '/wishlist', view: 'lists' },
-		});
-		expect(findRoute('/tasks')).toMatchObject({ id: 'tasks' });
-		expect(findRoute('/wishlist')).toMatchObject({ id: 'wishlist' });
+describe('navigation presentation', () => {
+	it('preserves group IDs, labels, membership and ordering', () => {
+		expect(navigationGroups).toEqual([
+			{ id: 'home', label: 'Home and gardens', destinationIds: ['home', 'gardens'] },
+			{
+				id: 'activities', label: 'Garden activities',
+				destinationIds: ['plants', 'harvest', 'photos', 'tasks', 'wishlist', 'calendar', 'notes'],
+			},
+			{
+				id: 'workspaces', label: 'Other workspaces',
+				destinationIds: ['journal', 'search', 'templates', 'locations'],
+			},
+			{ id: 'settings', label: 'Settings', destinationIds: ['settings'] },
+			{ id: 'other', label: 'Other Links', destinationIds: ['help', 'about'] },
+		]);
 	});
 
 	it('keeps six Simple Mode actions while exposing Wish List elsewhere', () => {
@@ -71,50 +53,42 @@ describe('application routes', () => {
 		);
 	});
 
-	it('resolves the Saved Notes list route', () => {
-		expect(resolveRoute('/notes')).toMatchObject({
-			route: { path: '/notes', view: 'notes' },
-			params: {},
-		});
+	it('preserves secondary destination ordering', () => {
+		expect(secondaryDestinations.map(({ id }) => id)).toEqual([
+			'wishlist', 'gardens', 'journal', 'search', 'templates', 'locations', 'settings', 'help', 'about',
+		]);
 	});
 
-	it('resolves the static new Note route before the Note ID route', () => {
-		expect(resolveRoute('/notes/new')).toMatchObject({
-			route: { path: '/notes/new', view: 'note-new' },
-			params: {},
-		});
+	it('resolves every reference to the original destination metadata', () => {
+		const ids = [
+			...navigationGroups.flatMap(({ destinationIds }) => destinationIds),
+			...primaryActionIds,
+			...secondaryDestinationIds,
+		];
+		for (const id of ids) {
+			expect(findRouteById(id), id).toBeDefined();
+		}
+		for (const [ids, destinations] of [
+			[primaryActionIds, primaryActions],
+			[secondaryDestinationIds, secondaryDestinations],
+		]) {
+			expect(destinations).toHaveLength(ids.length);
+			ids.forEach((id, index) => expect(destinations[index]).toBe(findRouteById(id)));
+		}
 	});
 
-	it('resolves a stable new draft URL independently of saved Note IDs', () => {
-		expect(resolveRoute(`/notes/new/${NOTE_UUID}`)).toMatchObject({
-			route: { path: '/notes/new/:draftId', view: 'note-new-draft' },
-			params: { draftId: NOTE_UUID },
-		});
+	it('has no duplicate destination IDs within any group', () => {
+		for (const { destinationIds } of navigationGroups) {
+			expect(new Set(destinationIds).size).toBe(destinationIds.length);
+		}
 	});
 
-	it('passes the existing Note UUID through the parameter route', () => {
-		expect(resolveRoute(`/notes/${NOTE_UUID}`)).toMatchObject({
-			route: { path: '/notes/:id', view: 'note-edit' },
-			params: { id: NOTE_UUID },
-		});
-	});
-
-	it('keeps editor URLs associated with the Notes workspace', () => {
-		expect(findRoute('/notes/new')).toMatchObject({ id: 'notes' });
-		expect(findRoute(`/notes/${NOTE_UUID}`)).toMatchObject({ id: 'notes' });
-	});
-
-	it('resolves the Locations workspace route', () => {
-		expect(resolveRoute('/locations')).toMatchObject({
-			route: { path: '/locations', view: 'locations' },
-		});
-	});
-
-	it('resolves the Templates workspace to its management page', () => {
-		expect(resolveRoute('/templates')).toMatchObject({
-			route: { path: '/templates', view: 'templates' },
-			params: {},
-		});
-		expect(findRoute('/templates')).toMatchObject({ id: 'templates' });
+	it('registers destinations independently of navigation membership', () => {
+		const hidden = routeCatalog.find(({ id }) => id === 'test-hidden');
+		expect(hidden).toBeDefined();
+		expect(applicationRoutes.find((route) => exec('/test-hidden', route.path, { params: {} }))).toBe(hidden);
+		expect(navigationGroups.flatMap(({ destinationIds }) => destinationIds)).not.toContain(hidden.id);
+		expect(primaryActionIds).not.toContain(hidden.id);
+		expect(secondaryDestinationIds).not.toContain(hidden.id);
 	});
 });

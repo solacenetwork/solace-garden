@@ -1,6 +1,6 @@
 import { useLocation } from 'preact-iso';
 import { AppDrawer } from '../components/AppDrawer.jsx';
-import { findRoute } from '../navigation.js';
+import { findRoute } from '../routes.js';
 import { NotFound } from './_404.jsx';
 
 export function PlaceholderPage() {

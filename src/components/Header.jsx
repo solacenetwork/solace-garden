@@ -1,5 +1,5 @@
 import { useLocation } from 'preact-iso';
-import { getSettingsHref } from '../navigation.js';
+import { getSettingsHref } from '../routes.js';
 import { GardenBrand } from './GardenBrand';
 
 export function Header() {

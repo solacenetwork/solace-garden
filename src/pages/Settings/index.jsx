@@ -1,6 +1,6 @@
 import { useLocation } from 'preact-iso';
 import { useInterfaceMode } from '../../context/InterfaceModeContext.jsx';
-import { getSettingsReturnPath } from '../../navigation.js';
+import { getSettingsReturnPath } from '../../routes.js';
 import './style.css';
 
 const modeOptions = [
