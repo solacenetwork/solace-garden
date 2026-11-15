@@ -23,7 +23,6 @@ import { Settings } from './pages/Settings/index.jsx';
 import { Templates } from './pages/Templates/index.jsx';
 import { NotFound } from './pages/_404.jsx';
 import { CAROUSEL_POC_PATH } from './dev/carousel/route.js';
-import { initializeStorage } from './storage/index.js';
 import './style.css';
 
 const pageComponents = {
@@ -103,6 +102,7 @@ async function startApplication() {
 		return;
 	}
 
+	const { initializeStorage } = await import('./storage/index.js');
 	const storage = await initializeStorage();
 
 	if (storage.status === 'recovery-required') {

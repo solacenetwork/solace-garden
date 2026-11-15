@@ -13,7 +13,7 @@ import { createGardenTemplatesService } from '../../services/gardenTemplates.js'
 import { createGardensService } from '../../services/gardens.js';
 import { createGardenTypesService } from '../../services/gardenTypes.js';
 import { createLocationsService, DEFAULT_LOCATION_ID } from '../../services/locations.js';
-import { StorageError, ValidationError } from '../../storage/index.js';
+import { StorageError, ValidationError } from '../../storage/errors.js';
 import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
 
 const STATUS_TEXT = {

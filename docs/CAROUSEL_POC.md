@@ -1,6 +1,6 @@
 # Bootstrap 6 card Carousel proof of concept
 
-**Status:** Step 4.5A implementation and automated/headless evaluation complete; physical phone and tablet swipe acceptance remains pending.
+**Status:** Step 4.5A accepted after automated, headless, and physical-phone evaluation; Step 4.5B reusable component implemented, with physical regression testing pending.
 **Tested version:** `bootstrap@6.0.0-alpha.1`
 **Development URL:** `/dev/carousel`
 
@@ -10,7 +10,7 @@ This experiment evaluates the pinned Bootstrap 6 Carousel as a foundation for th
 
 The page is intercepted only when `import.meta.env.DEV` is true. It renders outside the normal application shell before storage initialization, is absent from `applicationRoutes`, does not appear in navigation, and does not initialize IndexedDB. The production build contains no prototype JavaScript/CSS chunk, route string, sample content, or PWA precache entry. The existing temporary public assets remain governed by the project's existing `public/assets/temp` handling.
 
-The page uses six independent instances:
+The accepted Step 4.5A page used six independent instances:
 
 - eight static Garden cards, including long titles, missing subtitles, and missing images;
 - eight static Gallery cards alternating `object-fit: cover` and `contain`;
@@ -84,7 +84,7 @@ The browser checks also confirmed:
 - portrait/landscape viewport changes and emulated 200% page scale retained all six carousels without page overflow;
 - the development page made zero observed IndexedDB calls and produced no runtime exceptions.
 
-The headless touch-scroll synthesis did not move the native rail, so it does not constitute a swipe result. Chrome's normal native scroll-snap behavior was verified with programmatic scrolling, mouse controls, keyboard controls, and wheel/page interaction. Physical phone/tablet testing must still confirm horizontal swiping, primarily vertical gestures, accidental card activation during a drag, browser toolbar behavior, and outdoor touch comfort.
+The headless touch-scroll synthesis did not move the native rail, so it did not constitute a swipe result. Chrome's normal native scroll-snap behavior was verified with programmatic scrolling, mouse controls, keyboard controls, and wheel/page interaction. Subsequent physical-phone acceptance confirmed horizontal swiping, natural vertical page scrolling, and card activation behavior for the proof of concept. Physical-device regression testing of the reusable Step 4.5B component remains a separate manual acceptance step.
 
 ## Bootstrap and Preact limitations
 
@@ -92,10 +92,26 @@ The headless touch-scroll synthesis did not move the native rail, so it does not
 2. Fully fitting short collections need application-level overflow measurement if controls must disappear rather than merely become disabled.
 3. A changed collection must dispose and recreate the instance (or deliberately manage observers); the tested alpha does not automatically observe added or removed `.carousel-item` elements.
 4. Fractional `--bs-carousel-items` values work for a partial-card affordance, but Step 4.5B should treat the chosen values as product layout policy, not Bootstrap defaults.
-5. The stock photos did not provide a portrait-ratio source, and headless automation cannot replace physical swipe testing.
+5. The stock photos did not provide a portrait-ratio source, and headless automation cannot replace physical swipe regression testing.
 
 ## Recommendation for Step 4.5B
 
-**Adapt Bootstrap 6 Carousel as the foundation, contingent on physical swipe acceptance.** The pinned implementation naturally supports multiple visible cards, native scrolling and snapping, independent instances, stop-at-ends controls, keyboard movement, and reduced motion. A small production wrapper should own explicit construction/disposal, responsive `--bs-carousel-items` policy, short-collection overflow detection, and reinitialization when collection membership changes.
+**Adapt Bootstrap 6 Carousel as the foundation.** The pinned implementation naturally supports multiple visible cards, native scrolling and snapping, independent instances, stop-at-ends controls, keyboard movement, and reduced motion. A small production wrapper should own explicit construction/disposal, responsive `--bs-carousel-items` policy, short-collection overflow detection, and reinitialization when collection membership changes.
 
-Do not add another carousel dependency based on the automated findings. Do not promote the prototype itself into production: Step 4.5B should define the final component API, semantics, card policy, and accepted physical-device behavior separately.
+No additional carousel dependency is warranted by the findings. The prototype itself was not promoted into production; Step 4.5B extracted only the generic lifecycle, scrolling, control, responsive, and accessibility behavior while leaving sample content in the development harness.
+
+## Step 4.5B production component
+
+Step 4.5B carries the accepted behavior into `src/components/CardCarousel.jsx` and `CardCarousel.css`. The public API is intentionally generic: required `label` and `children`, plus optional `id` and `className`. Parents own records, loading, errors, filtering, sorting, empty-state copy, and the child card markup. The component owns only the Bootstrap rail, controls, responsive sizing, measurable overflow, and lifecycle.
+
+The production implementation differs from the original proof-of-concept wrapper in these ways:
+
+- Preact's stable `useId()` supplies a unique instance ID when a caller does not provide one. Both controls target that instance only.
+- Children are normalized with `toChildArray()` and wrapped in Bootstrap `.carousel-item` elements. Supplied Preact keys become wrapper keys; no Garden-specific identity is required.
+- A direct-child `MutationObserver` detects actual slide additions, removals, and keyed DOM reordering. It disposes and recreates Bootstrap locally because the pinned alpha does not observe collection mutations. Equivalent parent arrays and content-only changes inside an existing slide do not trigger reconstruction.
+- A local `ResizeObserver` updates whether controls are needed. A window resize listener is installed only as a fallback when `ResizeObserver` is unavailable.
+- Structural carousel elements add no tab stop. Keyboard access comes from the caller's interactive card content and native Previous/Next buttons.
+- Container queries now live with the reusable component and apply to its actual inline size. The development harness includes a constrained-width instance for testing inside wide pages and future sidebars.
+- Zero children render a valid empty rail with hidden controls. Empty-state content remains the parent's responsibility.
+
+The `/dev/carousel` page now renders the production `CardCarousel` for all original samples and adds a seventh constrained instance with controls for membership, ordering, content-only, and unrelated-parent updates. The development entry returns before importing storage, so the harness does not load Dexie or access IndexedDB. Development sample data and temporary image paths remain isolated from production component code.

@@ -6,7 +6,7 @@ import { GardenAssociationSelector, gardenAssociationLabel } from '../../compone
 import { createGardensService } from '../../services/gardens.js';
 import { createListItemsService, resolveListKind } from '../../services/listItems.js';
 import { createLocationsService } from '../../services/locations.js';
-import { StorageError, ValidationError } from '../../storage/index.js';
+import { StorageError, ValidationError } from '../../storage/errors.js';
 import { updateItemCompletion } from './completionState.js';
 import './style.css';
 

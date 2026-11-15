@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createLocationsService } from '../../services/locations.js';
-import { StorageError, ValidationError } from '../../storage/index.js';
+import { StorageError, ValidationError } from '../../storage/errors.js';
 import './style.css';
 
 function errorMessage(error, action) {

@@ -7,7 +7,7 @@ import { createDraftAutosave } from '../../services/draftAutosave.js';
 import { createGardensService } from '../../services/gardens.js';
 import { createLocationsService } from '../../services/locations.js';
 import { createNoteDraftsService, createNotesService } from '../../services/notes.js';
-import { StorageError, ValidationError } from '../../storage/index.js';
+import { StorageError, ValidationError } from '../../storage/errors.js';
 import './style.css';
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });

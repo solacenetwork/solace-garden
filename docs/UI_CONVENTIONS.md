@@ -74,3 +74,14 @@ These focused conventions capture patterns demonstrated by the current shell. Th
 - A navigation card is one native anchor covering the complete surface, with a visible Bootstrap Icon and text label. Do not nest buttons, links, or feature actions inside it, and do not add data loading or persistence to navigation cards.
 - Gardens is the featured first card and spans the complete grid. The remaining cards use two columns below `md` and three columns at/above `md`; retain DOM order as visual and keyboard order. Center and cap the overall content width instead of adding more desktop columns.
 - Cards have a minimum 48px target, visible `:focus-visible` treatment using `--sg-color-focus`, legible wrapping at narrow widths, and no information available only on hover. Disable decorative movement for reduced-motion preferences.
+
+## Card carousels
+
+- Use the shared `CardCarousel` for horizontally scrolling card collections. Its public contract is `children`, an accessible `label`, and optional `id` and `className`. Do not add record-specific behavior to the shared component.
+- The parent owns data retrieval, loading and error states, filtering, sorting, empty-state copy, and actual card markup. Supply stable Preact keys for collection items. The carousel does not access services, storage, routes, or application-wide state.
+- `CardCarousel` owns Bootstrap 6 initialization/disposal, native scrolling and snapping, stop-at-ends Previous/Next controls, measurable overflow, and responsive presentation. Multiple instances are independent; omitted IDs use a stable component-instance ID.
+- Direct slide additions, removals, and keyed reordering recreate the local Bootstrap instance after disposing the old one. Updating content inside a card or rerendering an equivalent keyed collection must not recreate it.
+- Responsive item counts are based on the component's available inline size through container queries: two cards when narrow, fractional 2.5/3.5/4.5 presentations at intermediate widths, and up to six when at least 64rem is available. Parent card components own their content layout and height.
+- Hide the complete control group when every card fits. Bootstrap owns boundary disabling, keyboard movement, native touch gestures, reduced motion, and active-slide state. Do not add a second gesture engine, focus manager, or boundary-state implementation.
+- Give every carousel an accessible label. The rail is a named carousel region, controls are native labelled buttons, and structural wrappers are not tab stops. Callers must provide keyboard-accessible card actions and visible focus styles where cards are interactive.
+- A zero-child carousel is safe, but the parent normally decides whether to render it and owns any explanatory empty state.

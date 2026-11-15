@@ -1,5 +1,5 @@
-import Carousel from 'bootstrap/js/dist/carousel.js';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
+import { CardCarousel } from '../../components/CardCarousel.jsx';
 import './style.css';
 
 export const gallerySamples = [
@@ -97,91 +97,6 @@ export const gardenSamples = [
 	},
 ];
 
-export function initializePrototypeCarousel(element, viewport, onOverflowChange) {
-	const instance = new Carousel(element, {
-		autoplay: false,
-		ends: 'stop',
-		keyboard: true,
-		pause: false,
-	});
-	const updateOverflow = () => {
-		onOverflowChange(viewport.scrollWidth > viewport.clientWidth + 1);
-	};
-	const observer = globalThis.ResizeObserver
-		? new ResizeObserver(updateOverflow)
-		: null;
-
-	observer?.observe(viewport);
-	globalThis.addEventListener('resize', updateOverflow);
-	updateOverflow();
-
-	return () => {
-		observer?.disconnect();
-		globalThis.removeEventListener('resize', updateOverflow);
-		instance.dispose();
-	};
-}
-
-export function PrototypeCarousel({ id, label, items, renderItem }) {
-	const root = useRef(null);
-	const viewport = useRef(null);
-	const [hasOverflow, setHasOverflow] = useState(false);
-	const itemIdentity = items.map((item) => item.id).join('|');
-
-	useEffect(() => {
-		if (!root.current || !viewport.current) return undefined;
-		return initializePrototypeCarousel(
-			root.current,
-			viewport.current,
-			setHasOverflow,
-		);
-	}, [itemIdentity]);
-
-	return (
-		<div
-			class="carousel prototype-carousel"
-			id={id}
-			ref={root}
-			role="region"
-			aria-roledescription="carousel"
-			aria-label={label}
-		>
-			<div class="carousel-inner" ref={viewport} tabIndex="0">
-				{items.length > 0 ? items.map((item, index) => (
-					<div
-						class={`carousel-item${index === 0 ? ' active' : ''}`}
-						key={item.id}
-					>
-						{renderItem(item)}
-					</div>
-				)) : (
-					<p class="prototype-carousel__empty">No cards in this collection.</p>
-				)}
-			</div>
-			<div class="prototype-carousel__controls" hidden={!hasOverflow}>
-				<button
-					class="btn-outline theme-primary prototype-carousel__control"
-					type="button"
-					data-bs-target={`#${id}`}
-					data-bs-slide="prev"
-					aria-label={`Previous cards in ${label}`}
-				>
-					<span class="carousel-icon-prev" aria-hidden="true"></span>
-				</button>
-				<button
-					class="btn-outline theme-primary prototype-carousel__control"
-					type="button"
-					data-bs-target={`#${id}`}
-					data-bs-slide="next"
-					aria-label={`Next cards in ${label}`}
-				>
-					<span class="carousel-icon-next" aria-hidden="true"></span>
-				</button>
-			</div>
-		</div>
-	);
-}
-
 function GardenCard({ garden, onSelect }) {
 	return (
 		<a
@@ -242,6 +157,9 @@ function useViewportWidth() {
 export function CarouselPoc() {
 	const viewportWidth = useViewportWidth();
 	const [selection, setSelection] = useState('No prototype Garden selected.');
+	const [dynamicGardens, setDynamicGardens] = useState(gardenSamples.slice(0, 4));
+	const [unrelatedCount, setUnrelatedCount] = useState(0);
+	const selectGarden = (title) => setSelection(`Selected ${title}.`);
 
 	return (
 		<main class="carousel-poc">
@@ -267,12 +185,14 @@ export function CarouselPoc() {
 						{selection}
 					</p>
 				</div>
-				<PrototypeCarousel
+				<CardCarousel
 					id="prototype-gardens"
 					label="Prototype Garden cards"
-					items={gardenSamples}
-					renderItem={(garden) => <GardenCard garden={garden} onSelect={(title) => setSelection(`Selected ${title}.`)} />}
-				/>
+				>
+					{gardenSamples.map((garden) => (
+						<GardenCard garden={garden} onSelect={selectGarden} key={garden.id} />
+					))}
+				</CardCarousel>
 			</section>
 
 			<section class="carousel-poc__example" aria-labelledby="gallery-filmstrip-title">
@@ -283,12 +203,12 @@ export function CarouselPoc() {
 					</div>
 					<p>Alternating crop and contain treatments use original sample ratios.</p>
 				</div>
-				<PrototypeCarousel
+				<CardCarousel
 					id="prototype-gallery"
 					label="Prototype Gallery images"
-					items={gallerySamples}
-					renderItem={(image) => <GalleryCard image={image} />}
-				/>
+				>
+					{gallerySamples.map((image) => <GalleryCard image={image} key={image.id} />)}
+				</CardCarousel>
 			</section>
 
 			<section class="carousel-poc__example" aria-labelledby="edge-cases-title">
@@ -303,14 +223,46 @@ export function CarouselPoc() {
 					{edgeCollections.map(({ count, items }) => (
 						<section class="carousel-poc__edge" aria-labelledby={`edge-${count}-title`} key={count}>
 							<h3 id={`edge-${count}-title`}>{count} {count === 1 ? 'card' : 'cards'}</h3>
-							<PrototypeCarousel
+							<CardCarousel
 								id={`prototype-edge-${count}`}
 								label={`${count}-card edge case`}
-								items={items}
-								renderItem={(garden) => <GardenCard garden={garden} onSelect={(title) => setSelection(`Selected ${title}.`)} />}
-							/>
+							>
+								{items.map((garden) => (
+									<GardenCard garden={garden} onSelect={selectGarden} key={garden.id} />
+								))}
+							</CardCarousel>
+							{count === 0 && <p class="prototype-carousel__empty">No cards in this collection.</p>}
 						</section>
 					))}
+				</div>
+			</section>
+
+			<section class="carousel-poc__example" aria-labelledby="dynamic-children-title">
+				<div class="carousel-poc__heading">
+					<div>
+						<p>Example D</p>
+						<h2 id="dynamic-children-title">Dynamic children in a constrained container</h2>
+					</div>
+					<p>Unrelated parent updates: {unrelatedCount}</p>
+				</div>
+				<div class="carousel-poc__actions">
+					<button type="button" onClick={() => setDynamicGardens((items) => (
+						items.length < gardenSamples.length ? [...items, gardenSamples[items.length]] : items
+					))}>Add card</button>
+					<button type="button" onClick={() => setDynamicGardens((items) => items.slice(0, -1))}>Remove card</button>
+					<button type="button" onClick={() => setDynamicGardens((items) => [...items].reverse())}>Reverse cards</button>
+					<button type="button" onClick={() => setDynamicGardens((items) => items.map((garden, index) => (
+						index === 0 ? { ...garden, title: `${garden.title} updated` } : garden
+					)))}>Update first title</button>
+					<button type="button" onClick={() => setUnrelatedCount((count) => count + 1)}>Update parent only</button>
+					<button type="button" onClick={() => setDynamicGardens(gardenSamples.slice(0, 4))}>Reset</button>
+				</div>
+				<div class="carousel-poc__constrained">
+					<CardCarousel label="Dynamic constrained Garden cards">
+						{dynamicGardens.map((garden) => (
+							<GardenCard garden={garden} onSelect={selectGarden} key={garden.id} />
+						))}
+					</CardCarousel>
 				</div>
 			</section>
 		</main>

@@ -1,20 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const harness = vi.hoisted(() => ({
-	constructors: [],
 	effects: [],
 	setters: [],
 }));
 
-vi.mock('bootstrap/js/dist/carousel.js', () => ({
-	default: class Carousel {
-		constructor(element, config) {
-			this.element = element;
-			this.config = config;
-			this.dispose = vi.fn();
-			harness.constructors.push(this);
-		}
-	},
+vi.mock('../../components/CardCarousel.jsx', () => ({
+	CardCarousel: ({ children }) => children,
 }));
 
 vi.mock('preact/hooks', () => ({
@@ -32,11 +24,10 @@ vi.mock('preact/hooks', () => ({
 
 import {
 	CarouselPoc,
-	PrototypeCarousel,
 	gallerySamples,
 	gardenSamples,
-	initializePrototypeCarousel,
 } from './CarouselPoc.jsx';
+import { CardCarousel } from '../../components/CardCarousel.jsx';
 
 function nodes(node, resolveComponents = false) {
 	if (!node || typeof node !== 'object') return [];
@@ -48,7 +39,6 @@ function nodes(node, resolveComponents = false) {
 }
 
 beforeEach(() => {
-	harness.constructors = [];
 	harness.effects = [];
 	harness.setters = [];
 	vi.stubGlobal('addEventListener', vi.fn());
@@ -62,7 +52,7 @@ afterEach(() => {
 describe('Carousel proof-of-concept content', () => {
 	it('renders separate Garden, Gallery, and zero-to-three-card carousel identities', () => {
 		const tree = CarouselPoc();
-		const carousels = nodes(tree).filter(({ type }) => type === PrototypeCarousel);
+		const carousels = nodes(tree).filter(({ type }) => type === CardCarousel);
 
 		expect(carousels.map(({ props }) => props.id)).toEqual([
 			'prototype-gardens',
@@ -71,9 +61,10 @@ describe('Carousel proof-of-concept content', () => {
 			'prototype-edge-1',
 			'prototype-edge-2',
 			'prototype-edge-3',
+			undefined,
 		]);
-		expect(carousels.map(({ props }) => props.items.length)).toEqual([8, 8, 0, 1, 2, 3]);
-		expect(new Set(carousels.map(({ props }) => props.id)).size).toBe(carousels.length);
+		expect(carousels.map(({ props }) => nodes(props.children).length)).toEqual([8, 8, 0, 1, 2, 3, 4]);
+		expect(new Set(carousels.slice(0, -1).map(({ props }) => props.id)).size).toBe(carousels.length - 1);
 	});
 
 	it('uses eight existing public sample-image URLs and varied prototype content', () => {
@@ -89,80 +80,35 @@ describe('Carousel proof-of-concept content', () => {
 		expect(gardenSamples.some(({ title }) => title.length > 45)).toBe(true);
 	});
 
-	it('renders native card links, an empty state, and correctly targeted controls', () => {
-		const renderItem = (item) => <a href={`#${item.id}`}>{item.title}</a>;
-		const populated = PrototypeCarousel({
-			id: 'test-populated', label: 'Test cards', items: gardenSamples.slice(0, 2), renderItem,
-		});
-		const populatedNodes = nodes(populated, true);
-		const controls = populatedNodes.filter(({ props }) => props['data-bs-slide']);
+	it('uses the production component for native Garden links and keeps empty-state copy in the parent', () => {
+		const tree = CarouselPoc();
+		const carousels = nodes(tree).filter(({ type }) => type === CardCarousel);
+		const gardenLinks = nodes(carousels[0], true).filter(({ type }) => type === 'a');
 
-		expect(populatedNodes.filter(({ props }) => props.class?.includes('carousel-item'))).toHaveLength(2);
-		expect(populatedNodes.filter(({ type }) => type === 'a')).toHaveLength(2);
-		expect(controls.map(({ props }) => props['data-bs-slide'])).toEqual(['prev', 'next']);
-		expect(controls.every(({ props }) => props['data-bs-target'] === '#test-populated')).toBe(true);
-		expect(populated.props).toMatchObject({
-			role: 'region', 'aria-roledescription': 'carousel', 'aria-label': 'Test cards',
-		});
-
-		const empty = PrototypeCarousel({ id: 'test-empty', label: 'Empty', items: [], renderItem });
-		expect(nodes(empty, true).some(({ props }) => props.class === 'prototype-carousel__empty')).toBe(true);
-		expect(nodes(empty, true).some(({ props }) => props.class === 'carousel-item')).toBe(false);
-	});
-});
-
-describe('Bootstrap Carousel lifecycle', () => {
-	it('initializes stop-at-ends behavior, measures overflow, and fully disposes', () => {
-		const resizeObservers = [];
-		vi.stubGlobal('ResizeObserver', class ResizeObserver {
-			constructor(callback) {
-				this.callback = callback;
-				this.observe = vi.fn();
-				this.disconnect = vi.fn();
-				resizeObservers.push(this);
-			}
-		});
-		const element = {};
-		const viewport = { scrollWidth: 720, clientWidth: 320 };
-		const onOverflowChange = vi.fn();
-
-		const cleanup = initializePrototypeCarousel(element, viewport, onOverflowChange);
-		const instance = harness.constructors[0];
-
-		expect(instance.element).toBe(element);
-		expect(instance.config).toEqual({ autoplay: false, ends: 'stop', keyboard: true, pause: false });
-		expect(resizeObservers[0].observe).toHaveBeenCalledWith(viewport);
-		expect(onOverflowChange).toHaveBeenLastCalledWith(true);
-
-		viewport.scrollWidth = 320;
-		resizeObservers[0].callback();
-		expect(onOverflowChange).toHaveBeenLastCalledWith(false);
-
-		cleanup();
-		expect(resizeObservers[0].disconnect).toHaveBeenCalledOnce();
-		expect(globalThis.removeEventListener).toHaveBeenCalledWith('resize', expect.any(Function));
-		expect(instance.dispose).toHaveBeenCalledOnce();
+		expect(gardenLinks).toHaveLength(8);
+		expect(gardenLinks.every(({ props }) => props.href.startsWith('#prototype-'))).toBe(true);
+		expect(nodes(tree).some(({ props }) => props.class === 'prototype-carousel__empty')).toBe(true);
+		expect(carousels[2].props.children).toEqual([]);
 	});
 
-	it('ties Preact initialization to collection membership for cleanup and reinitialization', () => {
-		const tree = PrototypeCarousel({
-			id: 'lifecycle-test', label: 'Lifecycle test', items: gardenSamples.slice(0, 3),
-			renderItem: (item) => item.title,
-		});
-		const viewportNode = nodes(tree).find(({ props }) => props.class === 'carousel-inner');
-		const rootElement = {};
-		const viewportElement = { scrollWidth: 300, clientWidth: 300 };
-		tree.ref.current = rootElement;
-		viewportNode.ref.current = viewportElement;
+	it('provides development-only controls for child membership, order, content, and parent rerenders', () => {
+		const tree = CarouselPoc();
+		const buttons = nodes(tree).filter(({ type }) => type === 'button');
 
-		expect(harness.effects.at(-1).dependencies).toEqual(['kitchen|community|pollinator']);
-		const cleanup = harness.effects.at(-1).effect();
-		expect(harness.constructors.at(-1).element).toBe(rootElement);
-		cleanup();
-		expect(harness.constructors.at(-1).dispose).toHaveBeenCalledOnce();
+		expect(buttons.map(({ props }) => props.children)).toEqual([
+			'Add card',
+			'Remove card',
+			'Reverse cards',
+			'Update first title',
+			'Update parent only',
+			'Reset',
+		]);
+		for (const button of buttons) button.props.onClick();
+		expect(harness.setters[2]).toHaveBeenCalledTimes(5);
+		expect(harness.setters[3]).toHaveBeenCalledOnce();
 	});
 
-	it('does not access IndexedDB while rendering or initializing the prototype', () => {
+	it('does not access IndexedDB while rendering the prototype harness', () => {
 		Object.defineProperty(globalThis, 'indexedDB', {
 			configurable: true,
 			get() {
@@ -172,8 +118,6 @@ describe('Bootstrap Carousel lifecycle', () => {
 		try {
 			const tree = CarouselPoc();
 			expect(tree.type).toBe('main');
-			const cleanup = initializePrototypeCarousel({}, { scrollWidth: 0, clientWidth: 0 }, vi.fn());
-			cleanup();
 		} finally {
 			delete globalThis.indexedDB;
 		}

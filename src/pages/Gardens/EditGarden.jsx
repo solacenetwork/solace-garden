@@ -5,7 +5,7 @@ import { useStorage } from '../../context/StorageContext.jsx';
 import { createGardensService } from '../../services/gardens.js';
 import { createGardenTypesService } from '../../services/gardenTypes.js';
 import { createLocationsService } from '../../services/locations.js';
-import { StorageError, ValidationError } from '../../storage/index.js';
+import { StorageError, ValidationError } from '../../storage/errors.js';
 
 export function gardenEditFields(garden) {
 	return {

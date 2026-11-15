@@ -372,7 +372,11 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ### Step 4.5A — Bootstrap 6 card Carousel proof of concept
 
-**Implementation status (November 15, 2026):** The isolated development-only `/dev/carousel` experiment is implemented and documented in [CAROUSEL_POC.md](CAROUSEL_POC.md). It evaluates static Garden, Gallery, and zero-to-three-card collections with the pinned Bootstrap 6.0.0-alpha.1 scroll-snap Carousel. Automated component/lifecycle tests and a headless Chromium responsive matrix passed. The production route registry, navigation, storage startup, production bundles, and PWA precache exclude the prototype. The current recommendation is to adapt Bootstrap Carousel with a thin Preact lifecycle/overflow wrapper, contingent on the planned physical phone and tablet swipe testing. Step 4.5B and Step 5 remain unstarted.
+**Implementation status (November 15, 2026):** The isolated development-only `/dev/carousel` experiment is implemented and documented in [CAROUSEL_POC.md](CAROUSEL_POC.md). It evaluates static Garden, Gallery, and zero-to-three-card collections with the pinned Bootstrap 6.0.0-alpha.1 scroll-snap Carousel. Automated component/lifecycle tests, a headless Chromium responsive matrix, and physical-phone touch acceptance passed. The production route registry, navigation, storage startup, production bundles, and PWA precache exclude the development harness and sample data.
+
+### Step 4.5B — Reusable Preact CardCarousel
+
+**Implementation status (November 15, 2026):** The generic production `CardCarousel` is implemented with a children-based API, accessible label, optional explicit ID/class, stable generated instance identity, explicit Bootstrap construction/disposal, local overflow observation, and local recreation for actual child membership/order mutations. Container-query defaults carry the accepted two-to-six-card responsive behavior into constrained content areas as well as full-width pages. The `/dev/carousel` harness now exercises the production component with static, short, dynamic, and constrained collections. Step 5 remains unstarted; physical-device regression testing follows this implementation review.
 
 ### Step 5 — Home dashboard
 

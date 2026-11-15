@@ -73,45 +73,9 @@
 	font-weight: 650;
 }
 
-.prototype-carousel {
-	--bs-carousel-items: 2;
-	--bs-carousel-items-gap: 0.75rem;
-	--bs-carousel-items-peek: 0.25rem;
-}
-
-.prototype-carousel .carousel-inner {
-	padding-block: 0.25rem 0.75rem;
-}
-
-.prototype-carousel .carousel-inner:focus-visible,
-.prototype-card:focus-visible,
-.prototype-carousel__control:focus-visible {
+.prototype-card:focus-visible {
 	outline: 3px solid var(--sg-color-focus);
 	outline-offset: 2px;
-}
-
-.prototype-carousel__controls {
-	display: flex;
-	justify-content: end;
-	gap: 0.75rem;
-}
-
-.prototype-carousel__controls[hidden] {
-	display: none;
-}
-
-.prototype-carousel__control {
-	display: inline-grid;
-	width: 3rem;
-	height: 3rem;
-	padding: 0;
-	border-radius: 50%;
-	place-items: center;
-}
-
-.prototype-carousel__control:disabled {
-	cursor: not-allowed;
-	opacity: 0.4;
 }
 
 .prototype-card {
@@ -240,6 +204,33 @@
 	place-items: center;
 }
 
+.carousel-poc__actions {
+	display: flex;
+	margin-block-end: 1rem;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.carousel-poc__actions button {
+	min-height: 2.75rem;
+	padding: 0.5rem 0.75rem;
+	color: var(--sg-color-primary-strong);
+	font-weight: 650;
+	background: var(--sg-color-surface);
+	border: 1px solid var(--sg-color-border);
+	border-radius: 0.65rem;
+}
+
+.carousel-poc__actions button:focus-visible {
+	outline: 3px solid var(--sg-color-focus);
+	outline-offset: 2px;
+}
+
+.carousel-poc__constrained {
+	width: 100%;
+	max-width: 32rem;
+}
+
 .carousel-poc__edge-grid {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
@@ -254,30 +245,6 @@
 .carousel-poc__edge h3 {
 	margin-block-end: 0.75rem;
 	font-size: 1rem;
-}
-
-@container (min-width: 34rem) {
-	.prototype-carousel {
-		--bs-carousel-items: 2.5;
-	}
-}
-
-@container (min-width: 42rem) {
-	.prototype-carousel {
-		--bs-carousel-items: 3.5;
-	}
-}
-
-@container (min-width: 58rem) {
-	.prototype-carousel {
-		--bs-carousel-items: 4.5;
-	}
-}
-
-@container (min-width: 64rem) {
-	.prototype-carousel {
-		--bs-carousel-items: 6;
-	}
 }
 
 @container (min-width: 48rem) {
