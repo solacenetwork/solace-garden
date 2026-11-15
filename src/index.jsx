@@ -22,6 +22,7 @@ import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
 import { Settings } from './pages/Settings/index.jsx';
 import { Templates } from './pages/Templates/index.jsx';
 import { NotFound } from './pages/_404.jsx';
+import { CAROUSEL_POC_PATH } from './dev/carousel/route.js';
 import { initializeStorage } from './storage/index.js';
 import './style.css';
 
@@ -92,6 +93,16 @@ export function App({ storage }) {
 
 async function startApplication() {
 	const root = document.getElementById('app');
+
+	if (
+		import.meta.env.DEV
+		&& globalThis.location?.pathname === CAROUSEL_POC_PATH
+	) {
+		const { CarouselPoc } = await import('./dev/carousel/CarouselPoc.jsx');
+		render(<CarouselPoc />, root);
+		return;
+	}
+
 	const storage = await initializeStorage();
 
 	if (storage.status === 'recovery-required') {
