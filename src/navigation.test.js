@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { applicationRoutes, findRouteById, routeCatalog } from './routes.js';
 import {
 	navigationGroups,
+	simpleCardIds,
 	standardPrimaryIds,
 	globalToolIds,
 	moreDestinationIds,
@@ -42,7 +43,7 @@ describe('navigation presentation', () => {
 		]);
 	});
 
-	it('keeps six Simple Mode actions while exposing Wish List elsewhere', () => {
+	it('keeps the legacy Home action exports unchanged', () => {
 		expect(primaryActions.map(({ id }) => id)).toEqual([
 			'plants',
 			'harvest',
@@ -105,5 +106,25 @@ describe('shared shell navigation', () => {
 		for (const id of [...standardPrimaryIds, ...globalToolIds, ...moreDestinationIds]) {
 			expect(findRouteById(id), id).toBeDefined();
 		}
+	});
+});
+
+describe('Simple Mode card navigation', () => {
+	it('defines the approved seven destinations in exact order', () => {
+		expect(simpleCardIds).toEqual([
+			'gardens', 'tasks', 'journal', 'calendar', 'notes', 'wishlist', 'plants',
+		]);
+		expect(new Set(simpleCardIds).size).toBe(simpleCardIds.length);
+	});
+
+	it('resolves every card to its existing registered URL', () => {
+		expect(simpleCardIds.map((id) => findRouteById(id)?.path)).toEqual([
+			'/gardens', '/tasks', '/journal', '/calendar', '/notes', '/wishlist', '/plants',
+		]);
+		for (const id of simpleCardIds) {
+			expect(applicationRoutes).toContain(findRouteById(id));
+		}
+		expect(findRouteById('wishlist').label).toBe('Wish List');
+		expect(findRouteById('plants').label).toBe('Plants');
 	});
 });

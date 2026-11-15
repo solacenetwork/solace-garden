@@ -1,10 +1,7 @@
 import { findRouteById, getSettingsHref } from '../../routes.js';
-import {
-	primaryActions,
-	navigationGroups,
-	secondaryDestinations,
-} from '../../navigation.js';
+import { navigationGroups } from '../../navigation.js';
 import { useInterfaceMode } from '../../context/InterfaceModeContext.jsx';
+import { SimpleNavigationCards } from './SimpleNavigationCards.jsx';
 import './style.css';
 
 export function Home() {
@@ -17,57 +14,10 @@ export function Home() {
 	return (
 		<div class="container home-page">
 			<section class="home-intro" aria-labelledby="home-title">
-				<p class="home-intro__eyebrow">Simple Mode preview</p>
-				<h1 id="home-title">What would you like to do?</h1>
-				<p class="home-intro__summary">
-					Choose a garden activity to get started. These workspaces are
-					placeholders while the first version takes root.
-				</p>
+				<h1 id="home-title">Where would you like to go?</h1>
 			</section>
 
-			<nav class="action-grid" aria-label="Garden actions">
-				{primaryActions.map((action) => (
-					<a class="action-card" href={action.path} key={action.path}>
-						<span class="action-card__icon" aria-hidden="true">
-							<i class={`bi bi-${action.icon}`}></i>
-						</span>
-						<span class="action-card__label">{action.label}</span>
-						<span class="action-card__detail">{action.detail}</span>
-					</a>
-				))}
-			</nav>
-
-			<section
-				class="workspace-directory"
-				aria-labelledby="workspace-directory-title"
-			>
-				<div class="workspace-directory__intro">
-					<p class="workspace-directory__eyebrow">Workspace directory</p>
-					<h2 id="workspace-directory-title">More places to explore</h2>
-					<p>
-						Open the remaining V1 workspaces while their features are being built.
-					</p>
-				</div>
-				<nav aria-label="Additional Garden workspaces">
-					<ul class="workspace-directory__links">
-						{secondaryDestinations.map((destination) => (
-							<li key={destination.path}>
-								<a
-									class="workspace-link"
-									href={
-										destination.id === 'settings'
-											? getSettingsHref('/')
-											: destination.path
-									}
-								>
-									<i class={`bi bi-${destination.icon}`} aria-hidden="true"></i>
-									<span>{destination.label}</span>
-								</a>
-							</li>
-						))}
-					</ul>
-				</nav>
-			</section>
+			<SimpleNavigationCards />
 		</div>
 	);
 }
