@@ -31,7 +31,7 @@ These focused conventions capture patterns demonstrated by the current shell. Th
 
 ## Contextual Drawer
 
-- `AppDrawer` provides a reusable Bootstrap 6 `Drawer` on a native `<dialog>`. The default Information trigger remains for optional secondary information, not a substitute for a fullscreen editor. Custom triggers prepare it for other uses; this does not add navigation to the current shell.
+- `AppDrawer` provides a reusable Bootstrap 6 `Drawer` on a native `<dialog>`. The default Information trigger remains for optional secondary information, not a substitute for a fullscreen editor. Standard Mode also uses a custom trigger for its medium-screen navigation overlay.
 - Required props: `id` (unique dialog ID) and `title` (visible heading and accessible name). `placement` accepts `top`, `end`, `bottom`, or `start`; omitted or invalid values use `bottom`. Start/end follow the document direction.
 - `children` supplies drawer-body content, or a render function receiving `{ close }` for content with its own close action. The labelled header close control and footer Close button are always provided.
 - `triggerLabel` defaults to `Information`. Optional `renderTrigger(triggerProps)` replaces the fixed Information button. Return a native button and spread **all** supplied props onto it: `ref`, `type`, `onClick`, `aria-controls`, `aria-expanded`, and `hidden`. Give the button visible text or an accessible name, visible focus, and a roughly 48px touch target. Do not override the hidden state or add Bootstrap data-toggle attributes that would open the same instance twice.
@@ -59,3 +59,11 @@ These focused conventions capture patterns demonstrated by the current shell. Th
   {({ close }) => <button type="button" onClick={close}>Done</button>}
 </AppDrawer>
 ```
+
+## Standard Mode navigation
+
+- `StandardNavigation` resolves `standardPrimaryIds` through the destination registry: Gardens, Journal, Gallery (`photos`), PlantDB (`plants`). Display overrides stay local to navigation. Templates is a nested secondary link directly under Gardens, omitted from the iconbar. Home keeps its independent legacy configuration.
+- At `lg` (1024px) and above, the expanded sidebar has a fixed 300px width/flex basis. At `md` (768px) through 1023px, the iconbar has a fixed 60px total width, four direct 48px icon links with accessible names/titles, and an explicit Open navigation button. Current links use `findRoute(path)`, `aria-current="page"`, and a visible dot in addition to color.
+- The medium expansion uses one `AppDrawer` with `placement="start"`, title Navigation, and `--app-drawer-width: 300px`. Its total width overlays the iconbar and 240px of workspace; it never changes workspace dimensions. Forward all native trigger props. Normal link activation calls the render-function `close()` without preventing routing; modified activation leaves the Drawer open.
+- Match-media presentation changes unmount the Drawer, allowing AppDrawer/Bootstrap to release native modal state. If navigation held focus, restore it to the corresponding visible link (Gardens when a secondary destination has no icon). Entering the temporary small presentation expands it before focusing. If StandardNavigation itself disappears, the logo is the focus fallback. This handles removed controls only; AppDrawer owns ordinary dismissal and focus restoration, with no additional focus trap.
+- Below 768px, manually selected Standard retains the full-width Browse workspaces collapsible navigation until Step 3D. Automatic/Simple/Standard resolution and persistence remain independent of navigation presentation. The generic global About this workspace disclosure is removed; contextual information belongs to feature pages.

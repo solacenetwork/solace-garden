@@ -341,6 +341,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ### Step 3 — Standard Mode shell and navigation
 
+**Implementation status (November 15, 2026):** Step 3B shared Header is complete (`7de7ea3`). Step 3C implements the fixed 300px desktop sidebar at 1024px+, the fixed 60px iconbar at 768–1023px, and a 300px total-width start AppDrawer overlay covering the iconbar without workspace reflow. Both expanded presentations use Gardens (with nested Templates), Journal, Gallery, PlantDB; the iconbar contains only the four primary destinations. Breakpoint changes unmount the navigation Drawer and provide visible focus fallbacks. The global About this workspace disclosure is removed. Below 768px, manual Standard retains its temporary full-width collapsible navigation; the final phone Standard presentation remains Step 3D. Legacy Home, Simple Mode, interface preferences, shared Header and Information Drawer remain unchanged.
+
 **Purpose:** Implement the approved Standard Mode application shell using the existing Header and StandardNavigation as starting points.
 
 - Build the persistent top navbar and its approved destinations/actions: logo/Home, primary navigation, global tools, Search, Add New, and one More menu.

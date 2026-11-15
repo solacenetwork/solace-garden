@@ -1,5 +1,5 @@
 import { render } from 'preact';
-import { LocationProvider, Router, Route, useLocation } from 'preact-iso';
+import { LocationProvider, Router, Route } from 'preact-iso';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Header } from './components/Header.jsx';
@@ -8,7 +8,7 @@ import { StandardNavigation } from './components/StandardNavigation.jsx';
 import { StorageRecoveryScreen } from './components/StorageRecoveryScreen.jsx';
 import { InterfaceModeProvider, useInterfaceMode } from './context/InterfaceModeContext.jsx';
 import { StorageProvider } from './context/StorageContext.jsx';
-import { applicationRoutes, findRoute } from './routes.js';
+import { applicationRoutes } from './routes.js';
 import { Home } from './pages/Home/index.jsx';
 import { Lists } from './pages/Lists/index.jsx';
 import { Gardens, GardenDetail } from './pages/Gardens/index.jsx';
@@ -48,8 +48,6 @@ const pageComponents = {
 
 function AppShell() {
 	const { preference, effectiveMode } = useInterfaceMode();
-	const { path } = useLocation();
-	const currentRoute = findRoute(path);
 
 	return (
 		<div
@@ -61,12 +59,6 @@ function AppShell() {
 			<div class="app-workspace">
 				{effectiveMode === 'standard' && <StandardNavigation />}
 				<main id="main-content" class="app-main">
-					{effectiveMode === 'standard' && currentRoute && (
-						<details class="standard-context">
-							<summary>About this workspace</summary>
-							<p>{currentRoute.description}</p>
-						</details>
-					)}
 					<Router>
 						{applicationRoutes.map((route) => (
 							<Route
