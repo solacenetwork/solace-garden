@@ -31,6 +31,31 @@ These focused conventions capture patterns demonstrated by the current shell. Th
 
 ## Contextual Drawer
 
-- `AppDrawer` is optional secondary information, not primary navigation and not a substitute for a fullscreen editor.
-- It uses Bootstrap 6 `Drawer` on a native `<dialog>`, restores focus to its trigger, hides that trigger while opening/open/closing, and disposes its Bootstrap instance on unmount.
-- The prototype uses a bottom placement at roughly 45% of the dynamic viewport on mobile and 40% on wider screens, with `vh` fallback and safe-area-aware padding. Reassess the height and trigger placement with real contextual content before broad reuse.
+- `AppDrawer` provides a reusable Bootstrap 6 `Drawer` on a native `<dialog>`. The default Information trigger remains for optional secondary information, not a substitute for a fullscreen editor. Custom triggers prepare it for other uses; this does not add navigation to the current shell.
+- Required props: `id` (unique dialog ID) and `title` (visible heading and accessible name). `placement` accepts `top`, `end`, `bottom`, or `start`; omitted or invalid values use `bottom`. Start/end follow the document direction.
+- `children` supplies drawer-body content, or a render function receiving `{ close }` for content with its own close action. The labelled header close control and footer Close button are always provided.
+- `triggerLabel` defaults to `Information`. Optional `renderTrigger(triggerProps)` replaces the fixed Information button. Return a native button and spread **all** supplied props onto it: `ref`, `type`, `onClick`, `aria-controls`, `aria-expanded`, and `hidden`. Give the button visible text or an accessible name, visible focus, and a roughly 48px touch target. Do not override the hidden state or add Bootstrap data-toggle attributes that would open the same instance twice.
+- The invoking trigger is hidden during opening/open/closing. Close during opening is deferred until `shown.bs.drawer`; focus returns to the original connected trigger after dismissal. Pending focus restoration is cancelled on reopen/unmount. Listeners are removed and the Bootstrap instance is disposed on unmount, including while open.
+- The header Close control uses native `autofocus` for initial focus. After `shown.bs.drawer`, focus is moved there only if it remains outside the dialog (the pinned alpha’s visibility transition can prevent native autofocus). This is a one-time correction, not a focus trap. Bootstrap owns modal focus entry/trapping, Escape/backdrop dismissal, scrolling and reduced-motion transitions. Do not add a second focus trap. Consumers must unmount/remount the drawer to change placement while it is in use (Bootstrap initializes swipe direction on first opening).
+- Top/bottom are full-width at roughly 45% of dynamic viewport height on mobile and 40% at `md` and up, with `vh` fallback. Side drawers are full-height and default to 300px wide, constrained by Bootstrap to the viewport. Surface, close controls, inner scrolling and safe-area spacing are shared; corner rounding faces the content area.
+- Override dimensions with `--app-drawer-height` or `--app-drawer-width` on the dialog via CSS (for example `#garden-info`) or the optional `style` prop. Defaults remain unchanged for existing bottom-drawer callers. Reassess dimensions with real content before broad reuse.
+
+```jsx
+<AppDrawer id="garden-info" title="Garden information">
+  <p>Contextual information</p>
+</AppDrawer>
+
+<AppDrawer
+  id="custom-panel"
+  title="Panel"
+  placement="start"
+  style={{ '--app-drawer-width': '280px' }}
+  renderTrigger={(triggerProps) => (
+    <button class="icon-control" {...triggerProps} aria-label="Open panel">
+      <i class="bi bi-list" aria-hidden="true"></i>
+    </button>
+  )}
+>
+  {({ close }) => <button type="button" onClick={close}>Done</button>}
+</AppDrawer>
+```

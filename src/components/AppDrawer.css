@@ -1,11 +1,48 @@
 .app-drawer {
 	--bs-drawer-inset: 0px;
-	--bs-drawer-height: 45vh;
-	--bs-drawer-height: 45dvh;
 	--bs-drawer-color: var(--sg-color-text);
 	--bs-drawer-bg: var(--sg-color-surface);
 	--bs-drawer-border-color: var(--sg-color-border);
+}
+
+.app-drawer--top,
+.app-drawer--bottom {
+	--bs-drawer-height: var(--app-drawer-height, 45vh);
+	--bs-drawer-height: var(--app-drawer-height, 45dvh);
+}
+
+.app-drawer--top {
+	--bs-drawer-border-radius: 0 0 1rem 1rem;
+}
+
+.app-drawer--bottom {
 	--bs-drawer-border-radius: 1rem 1rem 0 0;
+}
+
+.app-drawer--start,
+.app-drawer--end {
+	--bs-drawer-width: var(--app-drawer-width, 300px);
+	--bs-drawer-border-radius: 0;
+	height: 100vh;
+	height: 100dvh;
+	padding-left: env(safe-area-inset-left);
+	padding-right: env(safe-area-inset-right);
+}
+
+.app-drawer--start {
+	border-start-end-radius: 1rem;
+	border-end-end-radius: 1rem;
+}
+
+.app-drawer--end {
+	border-start-start-radius: 1rem;
+	border-end-start-radius: 1rem;
+}
+
+.app-drawer__icon-close:focus-visible,
+.app-drawer__close:focus-visible {
+	outline: 3px solid var(--sg-color-focus);
+	outline-offset: -3px;
 }
 
 .app-drawer-trigger {
@@ -73,9 +110,10 @@
 }
 
 @media (min-width: 48rem) {
-	.app-drawer {
-		--bs-drawer-height: 40vh;
-		--bs-drawer-height: 40dvh;
+	.app-drawer--top,
+	.app-drawer--bottom {
+		--bs-drawer-height: var(--app-drawer-height, 40vh);
+		--bs-drawer-height: var(--app-drawer-height, 40dvh);
 	}
 
 	.app-drawer-trigger {

@@ -2,10 +2,17 @@ import Drawer from 'bootstrap/js/dist/drawer.js';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import './AppDrawer.css';
 
-export function AppDrawer({ id, title, triggerLabel = 'Information', children }) {
+// renderTrigger receives native button props; forward them to the invoking button.
+// children may be content or a render function receiving { close }.
+export function AppDrawer({
+	id, title, placement = 'bottom', triggerLabel = 'Information', renderTrigger, children, style,
+}) {
+	const resolvedPlacement = ['top', 'end', 'bottom', 'start'].includes(placement) ? placement : 'bottom';
 	const drawerElement = useRef(null);
 	const drawerInstance = useRef(null);
 	const triggerElement = useRef(null);
+	const closeControl = useRef(null);
+	const returnFocusElement = useRef(null);
 	const isDrawerShown = useRef(false);
 	const closeAfterShown = useRef(false);
 	const focusFrame = useRef(null);
@@ -19,13 +26,23 @@ export function AppDrawer({ id, title, triggerLabel = 'Information', children })
 		}
 
 		const instance = new Drawer(element);
-		const handleShow = () => setIsOpen(true);
+		const handleShow = () => {
+			if (focusFrame.current !== null) {
+				cancelAnimationFrame(focusFrame.current);
+				focusFrame.current = null;
+			}
+			setIsOpen(true);
+		};
 		const handleShown = () => {
 			isDrawerShown.current = true;
 
 			if (closeAfterShown.current) {
 				closeAfterShown.current = false;
 				void instance.hide();
+			} else if (!element.contains(element.ownerDocument.activeElement)) {
+				// The alpha's visibility transition can prevent native autofocus.
+				// Correct initial focus once; the native dialog owns the focus trap.
+				closeControl.current?.focus({ preventScroll: true });
 			}
 		};
 		const handleHidden = () => {
@@ -35,8 +52,8 @@ export function AppDrawer({ id, title, triggerLabel = 'Information', children })
 			focusFrame.current = requestAnimationFrame(() => {
 				focusFrame.current = null;
 
-				if (triggerElement.current?.isConnected) {
-					triggerElement.current.focus({ preventScroll: true });
+				if (returnFocusElement.current?.isConnected) {
+					returnFocusElement.current.focus({ preventScroll: true });
 				}
 			});
 		};
@@ -61,8 +78,9 @@ export function AppDrawer({ id, title, triggerLabel = 'Information', children })
 		};
 	}, []);
 
-	const openDrawer = () => {
-		void drawerInstance.current?.show(triggerElement.current);
+	const openDrawer = (event) => {
+		returnFocusElement.current = event?.currentTarget ?? triggerElement.current;
+		void drawerInstance.current?.show(returnFocusElement.current);
 	};
 
 	const closeDrawer = () => {
@@ -76,23 +94,27 @@ export function AppDrawer({ id, title, triggerLabel = 'Information', children })
 
 	const titleId = `${id}-title`;
 
+	const triggerProps = {
+		type: 'button',
+		ref: triggerElement,
+		'aria-controls': id,
+		'aria-expanded': isOpen,
+		onClick: openDrawer,
+		hidden: isOpen,
+	};
+
 	return (
 		<>
-			<button
-				class="icon-control app-drawer-trigger"
-				type="button"
-				ref={triggerElement}
-				aria-controls={id}
-				aria-expanded={isOpen}
-				onClick={openDrawer}
-				hidden={isOpen}
-			>
-				<i class="bi bi-info-circle" aria-hidden="true"></i>
-				<span>{triggerLabel}</span>
-			</button>
+			{renderTrigger ? renderTrigger(triggerProps) : (
+				<button class="icon-control app-drawer-trigger" {...triggerProps}>
+					<i class="bi bi-info-circle" aria-hidden="true"></i>
+					<span>{triggerLabel}</span>
+				</button>
+			)}
 
 			<dialog
-				class="drawer drawer-bottom app-drawer"
+				class={`drawer drawer-${resolvedPlacement} app-drawer app-drawer--${resolvedPlacement}`}
+				style={style}
 				id={id}
 				ref={drawerElement}
 				aria-labelledby={titleId}
@@ -101,12 +123,16 @@ export function AppDrawer({ id, title, triggerLabel = 'Information', children })
 					<h2 class="drawer-title" id={titleId}>{title}</h2>
 					<button
 						class="btn-close app-drawer__icon-close"
+						ref={closeControl}
 						type="button"
 						aria-label={`Close ${title}`}
+						autoFocus
 						onClick={closeDrawer}
 					></button>
 				</div>
-				<div class="drawer-body app-drawer__body">{children}</div>
+				<div class="drawer-body app-drawer__body">
+					{typeof children === 'function' ? children({ close: closeDrawer }) : children}
+				</div>
 				<div class="drawer-footer app-drawer__footer">
 					<button class="app-button app-drawer__close" type="button" onClick={closeDrawer}>
 						Close
