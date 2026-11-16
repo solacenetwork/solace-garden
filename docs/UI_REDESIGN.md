@@ -2,7 +2,7 @@
 
 **Status:** Authoritative UI decision record — approved direction consolidated; detailed layouts and responsive states remain open.  
 **Started:** November 14, 2026  
-**Development position (November 16, 2026):** UI redesign Steps 1–5 and supplemental Steps 4.5A/B accepted. Step 5.5 local Playwright foundation accepted with 57/57 tests passing on the developer's desktop (49.6 seconds); see [TESTING_NOTES.md](TESTING_NOTES.md). Step 6 design discussion is next; Steps 6–10 remain ahead of Milestone 8G.
+**Development position (November 16, 2026):** UI redesign Steps 1–5 and supplemental Steps 4.5A/B accepted. Step 5.5 local Playwright foundation accepted with 57/57 tests passing on the developer's desktop (49.6 seconds); see [TESTING_NOTES.md](TESTING_NOTES.md). Step 6 design hypothesis discussed November 16 (not implemented or accepted); Steps 6–10 remain ahead of Milestone 8G.
 
 ## 1. Purpose and scope
 
@@ -228,27 +228,35 @@ Keep these states simple and usable in both modes. A user may have Previous Gard
 
 ### B. Gardens hub, discovery, and lifecycle
 
-**Evidence:** Unfinished drafts can dominate the page; a new Garden may be hard to find; draft is not Planned; long names distort cards.
+**Evidence:** Drafts dominate the existing Gardens page; newly created Gardens can be hard to find; people confuse drafts with saved Planned Gardens. The priority is fast access to **Current Gardens**.
 
-**Approved separation:** Garden drafts **never appear on the Home dashboard** or inside Current/Planned/Previous Gardens collections. They are unfinished creation sessions, not existing Gardens.
+**Established distinction:** A **Garden Draft** is an unfinished autosaved proposal, not a saved Garden. A **Planned Garden** is a saved Garden with Planned lifecycle status. Autosaving or leaving a draft never creates a Garden. Explicit completion does. Drafts do not appear on Home or inside saved Garden collections. Preserve current data and lifecycle behavior.
 
-**Approved V1 direction:** On `/gardens`, show unfinished Garden creation drafts in a **dedicated horizontal Draft Gardens filmstrip**, rather than a vertically stacked list. Include all drafts in the horizontally scrollable rail; do not arbitrarily limit the collection to five. Each card identifies the draft and offers **Continue/Resume** into its existing Wizard or Advanced editor. The intent is to reduce the rail's vertical footprint while keeping every draft discoverable. This changes presentation only: preserve existing draft IDs, autosave, recovery, mode selection, and atomic create/discard behavior. Use the pinned Bootstrap 6 Carousel if its touch/scroll behavior meets requirements; do not add SwiperJS without a demonstrated need.
+**November 16 Step 6 design hypothesis (prototype and manually test before accepting):**
+- Header actions, left to right: **Locations → Templates → Create Garden**. Make Create Garden visually prominent; the other two are secondary contextual shortcuts. Keep Locations available through Settings and preserve both `/locations` and `/templates` URLs; remove floating/indented links from Standard sidebar navigation.
+- Hub section order: **Draft Gardens horizontal filmstrip → Current Gardens → Planned Gardens → Previous Gardens**. Current Gardens must remain quickly accessible; Current, Planned and Previous are proposed vertical lists.
+- The compact Draft Gardens filmstrip horizontally scrolls through **all unfinished drafts**, with only a few visible at a time. A **View All** link opens a dedicated **`/gardens/drafts`** page displaying a vertical list of draft cards. Register this route before `/gardens/:id`.
+- Draft cards resume the correct existing Wizard or Advanced editor; preserve draft IDs, autosave, recovery, selected mode, and safe create/discard. Evaluate accessible horizontal scrolling with Bootstrap 6 before considering other libraries.
+- Contextual explanation for Help and the UI: **“A draft is a Garden you're still creating. A planned Garden is one you've already created but haven't started yet.”** Draft and existing-Garden editors need unambiguous text labels; optional visual color cues belong in Step 10.
 
-**Still open:** where the rail sits relative to Current/Planned/Previous; exact card metadata and actions; empty-state treatment; and how the other Garden categories are browsed.
+**Superseded earlier V1 constraint:** The proposed `/gardens/drafts` View All page replaces the older statement that no dedicated Drafts route should be added. A visibility preference for hiding the filmstrip remains deferred and is **not** part of Step 6.
 
-**Deferred (possibly V2):** A **Show drafts on Garden dashboard** checkbox could show the Draft Gardens filmstrip on `/gardens` when checked or replace it with a **Drafts** button to a proposed `/drafts` page when unchecked. Drafts remain intact and resumable in either case; they never appear on Home. **Do not implement the toggle or new route in V1.** See [PARKING_LOT.md](PARKING_LOT.md) for unresolved details.
-
-**Open:** order and presentation of Current, Planned, and Previous groups; whether Current means Active only; whether other groups use rails, tabs, lists, or a hybrid; whether filtered routes are useful; where Templates and Create Garden actions appear; and Garden card title clamping/maximum-length policy. **Planned is a saved Garden status, not a draft.** The old “What do you want to do?” selector and visibility preference remain alternatives in PARKING_LOT.md, not V1 requirements.
+**Still open:** Draft metadata and empty states, top-action responsive layout, accessibility, card treatment, Current vs Active contract semantics, and real-device acceptance. These are **proposals**, not implemented or accepted UI.
 
 ### C. Quick Start, Wizard, Advanced, and drafts
 
-**Evidence:** Quick Start name field beside Wizard/Advanced links implies a continuous form even though they are three separate creation flows. Wizard Details resembles the Advanced form; validation errors may appear below the viewport.
+**Evidence:** Quick Start alongside Wizard and Advanced looks like one continuous form, though the choices currently start independent workflows. Wizard Details resembles Advanced; validation may appear below the viewport.
 
-**Evaluate:** three visibly distinct entry choices (possibly cards), with no implication that typed Quick Start input carries into another method unless explicitly designed. Guided Wizard uses smaller named steps and reusable controls; Advanced remains consolidated. Clearly label unnamed drafts. Ensure invalid fields/errors are visible immediately.
+**November 16 Step 7 creation hypothesis (prototype before accepting):** Make Quick Start the **first step of the Wizard**, rather than presenting three parallel choices. Keep **Advanced** as a separate consolidated editor. The first Wizard step collects minimal valid Garden details (candidate: name and location), then offers:
+- **Save & Finish:** explicitly creates a saved Garden with defaults, as the quick path, **only on the first step**.
+- **Add More Details:** enters the guided remaining Wizard steps **without creating** a Garden.
+- **Finish Later:** exits with the autosaved **draft**, not a saved Garden; visually subordinate to the two main choices.
 
-**Preserve:** existing draft IDs, autosave, no overwrite of existing drafts by incidental prefill, atomic create/cleanup, and independent saved Garden status.
+After the first step, the Wizard must proceed through named steps and create only at a final explicit save/confirmation; **no quick-create Save & Finish button on intermediate steps**. Avoid repeating the Gardens Hub's **Create Garden** wording inside the Wizard. Advanced remains distinct.
 
-**Open:** creation choice screen, optional new-draft prefill, actual Wizard steps, and step-resume metadata. Do not add steps requiring unimplemented PlantDB/appearance features simply to fill a Wizard. The modular step-registry concept and earlier prototype references remain in [PARKING_LOT.md](PARKING_LOT.md) as implementation/design options, not an approved exact step contract.
+**Preserve:** existing draft IDs, autosave, recovery, mode selection, dirty-form safeguards, no incidental overwrites, atomic creation/discard, and draft-versus-Planned separation. Do not write alpha backward-compatibility or migration code solely for disposable old records.
+
+**Still open:** Entry screen, minimum valid fields and defaults, precise Wizard steps and final save text, resume-step metadata, validation focus behavior, and mobile layouts. Do not invent feature steps for functionality not yet implemented. See [PARKING_LOT.md](PARKING_LOT.md) for exploratory alternatives.
 
 ### D. Templates and Notes
 
@@ -413,10 +421,11 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 **Purpose:** Make saved Gardens and unfinished creation sessions easy to distinguish and find.
 
-- Finalize the Gardens hub grouping/order for Current, Planned, and Previous; confirm the exact meaning of Current versus Active against the existing Garden status contract.
-- Implement the approved horizontal Draft Gardens rail on `/gardens`, containing all unfinished drafts with Continue/Resume actions.
-- Keep draft creation sessions distinct from saved Gardens, including saved Gardens with Planned status. Make unnamed drafts recognizable.
-- Finalize Garden card details, long-title treatment, Create Garden entry point, and Templates access.
+- Prototype Drafts → Current → Planned → Previous, prioritizing Current access and confirming Current/Active semantics.
+- Add a compact horizontal draft rail with View All to a vertical `/gardens/drafts` list, registered before `/gardens/:id`; resume drafts in their correct editors.
+- Prototype header actions **Locations → Templates → Create Garden**, remove detached sidebar sub-links, and preserve Settings and direct-route access.
+- Explain draft versus saved Planned Garden, including unnamed drafts; autosave never creates a Garden.
+- Validate card details, long titles, responsive layouts and accessibility on real devices before acceptance.
 - Preserve existing draft IDs, autosave, recovery, mode selection, and atomic create/discard behavior. No obsolete alpha-data compatibility or migration work.
 
 **Acceptance:** Users can distinguish saved Gardens from drafts, find each Garden category, and resume every draft in its correct editor; existing Garden lifecycle and draft persistence tests pass.
@@ -427,8 +436,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 - Design and implement the approved Welcome startup preference and short, skippable Bootstrap 6 feature/Gardens carousel.
 - Preserve direct/deep links, Help access to Welcome, and the existing startup preference behavior.
-- Finalize the Quick Start/Wizard/Advanced choice presentation so the choices are clearly distinct and any carried-forward values are explicit and safe.
-- Finalize Wizard steps, validation visibility, resume behavior, and narrow-screen presentation.
+- Prototype Quick Start as the first Wizard step: **Save & Finish** (quick-create on first step only), **Add More Details** (guided steps), **Finish Later** (preserved draft); keep Advanced separate.
+- Finalize Wizard steps, explicit final creation, validation visibility, resume behavior, and narrow-screen presentation.
 - Preserve existing draft recovery and editor workflows; do not create a second onboarding wizard or add steps for features that do not exist.
 
 **Acceptance:** First-run and returning-user behavior is correct; Welcome can be revisited; users understand the creation choices; Wizard/Advanced drafts survive reload and mode changes; create/discard safeguards remain intact.
@@ -459,7 +468,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ### Step 10 — UI polish and usability corrections
 
-**Status (November 15, 2026):** Planned. The following nine observations are approved as a focused correction list; no implementation or acceptance is claimed. Handle after the remaining page redesign and integrated review. Preserve existing routes, working features, and data integrity; verify changes with focused automated tests and real-device acceptance.
+**Status (updated November 16, 2026):** Planned. The original nine observations remain a focused correction list, with two additional visual-design hypotheses below; no implementation or acceptance is claimed. Handle after the remaining page redesign and integrated review. Preserve existing routes, working features, and data integrity; verify changes with focused automated tests and real-device acceptance.
 
 1. **Desktop navbar tooltips:** Add meaningful `title` attributes to navbar controls/items so mouse hovering identifies actions. Preserve existing accessible names; a title tooltip is not a replacement for accessibility labeling.
 2. **Add New naming:** Rename the `Create Garden` entry in the global Add New menu to **New Garden** for consistency. Do not automatically rename the page-specific Create Garden action.
@@ -467,9 +476,12 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 4. **Navbar order:** Place **Add New (+)** first, immediately before Search. Preserve the existing relative order of the other navbar items.
 5. **Search panel:** Remove the redundant magnifying-glass icon inside the expanded search panel. Keep the navbar Search icon; label the panel's submit button **Go**. Typing a query and selecting Go submits the existing search action, without introducing new search-backend functionality.
 6. **Calendar information trigger:** On `/calendar`, remove the overflowing **Info** text from the existing bottom-drawer trigger and show only the circled-information icon. Give the icon-only control a meaningful accessible name and desktop tooltip; preserve bottom-drawer behavior.
-7. **Templates navigation:** Remove the indented **Templates** entry beneath **Gardens** in expanded Standard navigation. Add a **Templates** button on `/gardens` immediately before the existing **Create Garden** button, in the order **Templates → Create Garden**. Preserve the `/templates` route and deep links.
+7. **Templates navigation:** Remove the indented **Templates** entry beneath **Gardens** in expanded Standard navigation. Coordinate with Step 6's newer proposed **Locations → Templates → Create Garden** header actions; preserve `/templates` and `/locations` routes and Settings access to Locations. Avoid implementing the same change twice.
 8. **Medium iconbar layout:** Move the iconbar expand/collapse trigger below the primary workspace icons, with visible separation between the destination icons and this control. Preserve the existing responsive overlay behavior.
 9. **Medium navigation icon states:** Replace the collapsed iconbar's hamburger trigger with Bootstrap Icon **`arrow-right-square-fill`** (expand/open). In the expanded navigation panel, replace the lower **Close** text/button presentation with **`arrow-left-square-fill`** (collapse/close), keeping appropriate accessible names and tooltips. Retain the existing upper-right **X** dismissal button and add `title="Close"` to it. Do not introduce workspace reflow or change drawer dismissal/focus behavior.
+
+10. **Draft-versus-Garden visual treatment (new hypothesis):** Explore warm brown/beige earth tones for unfinished Garden Draft cards/forms/headers, and green for editing existing saved Gardens. Include visible text labels (“Garden Draft” and “Editing Garden”) and never rely on color alone. Use the same meaning in Simple and Standard modes; test subtle borders versus prominent headers before selecting shades.
+11. **SOLACE Garden button palette (new hypothesis):** Review the default Bootstrap-blue primary buttons in favor of cohesive gardening-inspired colors, retaining action hierarchy, contrast, focus visibility, and accessible states. Exact colors remain unapproved.
 
 **Acceptance:** Verify navbar order and tooltip behavior on desktop and narrow layouts; Add New and Search terminology; Search Go submission; Calendar bottom-drawer icon sizing; Templates navigation and deep links; medium iconbar spacing, icon state, keyboard/focus and overlay dismissal; and no feature regression. Re-run affected automated tests and focused manual phone/tablet/desktop checks before final redesign sign-off.
 
