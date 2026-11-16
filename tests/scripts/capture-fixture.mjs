@@ -7,7 +7,7 @@ const fixturePath = 'tests/fixtures/sample-garden.json';
 // Dedicated fixture-authoring profile. Never use a personal browser profile here.
 const context = await chromium.launchPersistentContext(
   './tests/.chrome-fixture-profile',
-  { headless: false }
+  { headless: false, timeout: 90_000 }
 );
 
 try {
