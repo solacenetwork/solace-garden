@@ -22,7 +22,11 @@
 		"test:watch": "vitest",
 		"preview": "vite preview",
 		"test:e2e": "playwright test",
-		"test:e2e:report": "playwright show-report"
+		"test:e2e:report": "playwright show-report",
+		"test:e2e:smoke": "playwright test tests/e2e/smoke/",
+		"test:e2e:layout": "playwright test tests/e2e/layout/",
+		"test:e2e:lists": "playwright test tests/e2e/lists/",
+		"test:e2e:delete": "playwright test tests/e2e/lists/delete.spec.mjs"
 	},
 	"repository": {
 		"type": "git",
