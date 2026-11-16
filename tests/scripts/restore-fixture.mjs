@@ -5,7 +5,7 @@ const fixturePath = 'tests/fixtures/sample-garden.json';
 
 // A new non-persistent context restores IndexedDB from the saved Playwright state.
 // Changes made here will not alter the fixture or the capture profile.
-const browser = await chromium.launch({ headless: false });
+const browser = await chromium.launch({ headless: false, timeout: 90_000 });
 
 try {
   const context = await browser.newContext({ storageState: fixturePath });
