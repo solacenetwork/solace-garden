@@ -29,3 +29,7 @@ dist-ssr
 
 # Playwright temporary fixture-authoring browser profile
 tests/.chrome-fixture-profile/
+
+# Generated Playwright results and HTML reports
+/playwright-report/
+/test-results/
