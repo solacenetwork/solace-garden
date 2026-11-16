@@ -20,7 +20,9 @@
 		"build": "vite build",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"test:e2e": "playwright test",
+		"test:e2e:report": "playwright show-report"
 	},
 	"repository": {
 		"type": "git",
