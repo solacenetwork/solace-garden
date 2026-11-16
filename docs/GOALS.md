@@ -251,7 +251,7 @@ Garden v1 will provide a **local-first personal calendar** for manually entered 
 ### 2.13 Navigation and Creation
 
 - Keep the interface uncluttered by grouping related tools instead of giving every feature its own top-level button.
-- Provide a prominent **Create New** split-button control in the upper-right area: the primary action creates a garden; the dropdown offers other relevant creation actions.
+- Provide a persistent global **Add New (+)** menu in the top navbar in both interface modes. Its intended placement and the page-specific Garden creation action are defined in [UI_REDESIGN.md](UI_REDESIGN.md), including the Step 10 polish checklist.
 - Keep garden-specific actions, such as Add Plant or Save as Template, within the relevant garden context.
 - Offer clear access to Current and Previous Gardens, with responsive desktop and mobile layouts.
 
@@ -261,7 +261,7 @@ The exact menu contents and responsive interactions belong in the technical spec
 
 Garden V1 should be **mobile-first and desktop-complete**, suited to quick observation/data entry outside and more detailed review and planning indoors. Two presentations access **the same data, features, and business rules**:
 
-- **Simple Mode:** Prioritize direct, touch-friendly entry and immediate reference, using large main-screen action buttons rather than requiring a hamburger menu for frequent tasks. Initial primary destinations are **Plants, Harvest, Photos, Tasks, Calendar, and Notes**. Calendar and Notes are full view/add/edit workspaces, not just one-click creation shortcuts; exact home-screen layout remains subject to UI validation.
+- **Simple Mode:** Prioritize direct, touch-friendly entry and immediate reference, using large main-screen action buttons rather than requiring a hamburger menu for frequent tasks. The current accepted Simple Home cards are **Gardens, Tasks, Journal, Calendar, Notes, Wish List, and PlantDB**, with Gardens featured; the real-data overview appears beneath them. Calendar and Notes remain full navigable pages, not merely creation shortcuts.
 - **Standard Mode:** Provide fuller navigation and more detailed planning, organization, review, and management interfaces. Garden/template creation, layout work, detailed Journal editing, Gallery metadata/bulk organization, and historical garden administration are primarily Standard Mode activities, **not prohibited on a mobile device**.
 - **Automatic (default):** Use responsive viewport width to choose Simple Mode for smaller layouts and Standard Mode for larger layouts. Provide an explicit override at all sizes through Settings with **exactly one selected radio button** from **Automatic**, **Simple Mode**, and **Standard Mode**. The chosen preference persists locally; the specific automatic breakpoint remains to be tested.
 - **Responsive layout remains active within either selected mode.** A manually selected Standard Mode stays Standard even on a phone; a manually selected Simple Mode stays Simple on a desktop. Settings must remain reachable from both modes. Browser “Show desktop site” is not a reliable replacement for this control.
@@ -269,16 +269,16 @@ Garden V1 should be **mobile-first and desktop-complete**, suited to quick obser
 - **Focused plant updates:** Simple Mode's **Update Plants** leads to the current garden's plant-group list. Tapping a group immediately opens a fullscreen indicator editor (no extra Continue step). Grow indicators remain independently toggleable; Save returns to the **same plant-group list**, keeping filter and scroll context, so another group can be updated. The upper-left application logo provides a direct route to the Simple Mode home screen.
 - **Supporting information:** Historical desktop Infobox/mobile Infobar ideas are **optional design candidates**, not required permanent panels. Present contextual data only where it improves a task.
 
-The precise Standard Mode navigation, automatic breakpoint, Simple Mode home layout, and whether/where contextual panels appear are still open **Milestone 1 UI design decisions**. A gardener may always choose Standard Mode to use its full interface on a landscape tablet or phone.
+The current Standard Mode shell, Simple Mode Home presentation, responsive navigation and remaining refinements are recorded in [UI_REDESIGN.md](UI_REDESIGN.md). Preserve both manually selectable modes and the same data/services. A gardener may always choose Standard Mode to use its full interface on a landscape tablet or phone.
 
 ### 2.13b Welcome page and startup preference (confirmed V1)
 
 - Provide an **informational Welcome page** at `/welcome`. On a new browser/device installation, the **Show Welcome at startup** preference defaults to enabled: normal startup shows Welcome. If the user disables it, subsequent normal launches open the Home overview at `/`. The SOLACE logo always links to Home.
-- Briefly explain Garden's purpose, how to begin using Create Garden **once implemented** (do not advertise unavailable workflows), local-only data storage and backup responsibility, beta status during beta releases, and links to documentation and GitHub issues for bugs or suggestions.
+- Briefly explain Garden's purpose and how to begin using the existing Create Garden workflow (do not advertise unavailable workflows), local-only data storage and backup responsibility, beta status during beta releases, and links to documentation and GitHub issues for bugs or suggestions.
 - Welcome is **not** an onboarding wizard or prerequisite for creating a garden. Normal navigation remains available; no required acknowledgment, dismissal, or Get Started button.
 - Persist the explicit **Show Welcome at startup** preference with existing local UI settings. Changing the checkbox takes effect on subsequent normal launches; merely viewing Welcome or choosing Skip/Go to Gardens must not silently disable it. Do not retain the old `welcomeSeen` one-time startup rule as a second competing decision mechanism. Alpha test settings do not require compatibility migration.
 - Do not interrupt direct/deep links to other routes. Allow users to revisit Welcome via **Help** regardless of the preference; revisiting does not alter it. The full-page `/welcome` presentation and visible Skip / Go to Gardens remain the intended approach. The short, skippable Bootstrap 6 feature-introduction carousel is now an approved design direction; slide content, count, artwork, CTA placement and detailed controls are specified as open design work in [UI_REDESIGN.md](UI_REDESIGN.md).
-- Keep Welcome content informational; the separately planned Wizard, Quick Start, and Advanced garden-creation flows are not yet implemented and must not be presented as currently usable.
+- Keep Welcome content informational; the existing Wizard, Quick Start, and Advanced garden-creation flows are implemented. Its copy should reflect the supported workflows at the time Welcome is implemented.
 - **V1 optional in-app installation:** Help/About offers **Install SOLACE Garden** when `beforeinstallprompt` is available, with a brief explanation/link from Welcome. This is a user-initiated native prompt, not a requirement to proceed. Provide manual installation guidance when appropriate rather than a nonfunctional button; do not depend on Chrome's toolbar icon. Detect standalone mode and `appinstalled`, but do not rely on a permanent localStorage flag as proof of current installation. Keep installation distinct from the existing **Update now/Later** flow.
 
 ### 2.14 Portable Backup and Restore
