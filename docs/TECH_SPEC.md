@@ -1,6 +1,6 @@
 # SOLACE Garden — Technical Specification
 
-**Status:** Working draft 0.7 — decisions confirmed through 2026-11-03; remaining implementation choices labeled as proposals.  
+**Status:** Technical working draft, originally scoped November 3, 2026. Implemented milestone records in [ROADMAP.md](ROADMAP.md) and current UI decisions in [UI_REDESIGN.md](UI_REDESIGN.md) supersede earlier scaffold status, provisional navigation, and not-yet-implemented language here. Preserve confirmed data contracts; treat explicitly proposed future features as proposals.  
 **Date:** 2026-11-03  
 **Sources:** [GOALS.md](GOALS.md) (approved MVP direction), [COMPREHENSIVE_REVIEW.md](COMPREHENSIVE_REVIEW.md) (historical evidence), and current code in this repository.
 
