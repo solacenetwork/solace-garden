@@ -26,7 +26,8 @@
 		"test:e2e:smoke": "playwright test tests/e2e/smoke/",
 		"test:e2e:layout": "playwright test tests/e2e/layout/",
 		"test:e2e:lists": "playwright test tests/e2e/lists/",
-		"test:e2e:delete": "playwright test tests/e2e/lists/delete.spec.mjs"
+		"test:e2e:delete": "playwright test tests/e2e/lists/delete.spec.mjs",
+		"test:e2e:notes": "playwright test tests/e2e/notes/"
 	},
 	"repository": {
 		"type": "git",
