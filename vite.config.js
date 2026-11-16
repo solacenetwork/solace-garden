@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { configDefaults } from 'vitest/config';
 
 export const pwaOptions = {
   strategies: 'generateSW',
@@ -61,4 +62,10 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
   },
+  test: {
+    exclude: [
+      ...configDefaults.exclude,
+      'tests/e2e/**',
+    ],
+  }
 });
