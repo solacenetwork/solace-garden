@@ -11,6 +11,7 @@ workflow is required.
 | `npm run test:e2e:smoke` | Restored IndexedDB fixture and populated page rendering |
 | `npm run test:e2e:layout` | Scrolling and bottom-control reachability |
 | `npm run test:e2e:lists` | Tasks and Wish List interactions |
+| `npm run test:e2e:notes` | Note editor scroll and keyboard focus accessibility |
 | `npm run test:e2e:delete` | Deletion confirmation and persistence only |
 | `npm run test:e2e` | Entire suite |
 | `npm run test:e2e:report` | Open the last HTML report |
@@ -47,7 +48,10 @@ could not be reached at normal zoom, and unresponsive Task/Wish List Delete
 buttons. The layout suite exercises four routes at both Simple and Standard
 mode across 1366x768, 1280x600, 1024x600, 800x600, and 768x480 CSS viewports.
 The deletion suite checks both cancel and confirm behavior, plus persistence
-after reload.
+after reload. The Note editor suite opens an existing, non-empty draft and
+checks incremental wheel scrolling and native Tab navigation to the Save Note
+button in both interface modes at 1366x650 and 1366x600. The suite does not
+click Save or discard the draft.
 
 These are regression tests, **not fixes**. A failing case should be investigated
 rather than disabled or marked as passed. Physical screen resolution is not
