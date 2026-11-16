@@ -57,6 +57,8 @@ tests/
 │   ├── smoke/
 │   │   ├── populated-fixture.spec.mjs
 │   │   └── populated-navigation.spec.mjs
+│   ├── gardens/
+│   │   └── gardens-hub.spec.mjs
 │   ├── layout/
 │   │   └── viewport-scrolling.spec.mjs
 │   ├── notes/
@@ -111,6 +113,7 @@ Also compare browser version, extensions/profile, window state and touchpad/mous
 ## 7. Known coverage gaps and next candidate tests
 
 - More comprehensive route/deep-link and actual navigation-click testing.
+- The focused Gardens Hub spec checks ordered sections, lifecycle classification, Draft isolation and resume links, Garden card destinations, and header/Standard navigation routes. Run it with `npx playwright test tests/e2e/gardens/gardens-hub.spec.mjs`.
 - Navbar menus, keyboard access and shell focus behavior.
 - Task/Wish List **create, edit, complete/purchase, manual reorder, reload persistence**, and the approved V1 behavior that a newly added item appears at the top **without disturbing existing manual order**.
 - Note save/edit/discard/recovery, actual database persistence. The current accessibility tests deliberately **do not click Save**.

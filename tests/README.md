@@ -8,6 +8,7 @@ workflow is required.
 
 | Command | Scope |
 |---|---|
+| `npx playwright test tests/e2e/gardens/gardens-hub.spec.mjs` | Garden lifecycle classification, section ordering, and navigation |
 | `npm run test:e2e:smoke` | Restored IndexedDB fixture and populated page rendering |
 | `npm run test:e2e:layout` | Scrolling and bottom-control reachability |
 | `npm run test:e2e:lists` | Tasks and Wish List interactions |
