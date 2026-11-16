@@ -311,7 +311,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ## 9. Implementation punch list — proposed sequence
 
-**Plan:** nine separately reviewable steps. Step 1 is an architecture/inventory pass with no intended visual change; Steps 2–8 implement the redesign in focused slices; Step 9 is integrated acceptance. Do not combine these into one broad Codex task. Each step gets its own prompt, tests, review, and manual acceptance before proceeding.
+**Plan:** ten separately reviewable main steps. Step 1 is an architecture/inventory pass with no intended visual change; Steps 2–8 implement the redesign in focused slices; Step 9 is integrated responsive/regression acceptance; Step 10 is a focused post-review UI polish pass based on observed usability issues, with targeted regression verification before sign-off. Supplemental Steps 4.5A/B covered Carousel research and implementation. Do not combine these into one broad Codex task. Each step gets its own prompt, tests, review, and manual acceptance before proceeding.
 
 ### Step 1 — Existing-code audit and route/navigation separation
 
@@ -445,7 +445,23 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - Verify installed PWA startup, offline use, refresh/update behavior, and no accidental data loss.
 - Resolve review findings and update `UI_REVIEW_NOTES.md`, `UI_CONVENTIONS.md`, and this document as appropriate before resuming feature milestone 8G.
 
-**Acceptance:** All approved layouts and navigation paths pass manual and automated checks; existing accepted workflows remain intact; no redesign regression blocks continuing V1 development.
+**Acceptance:** All approved layouts and navigation paths pass manual and automated checks; existing accepted workflows remain intact. Record any focused UI polish findings for Step 10 before final redesign sign-off.
+
+### Step 10 — UI polish and usability corrections
+
+**Status (November 15, 2026):** Planned. The following nine observations are approved as a focused correction list; no implementation or acceptance is claimed. Handle after the remaining page redesign and integrated review. Preserve existing routes, working features, and data integrity; verify changes with focused automated tests and real-device acceptance.
+
+1. **Desktop navbar tooltips:** Add meaningful `title` attributes to navbar controls/items so mouse hovering identifies actions. Preserve existing accessible names; a title tooltip is not a replacement for accessibility labeling.
+2. **Add New naming:** Rename the `Create Garden` entry in the global Add New menu to **New Garden** for consistency. Do not automatically rename the page-specific Create Garden action.
+3. **Search placeholder:** Change the field placeholder to **Type your search query**; avoid confusing the application name Garden with Garden records.
+4. **Navbar order:** Arrange the directly presented actions as **Add New (+) → Search → Tasks → Notes → Wish List → More (…)**. Retain access to Calendar and other existing destinations through responsive overflow/More as needed; this ordering is not permission to remove functionality. Preserve exactly one More menu.
+5. **Search panel:** Remove the redundant magnifying-glass icon inside the expanded search panel. Keep the navbar Search icon; label the panel's submit button **Go**. Typing a query and selecting Go submits the existing search action, without introducing new search-backend functionality.
+6. **Calendar information trigger:** On `/calendar`, remove the overflowing **Info** text from the existing bottom-drawer trigger and show only the circled-information icon. Give the icon-only control a meaningful accessible name and desktop tooltip; preserve bottom-drawer behavior.
+7. **Templates navigation:** Remove the indented **Templates** entry beneath **Gardens** in expanded Standard navigation. Add a **Templates** button on `/gardens` immediately before the existing **Create Garden** button, in the order **Templates → Create Garden**. Preserve the `/templates` route and deep links.
+8. **Medium iconbar layout:** Move the iconbar expand/collapse trigger below the primary workspace icons, with visible separation between the destination icons and this control. Preserve the existing responsive overlay behavior.
+9. **Medium navigation icon states:** Replace the collapsed iconbar's hamburger trigger with Bootstrap Icon **`arrow-right-square-fill`** (expand/open). In the expanded navigation panel, replace the lower **Close** text/button presentation with **`arrow-left-square-fill`** (collapse/close), keeping appropriate accessible names and tooltips. Retain the existing upper-right **X** dismissal button and add `title="Close"` to it. Do not introduce workspace reflow or change drawer dismissal/focus behavior.
+
+**Acceptance:** Verify navbar order and tooltip behavior on desktop and narrow layouts; Add New and Search terminology; Search Go submission; Calendar bottom-drawer icon sizing; Templates navigation and deep links; medium iconbar spacing, icon state, keyboard/focus and overlay dismissal; and no feature regression. Re-run affected automated tests and focused manual phone/tablet/desktop checks before final redesign sign-off.
 
 ---
 
