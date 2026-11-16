@@ -50,9 +50,9 @@ After the current A–F implementation work, we could do a documentation cleanup
 
 ## V1.5 developer testing and regression hardening — Playwright
 
-**Status:** Planned post-V1, pre-V2 development/QA phase (November 9, 2026). **Not a V1 release blocker or end-user feature.** The V1.5 label identifies an internal engineering checkpoint; decide release/version tagging when the work is scoped.
+**Status (updated November 15, 2026):** The original post-V1, pre-V2 QA proposal now has an earlier **local Playwright foundation** checkpoint after UI redesign Step 5 acceptance (see [UI_REDESIGN.md](UI_REDESIGN.md) §9). GitHub Actions CI, expanded regression coverage and advanced diagnostics remain post-V1/V1.5 work. This is developer tooling, not an end-user feature or V1 launch gate. The V1.5 label identifies an internal engineering checkpoint; decide release/version tagging when the work is scoped.
 
-**Purpose:** After V1 has shipped and its existing acceptance gates are satisfied, briefly pause feature development to build reliable, repeatable real-browser regression coverage before beginning V2 work. Keep the established Vitest suite and hands-on device testing; Playwright complements rather than replaces them.
+**Purpose:** Establish a small repeatable local Chromium/IndexedDB browser-test suite during the UI redesign; after V1 ships, expand it into a CI-supported regression pipeline before V2 work. Keep the established Vitest suite and hands-on device testing; Playwright complements rather than replaces them.
 
 **Initial proposed coverage:**
 - Critical flows: Garden creation through Wizard and Advanced, Template save/apply, Location reassignment/deletion safeguards, draft recovery, and ZIP backup/restore.
