@@ -2,7 +2,7 @@
 
 **Status:** Authoritative UI decision record — approved direction consolidated; detailed layouts and responsive states remain open.  
 **Started:** November 14, 2026  
-**Development position:** Post-8F UI review, before Milestone 8G.
+**Development position (November 15, 2026):** UI redesign Steps 1–4 and supplemental Steps 4.5A/B accepted; Step 5 implemented, awaiting physical-device acceptance. Steps 6–10 remain ahead of Milestone 8G. A local Playwright testing checkpoint is planned after Step 5 acceptance.
 
 ## 1. Purpose and scope
 
@@ -311,7 +311,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ## 9. Implementation punch list — proposed sequence
 
-**Plan:** ten separately reviewable main steps. Step 1 is an architecture/inventory pass with no intended visual change; Steps 2–8 implement the redesign in focused slices; Step 9 is integrated responsive/regression acceptance; Step 10 is a focused post-review UI polish pass based on observed usability issues, with targeted regression verification before sign-off. Supplemental Steps 4.5A/B covered Carousel research and implementation. Do not combine these into one broad Codex task. Each step gets its own prompt, tests, review, and manual acceptance before proceeding.
+**Plan:** ten separately reviewable main steps, with a proposed local Playwright testing checkpoint between Steps 5 and 6. Step 1 is an architecture/inventory pass with no intended visual change; Steps 2–8 implement the redesign in focused slices; Step 9 is integrated responsive/regression acceptance; Step 10 is a focused post-review UI polish pass based on observed usability issues, with targeted regression verification before sign-off. Supplemental Steps 4.5A/B covered Carousel research and implementation. Do not combine these into one broad Codex task. Each step gets its own prompt, tests, review, and manual acceptance before proceeding.
 
 ### Step 1 — Existing-code audit and route/navigation separation
 
@@ -382,7 +382,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 **Purpose:** Implement the approved Home overview in both modes, with appropriate presentation density.
 
-**Implementation status (November 15, 2026):** Complete. Simple Mode retains the accepted seven navigation cards first and adds the shared dashboard below a restrained divider; Standard Mode removes its workspace directory and shows the same dashboard directly. `HomeDashboard` performs one Garden service read plus independent Task and Wish List service reads on every mount, suppresses outdated async results on unmount, and provides section-specific Retry actions. No Home interaction writes data.
+**Implementation status (November 15, 2026):** Code complete; physical-device acceptance pending. Simple Mode retains the accepted seven navigation cards first and adds the shared dashboard below a restrained divider; Standard Mode removes its workspace directory and shows the same dashboard directly. `HomeDashboard` performs one Garden service read plus independent Task and Wish List service reads on every mount, suppresses outdated async results on unmount, and provides section-specific Retry actions. No Home interaction writes data.
 
 - Saved Gardens are sorted newest-valid-`updatedAt` first with an ascending ID tie-breaker, then classified mutually exclusively: open Planned/Active Gardens are Current; closed, Completed, or Archived Gardens are Previous. Drafts are not returned by the Garden service and unmatched lifecycle records are not promoted into either group.
 - Current and Previous use separate `CardCarousel` instances and record-specific `GardenPreviewCard` children. Cards link with the stored Garden ID, show optional subtitle/start date without placeholders for missing text, format date-only values without local-time shifts, use a neutral non-photo visual, and add Closed/Completed/Archived labels to Previous cards.
@@ -398,6 +398,14 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - Reuse existing data services; do not duplicate editing or persistence logic in Home.
 
 **Acceptance:** Correct records and ordering appear; previews remain read-only; empty/loading/error states are distinct; rails work with touch, keyboard, and responsive layouts; no draft appears on Home.
+
+### Step 5.5 — Local Playwright browser-testing foundation (planned infrastructure checkpoint)
+
+**Status (November 15, 2026):** Preparation only. Playwright `1.65.1` is pinned in `package.json` and `package-lock.json` (commit `5b1ca9f`); its matching Chromium 159 launch was manually verified on LMDE 7, using the local Debian 13 platform override. Commit `b5b413d` added `tests/scripts/capture-fixture.mjs` and a gitignored fixture-authoring browser profile. The test harness, synthetic fixture data, automated browser tests, and their acceptance are **not yet implemented**.
+
+**Next after Step 5 manual acceptance:** Establish local Playwright configuration, isolated Chromium test contexts, an empty-state test and sanitized populated IndexedDB snapshot, deterministic restoration, focused browser acceptance tests, and useful local reports. The existing browser-profile capture utility is a starting point, not evidence that fixture restore or test isolation works. Use local execution and optional manual Copilot handoff for authoring/debugging; GitHub Actions is deferred. Keep testing utilities outside production app code and preserve valid active data while running tests. No obsolete alpha-data compatibility work.
+
+**Acceptance:** Repeatable tests run locally without an AI session, start from known isolated data, do not modify the fixture-authoring profile, and report reproducible failures. This is testing infrastructure, not Step 6 feature implementation.
 
 ### Step 6 — Gardens hub and draft discovery
 
@@ -454,7 +462,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 1. **Desktop navbar tooltips:** Add meaningful `title` attributes to navbar controls/items so mouse hovering identifies actions. Preserve existing accessible names; a title tooltip is not a replacement for accessibility labeling.
 2. **Add New naming:** Rename the `Create Garden` entry in the global Add New menu to **New Garden** for consistency. Do not automatically rename the page-specific Create Garden action.
 3. **Search placeholder:** Change the field placeholder to **Type your search query**; avoid confusing the application name Garden with Garden records.
-4. **Navbar position of Add New:** Move **Add New (+)** from the right side of the navbar to the left, before Search. Keep all other navbar items in their existing relative order and presentation, **including Calendar**; do not move Calendar into More or otherwise change its visibility as part of this correction. Preserve exactly one More menu and existing responsive overflow behavior.
+4. **Navbar order:** Place **Add New (+)** first, immediately before Search. Preserve the existing relative order of the other navbar items.
 5. **Search panel:** Remove the redundant magnifying-glass icon inside the expanded search panel. Keep the navbar Search icon; label the panel's submit button **Go**. Typing a query and selecting Go submits the existing search action, without introducing new search-backend functionality.
 6. **Calendar information trigger:** On `/calendar`, remove the overflowing **Info** text from the existing bottom-drawer trigger and show only the circled-information icon. Give the icon-only control a meaningful accessible name and desktop tooltip; preserve bottom-drawer behavior.
 7. **Templates navigation:** Remove the indented **Templates** entry beneath **Gardens** in expanded Standard navigation. Add a **Templates** button on `/gardens` immediately before the existing **Create Garden** button, in the order **Templates → Create Garden**. Preserve the `/templates` route and deep links.
