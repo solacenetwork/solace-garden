@@ -26,3 +26,6 @@ dist-ssr
 # Hostinger-specific Apache configuration
 /.htaccess
 /.htpasswd
+
+# Playwright temporary fixture-authoring browser profile
+tests/.chrome-fixture-profile/
