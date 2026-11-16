@@ -1,6 +1,6 @@
 # Bootstrap 6 card Carousel proof of concept
 
-**Status:** Step 4.5A accepted after automated, headless, and physical-phone evaluation; Step 4.5B reusable component implemented, with physical regression testing pending.
+**Status:** Step 4.5A proof of concept and Step 4.5B production component accepted after automated and physical-device testing (November 15, 2026). Step 5 Home uses the production component; its page-level physical-device acceptance remains pending.
 **Tested version:** `bootstrap@6.0.0-alpha.1`
 **Development URL:** `/dev/carousel`
 
