@@ -2,7 +2,7 @@
 
 This is a working review of the SOLACE Garden interface based on repeated, real-world use on phones, tablets, and desktops. The goal is to identify confusing workflows, unnecessary steps, unclear wording, and responsive/accessibility issues **before** deciding on implementation changes.
 
-**Status:** Collecting observations after completion of Milestone 8F. No redesign or technical solution is approved merely because it appears here.
+**Status:** Historical and ongoing observation record following Milestone 8F. Approved decisions and the November 15 Step 10 polish corrections live in [UI_REDESIGN.md](UI_REDESIGN.md); observations and alternative ideas here are not independently approved implementation instructions.
 
 ## How to use this document
 
