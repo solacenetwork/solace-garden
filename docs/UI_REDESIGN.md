@@ -2,7 +2,7 @@
 
 **Status:** Authoritative UI decision record — approved direction consolidated; detailed layouts and responsive states remain open.  
 **Started:** November 14, 2026  
-**Development position (November 16, 2026):** UI redesign Steps 1–5 and supplemental Steps 4.5A/B accepted. Step 5.5 local Playwright foundation accepted with 57/57 tests passing on the developer's desktop (49.6 seconds); see [TESTING_NOTES.md](TESTING_NOTES.md). Step 6 design hypothesis discussed November 16 (not implemented or accepted); Steps 6–10 remain ahead of Milestone 8G.
+**Development position (November 16, 2026):** UI redesign Steps 1–5 and supplemental Steps 4.5A/B accepted. Step 5.5 local Playwright foundation accepted with 57/57 tests passing on the developer's desktop (49.6 seconds); see [TESTING_NOTES.md](TESTING_NOTES.md). Step 6 design hypothesis discussed November 16 (not implemented or accepted); Steps 6, 6.5, and 7–10 remain ahead of Milestone 8G.
 
 ## 1. Purpose and scope
 
@@ -241,7 +241,7 @@ Keep these states simple and usable in both modes. A user may have Previous Gard
 
 **Superseded earlier V1 constraint:** The proposed `/gardens/drafts` View All page replaces the older statement that no dedicated Drafts route should be added. A visibility preference for hiding the filmstrip remains deferred and is **not** part of Step 6.
 
-**Still open:** Draft metadata and empty states, top-action responsive layout, accessibility, card treatment, Current vs Active contract semantics, and real-device acceptance. These are **proposals**, not implemented or accepted UI.
+**Still open:** Draft metadata and empty states, top-action responsive layout, accessibility, card treatment, distinct finished Draft and saved-Garden fallback artwork before final Hub sign-off, Current vs Active contract semantics, and real-device acceptance. For now, use a neutral temporary fallback; no thumbnail/media support is required. Icon/color identity selection is explicitly deferred to Step 6.5. These are **proposals**, not implemented or accepted UI.
 
 ### C. Quick Start, Wizard, Advanced, and drafts
 
@@ -425,10 +425,23 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - Add a compact horizontal draft rail with View All to a vertical `/gardens/drafts` list, registered before `/gardens/:id`; resume drafts in their correct editors.
 - Prototype header actions **Locations → Templates → Create Garden**, remove detached sidebar sub-links, and preserve Settings and direct-route access.
 - Explain draft versus saved Planned Garden, including unnamed drafts; autosave never creates a Garden.
-- Validate card details, long titles, responsive layouts and accessibility on real devices before acceptance.
+- Validate card details (title, existing subtitle, optional start date, image area with distinct Draft and saved-Garden fallback treatments), long titles, responsive layouts and accessibility on real devices before acceptance. Actual Garden icon/color selection belongs to Step 6.5, not Step 6.
 - Preserve existing draft IDs, autosave, recovery, mode selection, and atomic create/discard behavior. No obsolete alpha-data compatibility or migration work.
 
 **Acceptance:** Users can distinguish saved Gardens from drafts, find each Garden category, and resume every draft in its correct editor; existing Garden lifecycle and draft persistence tests pass.
+
+### Step 6.5 — Garden visual identity (new scoped checkpoint; planned November 16, 2026)
+
+**Purpose:** Give each saved Garden a compact, recognizable identity without expanding the Step 6 Hub redesign or waiting for Gallery media support.
+
+- Introduce a reusable **circular Garden identity badge**: the user's selected color is the outer ring, the chosen icon sits inside a neutral, contrasting center. Use it on Garden cards and compact Garden references where useful, while ensuring names/accessible labels remain available.
+- Add optional icon and color selection and persistence for saved Gardens using the existing `icon` and `color` record fields. Support editing an existing Garden and create reusable controls for Step 7 Wizard/Advanced integration.
+- Use neutral fallbacks for fields still set to `null`; do not assign placeholder art to records. The Step 6 card layout may reserve space for a future badge but must not depend on Step 6.5.
+- Keep individual Garden identity separate from the proposed Step 10 brown/beige draft-versus-green saved-Garden editor styling.
+- **Out of scope:** Gallery functionality, `thumbnailMediaId` assignment, media storage, and the application-wide button palette. Gallery-linked thumbnails remain future work.
+- Preserve operational data integrity; no legacy alpha-data migrations, and no Dexie schema version bump solely for record-property changes when store/index definitions remain unchanged.
+
+**Acceptance:** Persist chosen icon/color across reload and edits; distinguish identically named Gardens; check null/default rendering, accessibility and contrast, compact lists and card layouts, both interface modes, and existing Garden lifecycle tests before Step 7.
 
 ### Step 7 — Welcome and Garden creation presentation
 
@@ -436,7 +449,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 - Design and implement the approved Welcome startup preference and short, skippable Bootstrap 6 feature/Gardens carousel.
 - Preserve direct/deep links, Help access to Welcome, and the existing startup preference behavior.
-- Prototype Quick Start as the first Wizard step: **Save & Finish** (quick-create on first step only), **Add More Details** (guided steps), **Finish Later** (preserved draft); keep Advanced separate.
+- Prototype Quick Start as the first Wizard step: **Save & Finish** (quick-create on first step only), **Add More Details** (guided steps), **Finish Later** (preserved draft); keep Advanced separate. Reuse the Step 6.5 icon/color controls in optional detailed editing without making them Quick Start requirements.
 - Finalize Wizard steps, explicit final creation, validation visibility, resume behavior, and narrow-screen presentation.
 - Preserve existing draft recovery and editor workflows; do not create a second onboarding wizard or add steps for features that do not exist.
 
