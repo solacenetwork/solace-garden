@@ -17,7 +17,6 @@ for (const itemType of [
       const initialCount = await items.count();
       expect(initialCount).toBeGreaterThan(0);
 
-      const firstText = await items.first().locator('.lists-item__text').textContent().catch(() => null);
       const button = items.first().getByRole('button', { name: 'Delete', exact: true });
 
       // Fail clearly if clicking Delete does not present the expected browser
@@ -38,8 +37,6 @@ for (const itemType of [
       await page.reload();
       await expect(items).toHaveCount(expectedCount);
 
-      // The count check also verifies a change survives a fresh page load.
-      void firstText;
     });
   }
 }
