@@ -5,7 +5,6 @@ import { standardPrimaryIds } from '../navigation.js';
 import { AppDrawer } from './AppDrawer.jsx';
 
 const primaryDestinations = standardPrimaryIds.map(findRouteById);
-const templates = findRouteById('templates');
 const displayLabels = { photos: 'Gallery', plants: 'PlantDB' };
 const labelFor = (destination) => displayLabels[destination.id] ?? destination.label;
 const presentationFor = () => globalThis.matchMedia?.('(min-width: 1024px)').matches ? 'large'
@@ -21,7 +20,8 @@ function NavigationLinks({ currentId, iconsOnly = false, onNavigate }) {
 			data-standard-destination={destination.id}
 			aria-label={iconsOnly ? labelFor(destination) : undefined}
 			title={iconsOnly ? labelFor(destination) : undefined}
-			aria-current={currentId === destination.id ? 'page' : undefined}
+			aria-current={currentId === destination.id ? 'page'
+				: currentId === 'templates' && destination.id === 'gardens' ? 'location' : undefined}
 			onClick={(event) => { if (ordinaryActivation(event)) onNavigate?.(); }}
 		>
 			<i class={`bi bi-${destination.icon}`} aria-hidden="true"></i>
@@ -31,10 +31,7 @@ function NavigationLinks({ currentId, iconsOnly = false, onNavigate }) {
 	return (
 		<ul>
 			{primaryDestinations.map((destination) => (
-				<li key={destination.id}>
-					{link(destination)}
-					{destination.id === 'gardens' && !iconsOnly && <ul class="standard-navigation__secondary"><li>{link(templates)}</li></ul>}
-				</li>
+				<li key={destination.id}>{link(destination)}</li>
 			))}
 		</ul>
 	);

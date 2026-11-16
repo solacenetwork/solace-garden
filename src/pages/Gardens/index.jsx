@@ -44,7 +44,7 @@ function ReadState({ state, onRetry }) {
 	return null;
 }
 
-function GardenSection({ title, id, items, emptyMessage }) {
+function GardenSection({ title, id, items = [], emptyMessage }) {
 	return (
 		<section class="gardens-section" aria-labelledby={id}>
 			<h2 id={id}>{title}</h2>
@@ -71,8 +71,7 @@ function GardenSection({ title, id, items, emptyMessage }) {
 }
 
 function GardenDraftSection({ drafts = [], onDiscard, discardingId }) {
-	if (!drafts.length) return null;
-	return <section class="gardens-section garden-drafts" aria-labelledby="garden-drafts-title"><h2 id="garden-drafts-title">Unfinished Gardens</h2><p>Continue a saved creation draft or discard one you no longer need.</p><ul class="garden-drafts__list">{drafts.map((draft) => <li class="garden-draft-card" key={draft.id}><a href={draft.href}><i class="bi bi-pencil-square" aria-hidden="true"></i><span><strong>{draft.label}</strong><small>Continue draft</small></span></a><button class="btn-text theme-danger" type="button" disabled={discardingId === draft.id} onClick={() => onDiscard(draft)}><i class="bi bi-trash3" aria-hidden="true"></i>{discardingId === draft.id ? 'Discarding…' : 'Discard Draft'}</button></li>)}</ul></section>;
+	return <section class="gardens-section garden-drafts" aria-labelledby="garden-drafts-title"><h2 id="garden-drafts-title">Draft Gardens</h2><p>Continue an unfinished Garden or discard one you no longer need.</p>{drafts.length === 0 ? <p class="gardens-state">No unfinished Garden drafts.</p> : <ul class="garden-drafts__list">{drafts.map((draft) => <li class="garden-draft-card" key={draft.id}><a href={draft.href}><i class="bi bi-pencil-square" aria-hidden="true"></i><span><strong>{draft.label}</strong><small>Continue draft</small></span></a><button class="btn-text theme-danger" type="button" disabled={discardingId === draft.id} onClick={() => onDiscard(draft)}><i class="bi bi-trash3" aria-hidden="true"></i>{discardingId === draft.id ? 'Discarding…' : 'Discard Draft'}</button></li>)}</ul>}</section>;
 }
 
 export function GardensOverviewView({ state, onRetry, onDiscard = () => {}, discardingId = null, draftError = '' }) {
@@ -81,21 +80,23 @@ export function GardensOverviewView({ state, onRetry, onDiscard = () => {}, disc
 			<header class="gardens-header gardens-header--overview">
 				<div>
 					<h1 id="gardens-title">Gardens</h1>
-					<p>Browse your current growing projects and revisit previous Gardens.</p>
+					<p>Continue drafts, manage growing projects, and revisit previous Gardens.</p>
 				</div>
-				<a class="btn-solid theme-primary gardens-create-action" href="/gardens/new">
-					<i class="bi bi-plus-lg" aria-hidden="true"></i> Create Garden
-				</a>
+				<nav class="gardens-header__actions" aria-label="Garden management">
+					<a class="btn-outline" href="/locations"><i class="bi bi-geo-alt" aria-hidden="true"></i> Locations</a>
+					<a class="btn-outline" href="/templates"><i class="bi bi-copy" aria-hidden="true"></i> Templates</a>
+					<a class="btn-solid theme-primary gardens-create-action" href="/gardens/new">
+						<i class="bi bi-plus-lg" aria-hidden="true"></i> Create Garden
+					</a>
+				</nav>
 			</header>
 			{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (
 				<>
 					{draftError && <div class="garden-create__error" role="alert">{draftError}</div>}
 					<GardenDraftSection drafts={state.drafts} onDiscard={onDiscard} discardingId={discardingId} />
-					{state.current.length + state.previous.length === 0 && (
-						<p class="gardens-state">No Gardens saved yet. Your growing projects will appear here once created.</p>
-					)}
-					<GardenSection title="Current Gardens" id="current-gardens" items={state.current} emptyMessage="No Planned or Active Gardens." />
-					<GardenSection title="Previous Gardens" id="previous-gardens" items={state.previous} emptyMessage="No Completed or Archived Gardens." />
+					<GardenSection title="Current Gardens" id="current-gardens" items={state.current} emptyMessage="No active Gardens." />
+					<GardenSection title="Planned Gardens" id="planned-gardens" items={state.planned} emptyMessage="No planned Gardens." />
+					<GardenSection title="Previous Gardens" id="previous-gardens" items={state.previous} emptyMessage="No closed, completed, or archived Gardens." />
 				</>
 			)}
 		</section>

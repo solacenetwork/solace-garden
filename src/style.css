@@ -198,11 +198,6 @@ body {
 	list-style: none;
 }
 
-.standard-navigation .standard-navigation__secondary {
-	padding-inline-start: 1.5rem;
-	margin-block-end: 0.5rem;
-}
-
 .standard-navigation__link {
 	position: relative;
 	display: flex;
@@ -224,16 +219,16 @@ body {
 }
 
 .standard-navigation__link:hover,
-.standard-navigation__link[aria-current="page"] {
+.standard-navigation__link[aria-current] {
 	color: var(--sg-color-primary-strong);
 	background: var(--sg-color-primary-soft);
 }
 
-.standard-navigation__link[aria-current="page"] {
+.standard-navigation__link[aria-current] {
 	font-weight: 750;
 }
 
-.standard-navigation__link[aria-current="page"]::after {
+.standard-navigation__link[aria-current]::after {
 	position: absolute;
 	inset-inline-end: 0.25rem;
 	width: 0.3rem;

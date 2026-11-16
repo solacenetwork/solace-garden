@@ -31,16 +31,30 @@ function gardenView(record, locations, types = []) {
 	};
 }
 
+export function groupGardenRecords(items) {
+	const groups = { current: [], planned: [], previous: [] };
+	for (const item of items) {
+		if (item.isClosed || item.status === 'completed' || item.status === 'archived') {
+			groups.previous.push(item);
+		} else if (item.status === 'active') {
+			groups.current.push(item);
+		} else if (item.status === 'planned') {
+			groups.planned.push(item);
+		}
+	}
+	return groups;
+}
+
 export async function loadGardenOverview({ gardens, locations, drafts }) {
 	try {
 		const [records, sites, unfinished] = await Promise.all([gardens.list(), locations.list(), drafts.list()]);
 		const items = [...records].sort((a, b) =>
 			b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id),
 		).map((record) => gardenView(record, sites));
+		const groups = groupGardenRecords(items);
 		return {
 			status: 'ready',
-			current: items.filter(({ status }) => status === 'planned' || status === 'active'),
-			previous: items.filter(({ status }) => status === 'completed' || status === 'archived'),
+			...groups,
 			drafts: unfinished.map((draft) => ({
 				...draft,
 				label: draft.fields.name.trim() || 'Untitled Garden',

@@ -85,16 +85,15 @@ beforeEach(() => { hooks.slots = []; hooks.index = 0; hooks.pending = []; hooks.
 afterEach(() => vi.unstubAllGlobals());
 
 describe('StandardNavigation', () => {
-	it('renders four ordered primary destinations, with Templates nested only under Gardens', () => {
+	it('renders only the four ordered primary destinations', () => {
 		const view = mount();
 		const tree = view.render();
-		expect(ids(tree)).toEqual(['gardens', 'templates', 'journal', 'photos', 'plants']);
-		expect(links(tree).map(({ props }) => props.href)).toEqual(['/gardens', '/templates', '/journal', '/photos', '/plants']);
-		expect(links(tree).map(({ props }) => nodes(props.children).find(({ type }) => type === 'span').props.children)).toEqual(['Gardens', 'Templates', 'Journal', 'Gallery', 'PlantDB']);
+		expect(ids(tree)).toEqual(['gardens', 'journal', 'photos', 'plants']);
+		expect(links(tree).map(({ props }) => props.href)).toEqual(['/gardens', '/journal', '/photos', '/plants']);
+		expect(links(tree).map(({ props }) => nodes(props.children).find(({ type }) => type === 'span').props.children)).toEqual(['Gardens', 'Journal', 'Gallery', 'PlantDB']);
 		const list = nodes(tree).find(({ type }) => type === 'ul');
 		expect(list.props.children).toHaveLength(4);
-		expect(ids(list.props.children[0])).toEqual(['gardens', 'templates']);
-		expect(nodes(tree).find(({ props }) => props.class === 'standard-navigation__secondary').type).toBe('ul');
+		expect(nodes(tree).some(({ props }) => props['data-standard-destination'] === 'templates')).toBe(false);
 		expect(drawer(tree)).toBeUndefined();
 		view.cleanup();
 	});
@@ -102,11 +101,19 @@ describe('StandardNavigation', () => {
 	it.each([
 		['/gardens', 'gardens'], ['/gardens/new', 'gardens'], ['/gardens/new/wizard/draft-1', 'gardens'],
 		['/gardens/new/advanced/draft-2', 'gardens'], ['/gardens/garden-1', 'gardens'], ['/gardens/garden-1/edit', 'gardens'],
-		['/templates', 'templates'], ['/journal', 'journal'], ['/photos', 'photos'], ['/plants', 'plants'], ['/notes/new/draft-1', undefined],
-	])('marks only the exact destination for %s', (path, expected) => {
+		['/journal', 'journal', 'page'], ['/photos', 'photos', 'page'], ['/plants', 'plants', 'page'], ['/notes/new/draft-1', undefined, undefined],
+	])('marks the primary destination for %s', (path, expected, ariaCurrent = 'page') => {
 		hooks.path = path;
 		const view = mount();
-		expect(links(view.render()).filter(({ props }) => props['aria-current'] === 'page').map(({ props }) => props['data-standard-destination'])).toEqual(expected ? [expected] : []);
+		expect(links(view.render()).filter(({ props }) => props['aria-current']).map(({ props }) => [props['data-standard-destination'], props['aria-current']])).toEqual(expected ? [[expected, ariaCurrent]] : []);
+		view.cleanup();
+	});
+
+	it('keeps Templates in the Gardens navigation context without rendering a Templates link', () => {
+		hooks.path = '/templates';
+		const view = mount();
+		expect(links(view.render()).filter(({ props }) => props['aria-current']).map(({ props }) => [props['data-standard-destination'], props['aria-current']])).toEqual([['gardens', 'location']]);
+		expect(ids(view.render())).not.toContain('templates');
 		view.cleanup();
 	});
 
@@ -132,15 +139,15 @@ describe('StandardNavigation', () => {
 		const view = mount(width);
 		const close = vi.fn();
 		const content = drawer(view.render()).props.children({ close });
-		expect(ids(content)).toEqual(['gardens', 'templates', 'journal', 'photos', 'plants']);
+		expect(ids(content)).toEqual(['gardens', 'journal', 'photos', 'plants']);
 		for (const link of links(content)) {
 			const event = normalClick();
 			link.props.onClick(event);
 			expect(event.preventDefault).not.toHaveBeenCalled();
 		}
-		expect(close).toHaveBeenCalledTimes(5);
+		expect(close).toHaveBeenCalledTimes(4);
 		for (const event of [{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true }, { button: 1 }, { defaultPrevented: true }]) links(content)[0].props.onClick({ button: 0, ...event });
-		expect(close).toHaveBeenCalledTimes(5);
+		expect(close).toHaveBeenCalledTimes(4);
 		expect(nodes(content).some(({ props }) => props.onKeyDown || props.onCancel || props['data-bs-toggle'])).toBe(false);
 		view.cleanup();
 	});
@@ -164,10 +171,10 @@ describe('StandardNavigation', () => {
 		expect(nodes(strip).some(({ type }) => type === 'a')).toBe(false);
 		expect(nodes(tree).some(({ props }) => props.class?.includes('standard-navigation--icons') || props.class === 'standard-sidebar__toggle')).toBe(false);
 		const content = panel.props.children({ close: vi.fn() });
-		expect(ids(content)).toEqual(['gardens', 'templates', 'journal', 'photos', 'plants']);
+		expect(ids(content)).toEqual(['gardens', 'journal', 'photos', 'plants']);
 		const primaryList = nodes(content).find(({ type }) => type === 'ul');
 		expect(primaryList.props.children).toHaveLength(4);
-		expect(ids(primaryList.props.children[0])).toEqual(['gardens', 'templates']);
+		expect(ids(primaryList.props.children[0])).toEqual(['gardens']);
 		view.cleanup();
 	});
 
@@ -204,7 +211,7 @@ describe('StandardNavigation', () => {
 		view.doc.activeElement = { insideNavigation: true, closest: () => ({ dataset: { standardDestination: 'templates' } }) };
 		expect(drawer(view.resize(1024))).toBeUndefined();
 		view.flush();
-		expect(view.focus).toHaveBeenLastCalledWith('templates', { preventScroll: true });
+		expect(view.focus).toHaveBeenLastCalledWith('gardens', { preventScroll: true });
 		view.doc.activeElement = { insideNavigation: true, closest: () => ({ dataset: { standardDestination: 'templates' } }) };
 		expect(drawer(view.resize(900))).toBeDefined();
 		view.flush();

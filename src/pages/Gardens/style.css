@@ -15,6 +15,18 @@
 	gap: 1rem;
 }
 
+.gardens-header__actions {
+	display: flex;
+	justify-content: flex-end;
+	flex: 0 1 auto;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+}
+
+.gardens-header__actions > a {
+	min-height: 3rem;
+}
+
 .garden-detail__header {
 	display: flex;
 	align-items: flex-start;
@@ -648,6 +660,15 @@
 @media (max-width: 35.999rem) {
 	.gardens-header--overview {
 		flex-direction: column;
+	}
+
+	.gardens-header__actions,
+	.gardens-header__actions > a {
+		width: 100%;
+	}
+
+	.gardens-header__actions > a {
+		justify-content: center;
 	}
 
 	.garden-detail__header {

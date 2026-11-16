@@ -2,7 +2,7 @@
 
 **Status:** Authoritative UI decision record — approved direction consolidated; detailed layouts and responsive states remain open.  
 **Started:** November 14, 2026  
-**Development position (November 16, 2026):** UI redesign Steps 1–5 and supplemental Steps 4.5A/B accepted. Step 5.5 local Playwright foundation accepted with 57/57 tests passing on the developer's desktop (49.6 seconds); see [TESTING_NOTES.md](TESTING_NOTES.md). Step 6 design hypothesis discussed November 16 (not implemented or accepted); Steps 6, 6.5, and 7–10 remain ahead of Milestone 8G.
+**Development position (November 16, 2026):** UI redesign Steps 1–5 and supplemental Steps 4.5A/B accepted. Step 5.5 local Playwright foundation accepted with 57/57 tests passing on the developer's desktop (49.6 seconds); see [TESTING_NOTES.md](TESTING_NOTES.md). Step 6A Hub structure and navigation is implemented for review but not accepted; Steps 6B–D, 6.5, and 7–10 remain ahead of Milestone 8G.
 
 ## 1. Purpose and scope
 
@@ -415,9 +415,11 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 **Acceptance boundary:** This confirms the local Playwright foundation, **not** complete app behavior or resolution of the laptop's manually observed scrolling and deletion problems. The laptop reports remain open until reproduced/resolved on the affected machine. The earlier proposed empty-state test is **not yet implemented** and remains a possible additional coverage item. Valid operational data still needs protection; obsolete alpha fixture compatibility is not required.
 
-**Next:** Discuss and finalize Step 6 Gardens Hub design before preparing any implementation prompt. No Step 6 application work is included in this acceptance record.
+**Next:** Review Step 6A and complete its independent browser/device acceptance before proceeding to Step 6B.
 
 ### Step 6 — Gardens hub and draft discovery
+
+**Implementation status (November 16, 2026):** Step 6A implements the four Hub categories and header actions, removes the nested Standard-navigation Templates entry, and preserves direct routes. It remains pending independent browser and device acceptance. Card redesign, the Draft filmstrip and Drafts page, and browser acceptance remain the separate Steps 6B–D.
 
 **Purpose:** Make saved Gardens and unfinished creation sessions easy to distinguish and find.
 
@@ -489,7 +491,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 4. **Navbar order:** Place **Add New (+)** first, immediately before Search. Preserve the existing relative order of the other navbar items.
 5. **Search panel:** Remove the redundant magnifying-glass icon inside the expanded search panel. Keep the navbar Search icon; label the panel's submit button **Go**. Typing a query and selecting Go submits the existing search action, without introducing new search-backend functionality.
 6. **Calendar information trigger:** On `/calendar`, remove the overflowing **Info** text from the existing bottom-drawer trigger and show only the circled-information icon. Give the icon-only control a meaningful accessible name and desktop tooltip; preserve bottom-drawer behavior.
-7. **Templates navigation:** Remove the indented **Templates** entry beneath **Gardens** in expanded Standard navigation. Coordinate with Step 6's newer proposed **Locations → Templates → Create Garden** header actions; preserve `/templates` and `/locations` routes and Settings access to Locations. Avoid implementing the same change twice.
+7. **Templates navigation (addressed in Step 6A):** The indented **Templates** entry beneath **Gardens** was removed when the **Locations → Templates → Create Garden** Hub actions were added. `/templates` and `/locations` remain directly routable, and Locations remains available through Settings. No second Step 10 implementation is needed.
 8. **Medium iconbar layout:** Move the iconbar expand/collapse trigger below the primary workspace icons, with visible separation between the destination icons and this control. Preserve the existing responsive overlay behavior.
 9. **Medium navigation icon states:** Replace the collapsed iconbar's hamburger trigger with Bootstrap Icon **`arrow-right-square-fill`** (expand/open). In the expanded navigation panel, replace the lower **Close** text/button presentation with **`arrow-left-square-fill`** (collapse/close), keeping appropriate accessible names and tooltips. Retain the existing upper-right **X** dismissal button and add `title="Close"` to it. Do not introduce workspace reflow or change drawer dismissal/focus behavior.
 

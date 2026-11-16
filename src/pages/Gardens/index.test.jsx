@@ -25,15 +25,27 @@ const garden = {
 };
 
 describe('Garden read-only views', () => {
-	it('shows both overview sections and distinct links/keys for duplicate labels', () => {
+	it('shows all four categories in order and distinct saved-Garden links for duplicate labels', () => {
 		const second = { ...garden, id: 'another-id', href: '/gardens/another-id' };
-		const tree = GardensOverviewView({ state: { status: 'ready', current: [garden, second], previous: [] } });
-		expect(text(tree)).toContain('Current Gardens');
-		expect(text(tree)).toContain('Previous Gardens');
+		const tree = GardensOverviewView({ state: { status: 'ready', drafts: [], current: [garden], planned: [second], previous: [] } });
+		expect(nodes(tree).filter((node) => node.type === 'h2').map((node) => text(node))).toEqual([
+			'Draft Gardens', 'Current Gardens', 'Planned Gardens', 'Previous Gardens',
+		]);
 		expect(text(tree)).toContain('Home Farm');
 		expect(text(tree)).toContain('Active');
 		expect(nodes(tree).filter((node) => node.props?.class === 'garden-card').map(({ props }) => props.href)).toEqual([garden.href, second.href]);
 		expect(nodes(tree).filter((node) => node.type === 'li').map(({ key }) => key)).toEqual([garden.id, second.id]);
+	});
+
+	it('links the ordered header actions to existing destinations', () => {
+		const tree = GardensOverviewView({ state: { status: 'loading' } });
+		const actions = nodes(tree).find((node) => node.props?.class === 'gardens-header__actions');
+		expect(nodes(actions).filter((node) => node.type === 'a').map(({ props }) => props.href)).toEqual([
+			'/locations', '/templates', '/gardens/new',
+		]);
+		expect(nodes(actions).filter((node) => node.type === 'a').map((node) => text(node).trim())).toEqual([
+			'Locations', 'Templates', 'Create Garden',
+		]);
 	});
 
 	it('shows saved detail fields, embedded Garden Notes and local date-only values', () => {
@@ -61,8 +73,11 @@ describe('Garden read-only views', () => {
 		expect(text(tree)).not.toContain('Garden Notes');
 		expect(nodes(tree).some((node) => node.type === 'time')).toBe(false);
 		expect(nodes(tree).some((node) => node.props?.href === `/gardens/${garden.id}/edit`)).toBe(false);
-		const overview = GardensOverviewView({ state: { status: 'ready', current: [], previous: [] } });
-		expect(text(overview)).toContain('No Gardens saved yet');
+		const overview = GardensOverviewView({ state: { status: 'ready', drafts: [], current: [], planned: [], previous: [] } });
+		for (const message of [
+			'No unfinished Garden drafts.', 'No active Gardens.', 'No planned Gardens.',
+			'No closed, completed, or archived Gardens.',
+		]) expect(text(overview)).toContain(message);
 		expect(nodes(overview).find((node) => node.props?.href === '/gardens/new')).toBeTruthy();
 		expect(nodes(overview).some((node) => node.type === 'form')).toBe(false);
 	});
@@ -91,7 +106,7 @@ describe('Garden read-only views', () => {
 			state: { status: 'ready', current: [], previous: [], drafts: [draft] },
 			onDiscard,
 		});
-		expect(text(tree)).toContain('Unfinished Gardens');
+		expect(text(tree)).toContain('Draft Gardens');
 		expect(nodes(tree).find((node) => node.props?.href === draft.href)).toBeTruthy();
 		nodes(tree).find((node) => node.type === 'button').props.onClick();
 		expect(onDiscard).toHaveBeenCalledWith(draft);

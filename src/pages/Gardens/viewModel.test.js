@@ -27,25 +27,48 @@ describe('Garden browsing data', () => {
 	it('groups fixture statuses and keeps duplicate names linked to distinct UUIDs', async () => {
 		const result = await loadGardenOverview(readers);
 		expect(result.status).toBe('ready');
-		expect(result.current.map(({ status }) => status).sort()).toEqual(['active', 'planned']);
+		expect(result.current.map(({ status }) => status)).toEqual(['active']);
+		expect(result.planned.map(({ status }) => status)).toEqual(['planned']);
 		expect(result.previous.map(({ status }) => status).sort()).toEqual(['archived', 'completed']);
-		expect(result.current.map(({ name }) => name)).toEqual(['Tomatoes', 'Tomatoes']);
-		expect(new Set(result.current.map(({ href }) => href)).size).toBe(2);
+		expect([...result.current, ...result.planned].map(({ name }) => name)).toEqual(['Tomatoes', 'Tomatoes']);
+		expect(new Set([...result.current, ...result.planned].map(({ href }) => href)).size).toBe(2);
 		for (const record of samples) {
-			expect([...result.current, ...result.previous]).toContainEqual(
+			expect([...result.current, ...result.planned, ...result.previous]).toContainEqual(
 				expect.objectContaining({ id: record.id, href: `/gardens/${record.id}` }),
 			);
 		}
 	});
 
-	it('orders by update time with a stable UUID tie-breaker, independently of closure and dates', async () => {
+	it('classifies closed Gardens as Previous before status and never duplicates a record', async () => {
+		const base = samples[0];
+		const records = [
+			{ ...base, id: 'active-open', status: 'active', isClosed: false },
+			{ ...base, id: 'planned-open', status: 'planned', isClosed: false },
+			{ ...base, id: 'active-closed', status: 'active', isClosed: true },
+			{ ...base, id: 'planned-closed', status: 'planned', isClosed: true },
+			{ ...base, id: 'completed-open', status: 'completed', isClosed: false },
+			{ ...base, id: 'archived-closed', status: 'archived', isClosed: true },
+		];
+		const result = await loadGardenOverview({ ...readers, gardens: { list: async () => records } });
+		expect(result.current.map(({ id }) => id)).toEqual(['active-open']);
+		expect(result.planned.map(({ id }) => id)).toEqual(['planned-open']);
+		expect(result.previous.map(({ id }) => id)).toEqual([
+			'active-closed', 'archived-closed', 'completed-open', 'planned-closed',
+		]);
+		const groupedIds = [...result.current, ...result.planned, ...result.previous].map(({ id }) => id);
+		expect(groupedIds).toHaveLength(records.length);
+		expect(new Set(groupedIds).size).toBe(records.length);
+	});
+
+	it('orders by update time with a stable UUID tie-breaker within each category', async () => {
 		const gardens = { list: async () => [
 			{ ...samples[0], id: 'b', updatedAt: '2026-11-01', isClosed: true, endDate: '2020-01-01' },
 			{ ...samples[0], id: 'c', updatedAt: '2026-11-02' },
 			{ ...samples[0], id: 'a', updatedAt: '2026-11-01' },
 		] };
 		const result = await loadGardenOverview({ ...readers, gardens });
-		expect(result.current.map(({ id }) => id)).toEqual(['c', 'a', 'b']);
+		expect(result.planned.map(({ id }) => id)).toEqual(['c', 'a']);
+		expect(result.previous.map(({ id }) => id)).toEqual(['b']);
 	});
 
 	it('retrieves the correct saved detail and resolves renamed Locations and seeded Type names', async () => {
@@ -64,7 +87,7 @@ describe('Garden browsing data', () => {
 			typeNames: [], startDate: null, endDate: null, notes: null, description: null,
 		} });
 		expect(await loadGardenOverview({ ...readers, gardens: { list: async () => [] } })).toEqual({
-			status: 'ready', current: [], previous: [], drafts: [],
+			status: 'ready', current: [], planned: [], previous: [], drafts: [],
 		});
 	});
 
@@ -76,6 +99,7 @@ describe('Garden browsing data', () => {
 			label: 'Untitled Garden',
 			href: `/gardens/new/wizard/${untitled.id}`,
 		}));
+		expect([...result.current, ...result.planned, ...result.previous].some(({ id }) => id === untitled.id)).toBe(false);
 	});
 
 	it('reopens unfinished drafts in their last-used editor in both directions', async () => {
