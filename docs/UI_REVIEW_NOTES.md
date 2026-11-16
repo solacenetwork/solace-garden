@@ -141,6 +141,16 @@ Add observations here during hands-on use. Keep rough notes until it's time to r
 
 ### Field notes
 
+#### November 16, 2026 — voice design review (proposals; not yet implemented)
+
+- **Gardens Hub priority:** Users want Current Gardens quickly accessible. Proposed order: compact horizontal Draft Gardens rail, then vertical Current, Planned, and Previous sections. Use **View All** to open a vertical list at `/gardens/drafts`. Evaluate how much space the rail uses on phone/tablet/desktop.
+- **Contextual actions:** Group **Locations → Templates → Create Garden** at the top of Gardens, with Create Garden prominent. Locations remains a Settings-managed concept, and both Locations and Templates should stop appearing as detached Standard sidebar sub-buttons; preserve Settings and direct routes.
+- **Creation confusion:** Quick Start, Wizard, and Advanced currently appear continuous even though they are independent. Proposed redesign folds Quick Start into Wizard step one: **Save & Finish** explicitly creates a real Garden; **Add More Details** proceeds to guided steps without creation; **Finish Later** leaves an autosaved draft. The early quick-create action is **only on step one**; after that, creation occurs at the final Wizard save. Advanced remains separate. Test exact wording, defaults, validation, and draft recovery.
+- **Terminology/help need:** A Garden Draft is an unfinished autosaved proposal, **not** a Garden. A Planned Garden is already saved, but growing has not begun. Suggested help copy: “A draft is a Garden you're still creating. A planned Garden is one you've already created but haven't started yet.” Never silently turn autosave into a saved Planned Garden.
+- **Step 10 visual hypotheses:** Consider warm brown/beige for draft editing and green for saved Garden editing, with explicit text labels, in both Simple and Standard modes. Review generic Bootstrap-blue primary buttons for a more distinctive Garden palette. Exact colors/headers/borders require manual accessibility and device evaluation.
+- **Acceptance approach:** These are design hypotheses from discussion, not final approved UI implementation. Prototype and assess in daily use, then add focused Playwright coverage after interaction design is accepted. Preserve existing data and draft integrity.
+
+
 <!-- Add new observations below, in any order. Don't worry about fixing or categorizing them immediately. -->
 
 ## Review and prioritization (later)
