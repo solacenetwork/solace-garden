@@ -2,7 +2,7 @@
 
 **Status:** Authoritative UI decision record — approved direction consolidated; detailed layouts and responsive states remain open.  
 **Started:** November 14, 2026  
-**Development position (November 15, 2026):** UI redesign Steps 1–5 and supplemental Steps 4.5A/B accepted. Step 5.5 local Playwright infrastructure is next; Steps 6–10 remain ahead of Milestone 8G.
+**Development position (November 16, 2026):** UI redesign Steps 1–5 and supplemental Steps 4.5A/B accepted. Step 5.5 local Playwright foundation accepted with 57/57 tests passing on the developer's desktop (49.6 seconds); see [TESTING_NOTES.md](TESTING_NOTES.md). Step 6 design discussion is next; Steps 6–10 remain ahead of Milestone 8G.
 
 ## 1. Purpose and scope
 
@@ -399,13 +399,15 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 **Acceptance:** Correct records and ordering appear; previews remain read-only; empty/loading/error states are distinct; rails work with touch, keyboard, and responsive layouts; no draft appears on Home.
 
-### Step 5.5 — Local Playwright browser-testing foundation (planned infrastructure checkpoint)
+### Step 5.5 — Local Playwright browser-testing foundation (accepted)
 
-**Status (November 15, 2026):** Preparation only. Playwright `1.65.1` is pinned in `package.json` and `package-lock.json` (commit `5b1ca9f`); its matching Chromium 159 launch was manually verified on LMDE 7, using the local Debian 13 platform override. Commit `b5b413d` added `tests/scripts/capture-fixture.mjs` and a gitignored fixture-authoring browser profile. The test harness, synthetic fixture data, automated browser tests, and their acceptance are **not yet implemented**.
+**Status (November 16, 2026):** Accepted by the developer after a complete local run on `oakisland` (LMDE 7): **57/57 Playwright browser tests passed in 49.6 seconds**. The pinned Playwright `1.65.1` harness starts/reuses Vite, restores a populated synthetic IndexedDB fixture in isolated Chromium contexts, supports focused test groups and produces local HTML reports and failure evidence. The fixture capture/restore scripts remain available. The suites currently cover startup and populated pages (5 cases), viewport scrolling in both presentation modes (40), Note editor scrolling/keyboard access (8), and Task/Wish List delete confirmation/persistence (4).
 
-**Next after accepted Step 5:** Establish local Playwright configuration, isolated Chromium test contexts, an empty-state test and sanitized populated IndexedDB snapshot, deterministic restoration, focused browser acceptance tests, and useful local reports. The existing browser-profile capture utility is a starting point, not evidence that fixture restore or test isolation works. Use local execution and optional manual Copilot handoff for authoring/debugging; GitHub Actions is deferred. Keep testing utilities outside production app code and preserve valid active data while running tests. No obsolete alpha-data compatibility work.
+**Testing records:** [TESTING_NOTES.md](TESTING_NOTES.md) documents the accepted baseline, inventory, limitations, unresolved device-specific reports and future coverage. [tests/README.md](../tests/README.md) provides commands for local execution. The purpose is to offload routine browser testing from Codex; GitHub Actions integration remains deferred.
 
-**Acceptance:** Repeatable tests run locally without an AI session, start from known isolated data, do not modify the fixture-authoring profile, and report reproducible failures. This is testing infrastructure, not Step 6 feature implementation.
+**Acceptance boundary:** This confirms the local Playwright foundation, **not** complete app behavior or resolution of the laptop's manually observed scrolling and deletion problems. The laptop reports remain open until reproduced/resolved on the affected machine. The earlier proposed empty-state test is **not yet implemented** and remains a possible additional coverage item. Valid operational data still needs protection; obsolete alpha fixture compatibility is not required.
+
+**Next:** Discuss and finalize Step 6 Gardens Hub design before preparing any implementation prompt. No Step 6 application work is included in this acceptance record.
 
 ### Step 6 — Gardens hub and draft discovery
 
