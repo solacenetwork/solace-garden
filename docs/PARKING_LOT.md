@@ -89,6 +89,17 @@ The startup preference, full-page Welcome route, Help access, deep-link behavior
 
 Retain this entry as a pointer only; future alternative Welcome experiences should be added separately and clearly marked as deferred rather than mixed into the approved V1 direction.
 
+## Future candidate (V2): Garden discovery through Location filters and user-defined tags
+
+**Status:** Parked V2 ideas (November 16, 2026); not approved for V1 or the current UI redesign Steps 6B–6.5. Exact UX, scope, and data design remain to be determined.
+
+- **Filter Gardens by geographic Location:** Consider an optional **All Locations / specific Location** filter on the Gardens Hub for people managing multiple properties or community plots. Reuse the existing Garden `locationId` associations; do not repeat a Location label on every V1 card. Decide later how filtering interacts with Draft, Current, Planned, and Previous sections, and whether Location filters should apply elsewhere.
+- **User-created tags:** Let gardeners assign their own descriptive tags to Gardens (examples: `vegetables`, `perennials`, `experiment`), then **search or filter by those tags** to find Gardens faster. These are gardener-defined organizational labels, distinct from Garden Type, geographic Location, lifecycle state, or the personal icon/color identity planned for Step 6.5.
+- **Combined discovery:** Explore whether keyword search, tags, and Location filtering should work together, without requiring all three controls to be visible on every Garden card. Keep the ordinary Gardens Hub usable for gardeners with only one Location and no custom tags.
+- **Future design questions:** Tag creation/editing/removal and normalization; single versus multiple tag selection; whether tags apply only to Gardens or later to Notes/other records; filtering of drafts; persistence and future sync behavior; mobile presentation and accessibility.
+
+**V1 boundary:** Step 6B cards display the illustration, title, optional subtitle, and optional start date—no Location line, lifecycle badge, or user-defined tags. Do not add tag fields, filters, schema changes, or search functionality to the current milestone.
+
 ## Future candidate (possibly V2): Show Drafts on Gardens dashboard preference
 
 **Status:** Parked future enhancement from November 14, 2026. **Not in V1 scope.** No new `/drafts` route or preference yet.
