@@ -100,6 +100,18 @@ Retain this entry as a pointer only; future alternative Welcome experiences shou
 
 **V1 boundary:** Step 6B cards display the illustration, title, optional subtitle, and optional start date—no Location line, lifecycle badge, or user-defined tags. Do not add tag fields, filters, schema changes, or search functionality to the current milestone.
 
+## Future candidate (possibly V2): Per-filmstrip sorting preferences
+
+**Status:** Parked enhancement (November 17, 2026); not part of V1 or UI redesign Step 6D. V2 is a possible timeframe, not a commitment.
+
+- Consider a small **Sort** affordance beside each Garden filmstrip, using a recognizable sort/order icon (such as arrows up/down), **not a gear/settings icon**.
+- Offer sorting by **most recently modified**, **alphabetical Garden name**, or **creation date**; decide ascending/descending choices and precise labeling when designed.
+- Keep sorting preferences independent for each filmstrip rather than imposing one global order; use local UI preferences if implemented. The dedicated `/gardens/drafts` page should honor the same Draft sort choice as the Hub filmstrip.
+- Maintain **most recently modified first** as the current V1 Draft filmstrip default. Editing a draft updates its timestamp and may move it to the beginning; do not change that existing behavior now.
+- Later review how sorting applies to saved Garden collections and Home rails, responsive presentation, accessibility, and future synchronization of preferences.
+
+**Reason for parking:** During Step 6D manual testing, modifying a draft moved it from third to first in the Draft filmstrip, making its previous position unreliable. User-controlled sorting may improve predictability without complicating the current V1 Hub work.
+
 ## Future candidate (possibly V2): Show Drafts on Gardens dashboard preference
 
 **Status:** Parked future enhancement from November 14, 2026. **Not in V1 scope.** No new `/drafts` route or preference yet.
