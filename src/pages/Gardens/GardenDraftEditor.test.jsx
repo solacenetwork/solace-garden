@@ -25,6 +25,7 @@ vi.mock('preact/hooks', () => {
 import { GardenDraftEditor } from './FullGardenCreation.jsx';
 import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
 import { GardenFields } from '../../components/GardenFields.jsx';
+import { loadGardenDrafts } from './viewModel.js';
 
 function nodes(node) {
 	if (!node || typeof node !== 'object') return [];
@@ -45,6 +46,7 @@ const fields = {
 
 function editor({ mode = 'wizard', templates = [template], sourceTemplateId = template.id } = {}) {
 	let draft = { id: 'draft', createdAt: 'created', preferredEditor: mode, sourceTemplateId, fields };
+	let renderedDraft = draft;
 	const workspace = {
 		drafts: { save: vi.fn(async (record) => { draft = record; return record; }) },
 		templates: { list: vi.fn(async () => templates), resolveConfiguration: vi.fn() },
@@ -52,7 +54,7 @@ function editor({ mode = 'wizard', templates = [template], sourceTemplateId = te
 	const references = { locations: [{ id: 'home', name: 'Home' }], types: [] };
 	function render() {
 		hooks.index = 0;
-		return GardenDraftEditor({ draft, references, workspace, mode });
+		return GardenDraftEditor({ draft: renderedDraft, references, workspace, mode });
 	}
 	async function mount() {
 		const tree = render();
@@ -63,8 +65,9 @@ function editor({ mode = 'wizard', templates = [template], sourceTemplateId = te
 	return {
 		render, mount, workspace,
 		get draft() { return draft; },
-		switchMode(nextMode) {
+		switchMode(nextMode, draftSnapshot = draft) {
 			mode = nextMode;
+			renderedDraft = draftSnapshot;
 			hooks.slots = [];
 			hooks.effects = [];
 		},
@@ -131,6 +134,33 @@ describe('Wizard applied Template progression', () => {
 		await button(view.render(), 'Switch to Advanced').props.onClick();
 		expect(view.draft).toMatchObject({ fields, sourceTemplateId: 'source', preferredEditor: 'advanced' });
 		expect(view.workspace.templates.resolveConfiguration).not.toHaveBeenCalled();
+	});
+
+	it.each([
+		['advanced', 'wizard'],
+		['wizard', 'advanced'],
+	])('does not let a stale %s route snapshot overwrite a switch to %s', async (fromMode, toMode) => {
+		const view = editor({ mode: fromMode });
+		await view.mount();
+		const staleSnapshot = { ...view.draft };
+
+		await button(view.render(), `Switch to ${toMode === 'wizard' ? 'Wizard' : 'Advanced'}`).props.onClick();
+		expect(view.draft).toMatchObject({
+			fields, sourceTemplateId: 'source', preferredEditor: toMode,
+		});
+
+		// Reproduce the route transition regression: the new editor mounts in the
+		// selected mode while GardenDraftRoute still has its previous snapshot.
+		view.switchMode(toMode, staleSnapshot);
+		await view.mount();
+		await button(view.render(), 'Back to Gardens').props.onClick();
+
+		expect(view.draft).toMatchObject({
+			fields, sourceTemplateId: 'source', preferredEditor: toMode,
+		});
+		const draftCards = await loadGardenDrafts({ drafts: { list: async () => [view.draft] } });
+		expect(draftCards.drafts[0].href).toBe(`/gardens/new/${toMode}/draft`);
+		expect(hooks.route).toHaveBeenLastCalledWith('/gardens');
 	});
 
 	it('clears the association for Start from Scratch while keeping fields and allowing Continue', async () => {

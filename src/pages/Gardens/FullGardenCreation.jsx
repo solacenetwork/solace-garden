@@ -168,7 +168,9 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 	const submitting = useRef(false);
 	const fieldsRef = useRef(draft.fields);
 	const sourceTemplateIdRef = useRef(draft.sourceTemplateId);
-	const preferredEditorRef = useRef(draft.preferredEditor);
+	// The route is the authoritative editor selection. Async route state may still
+	// carry the previous draft snapshot during an editor-mode change.
+	const preferredEditorRef = useRef(mode);
 	const templateLocationOrigin = useRef(null);
 	const [fields, setFields] = useState(draft.fields);
 	const [currentReferences, setCurrentReferences] = useState(references);
@@ -496,18 +498,22 @@ export function GardenDraftRoute({ params, mode }) {
 	const workspace = useGardenCreationWorkspace();
 	const draftId = params?.draftId;
 	const [state, setState] = useState({ status: 'loading' });
+	const loadKey = `${draftId}:${mode}`;
 	useEffect(() => {
 		let active = true;
+		setState({ status: 'loading', loadKey });
 		Promise.all([workspace.drafts.getById(draftId), workspace.locations.list(), workspace.types.list()])
 			.then(([draft, locations, types]) => {
 				if (!active) return;
 				setState(draft
-					? { status: 'ready', draft, references: { locations, types } }
-					: { status: 'error', message: 'This draft may have been discarded, created already, or the address may be incorrect.' });
-			}, (error) => active && setState({ status: 'error', message: creationError(error, 'opened') }));
+					? { status: 'ready', loadKey, draft, references: { locations, types } }
+					: { status: 'error', loadKey, message: 'This draft may have been discarded, created already, or the address may be incorrect.' });
+			}, (error) => active && setState({ status: 'error', loadKey, message: creationError(error, 'opened') }));
 		return () => { active = false; };
-	}, [draftId, workspace]);
-	if (state.status !== 'ready') return <GardenDraftLoadState state={state} />;
+	}, [draftId, loadKey, mode, workspace]);
+	if (state.loadKey !== loadKey || state.status !== 'ready') {
+		return <GardenDraftLoadState state={state.loadKey === loadKey ? state : { status: 'loading' }} />;
+	}
 	return <GardenDraftEditor key={`${draftId}-${mode}`} draft={state.draft} references={state.references} mode={mode} workspace={workspace} />;
 }
 
