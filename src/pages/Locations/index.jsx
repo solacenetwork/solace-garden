@@ -124,10 +124,9 @@ export function Locations() {
 		<section class="container locations-page" aria-labelledby="locations-title">
 			<header class="locations-page__header">
 				<p class="locations-page__eyebrow">Garden geography</p>
-				<h1 id="locations-title">Locations</h1>
+				<h1 id="locations-title"><i class="bi bi-geo-alt-fill"></i> Locations</h1>
 				<p>
-					Manage geographic growing sites such as Home or Community Garden.
-					Beds, containers, and garden types are managed separately.
+					Manage different geographic growing locations such as your home, a second property, or a community garden. Each geographic location may contain multiple garden types like raised beds, in-ground plots, or containers. These types are managed separately but all share the same geographic location. Most home gardeners with a vegetable garden will only use the default geographic location.
 				</p>
 			</header>
 

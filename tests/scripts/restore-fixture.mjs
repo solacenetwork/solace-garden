@@ -8,7 +8,10 @@ const fixturePath = 'tests/fixtures/sample-garden.json';
 const browser = await chromium.launch({ headless: false, timeout: 90_000 });
 
 try {
-  const context = await browser.newContext({ storageState: fixturePath });
+  const context = await browser.newContext({ 
+    storageState: fixturePath,
+    viewport: null 
+  });
   const page = await context.newPage();
 
   await page.goto(appOrigin);
