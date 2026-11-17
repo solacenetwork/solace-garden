@@ -2,7 +2,7 @@
 
 **Status:** Authoritative UI decision record — approved direction consolidated; detailed layouts and responsive states remain open.  
 **Started:** November 14, 2026  
-**Development position (November 16, 2026):** UI redesign Steps 1–5 and supplemental Steps 4.5A/B accepted. Step 5.5 local Playwright foundation accepted with 57/57 tests passing on the developer's desktop (49.6 seconds); see [TESTING_NOTES.md](TESTING_NOTES.md). Step 6A Hub structure and navigation is implemented for review but not accepted; Steps 6B–D, 6.5, and 7–10 remain ahead of Milestone 8G.
+**Development position (November 16, 2026):** UI redesign Steps 1–5 and supplemental Steps 4.5A/B accepted. Step 5.5 local Playwright foundation accepted with 57/57 tests passing on the developer's desktop (49.6 seconds); see [TESTING_NOTES.md](TESTING_NOTES.md). Steps 6A–B Hub structure, navigation, and Garden cards are implemented for review but not accepted; Steps 6C–D, 6.5, and 7–10 remain ahead of Milestone 8G.
 
 ## 1. Purpose and scope
 
@@ -241,7 +241,9 @@ Keep these states simple and usable in both modes. A user may have Previous Gard
 
 **Superseded earlier V1 constraint:** The proposed `/gardens/drafts` View All page replaces the older statement that no dedicated Drafts route should be added. A visibility preference for hiding the filmstrip remains deferred and is **not** part of Step 6.
 
-**Still open:** Draft metadata and empty states, top-action responsive layout, accessibility, card treatment, distinct finished Draft and saved-Garden fallback artwork before final Hub sign-off, Current vs Active contract semantics, and real-device acceptance. For now, use a neutral temporary fallback; no thumbnail/media support is required. Icon/color identity selection is explicitly deferred to Step 6.5. These are **proposals**, not implemented or accepted UI.
+**Step 6B card decision (implemented for review November 16, 2026):** Hub cards use the prototype's vertical, image-first structure with flexible 18rem minimum height and a consistent 8.5rem contained illustration area. Saved cards show title, optional subtitle, and optional start date; Location and lifecycle badges remain off the card. Drafts share the structure while keeping resume and discard as separate controls. Presentation-only SVG defaults are Wheelbarrow for Draft, Flowers for Current, Tools for Planned, and Veggies for Previous; asset paths are not persisted.
+
+**Still open:** Draft metadata and empty-state refinement, top-action responsive layout, accessibility, Current vs Active contract semantics, and real-device acceptance. No thumbnail/media support is required. Icon/color identity selection is explicitly deferred to Step 6.5. These are **proposals**, not accepted UI.
 
 ### C. Quick Start, Wizard, Advanced, and drafts
 
@@ -415,11 +417,11 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 **Acceptance boundary:** This confirms the local Playwright foundation, **not** complete app behavior or resolution of the laptop's manually observed scrolling and deletion problems. The laptop reports remain open until reproduced/resolved on the affected machine. The earlier proposed empty-state test is **not yet implemented** and remains a possible additional coverage item. Valid operational data still needs protection; obsolete alpha fixture compatibility is not required.
 
-**Next:** Review Step 6A and complete its independent browser/device acceptance before proceeding to Step 6B.
+**Next:** Review Steps 6A–B and complete their independent browser/device acceptance before proceeding to Step 6C.
 
 ### Step 6 — Gardens hub and draft discovery
 
-**Implementation status (November 16, 2026):** Step 6A implements the four Hub categories and header actions, removes the nested Standard-navigation Templates entry, and preserves direct routes. It remains pending independent browser and device acceptance. Card redesign, the Draft filmstrip and Drafts page, and browser acceptance remain the separate Steps 6B–D.
+**Implementation status (November 16, 2026):** Step 6A implements the four Hub categories and header actions, removes the nested Standard-navigation Templates entry, and preserves direct routes. Step 6B implements vertical image-first saved and Draft cards with category SVG placeholders, title, optional subtitle, optional start date, and separate Draft resume/discard controls. Both remain pending independent browser and device acceptance. The Draft filmstrip and Drafts page, followed by browser acceptance, remain the separate Steps 6C–D.
 
 **Purpose:** Make saved Gardens and unfinished creation sessions easy to distinguish and find.
 

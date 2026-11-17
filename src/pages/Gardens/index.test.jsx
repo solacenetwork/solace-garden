@@ -31,10 +31,52 @@ describe('Garden read-only views', () => {
 		expect(nodes(tree).filter((node) => node.type === 'h2').map((node) => text(node))).toEqual([
 			'Draft Gardens', 'Current Gardens', 'Planned Gardens', 'Previous Gardens',
 		]);
-		expect(text(tree)).toContain('Home Farm');
-		expect(text(tree)).toContain('Active');
-		expect(nodes(tree).filter((node) => node.props?.class === 'garden-card').map(({ props }) => props.href)).toEqual([garden.href, second.href]);
+		expect(text(tree)).not.toContain('Home Farm');
+		expect(text(tree)).not.toContain('Active');
+		expect(nodes(tree).filter((node) => node.props?.class === 'garden-card garden-card--saved').map(({ props }) => props.href)).toEqual([garden.href, second.href]);
 		expect(nodes(tree).filter((node) => node.type === 'li').map(({ key }) => key)).toEqual([garden.id, second.id]);
+	});
+
+	it('uses the category-specific SVG placeholder for every saved and Draft card', () => {
+		const draft = { id: 'draft-id', label: 'Draft title', href: '/gardens/new/wizard/draft-id' };
+		const tree = GardensOverviewView({
+			state: { status: 'ready', drafts: [draft], current: [garden], planned: [garden], previous: [garden] },
+		});
+		expect(nodes(tree).filter((node) => node.type === 'img').map(({ props }) => props.src)).toEqual([
+			'/assets/img/garden/placeholders/wheelbarrow.svg',
+			'/assets/img/garden/placeholders/flowers.svg',
+			'/assets/img/garden/placeholders/tools.svg',
+			'/assets/img/garden/placeholders/veggies.svg',
+		]);
+		expect(nodes(tree).filter((node) => node.type === 'img').every(({ props }) => props.alt === '')).toBe(true);
+	});
+
+	it('renders required and optional saved-Garden card content without Location or status', () => {
+		const tree = GardensOverviewView({
+			state: { status: 'ready', drafts: [], current: [garden], planned: [], previous: [] },
+		});
+		expect(text(tree)).toContain(garden.name);
+		expect(text(tree)).toContain(garden.subtitle);
+		expect(text(tree)).toContain('Starts');
+		expect(nodes(tree).find((node) => node.type === 'time').props.dateTime).toBe(garden.startDate);
+		expect(text(tree)).not.toContain(garden.locationName);
+		expect(text(tree)).not.toContain(garden.statusLabel);
+	});
+
+	it('omits missing card details and preserves long title and subtitle text', () => {
+		const longTitle = 'A very long Garden title intended to wrap naturally on narrow screens without being clipped or overflowing its card';
+		const longSubtitle = 'A similarly long subtitle that remains available in full when text is enlarged or the card becomes narrow';
+		const items = [
+			{ ...garden, name: longTitle, subtitle: longSubtitle, startDate: null },
+			{ ...garden, id: 'minimal', href: '/gardens/minimal', name: 'Required title', subtitle: null, startDate: null },
+		];
+		const tree = GardensOverviewView({
+			state: { status: 'ready', drafts: [], current: items, planned: [], previous: [] },
+		});
+		expect(text(tree)).toContain(longTitle);
+		expect(text(tree)).toContain(longSubtitle);
+		expect(text(tree)).toContain('Required title');
+		expect(nodes(tree).some((node) => node.type === 'time')).toBe(false);
 	});
 
 	it('links the ordered header actions to existing destinations', () => {
@@ -107,9 +149,27 @@ describe('Garden read-only views', () => {
 			onDiscard,
 		});
 		expect(text(tree)).toContain('Draft Gardens');
-		expect(nodes(tree).find((node) => node.props?.href === draft.href)).toBeTruthy();
-		nodes(tree).find((node) => node.type === 'button').props.onClick();
+		const resume = nodes(tree).find((node) => node.props?.href === draft.href);
+		expect(resume).toBeTruthy();
+		expect(text(resume)).toContain('Untitled Garden');
+		expect(text(resume)).toContain('Continue draft');
+		expect(nodes(resume).some((node) => node.type === 'button')).toBe(false);
+		const discard = nodes(tree).find((node) => node.type === 'button');
+		expect(text(discard)).toContain('Discard Draft');
+		discard.props.onClick();
 		expect(onDiscard).toHaveBeenCalledWith(draft);
+	});
+
+	it('keeps the Draft discard pending state on its separate action', () => {
+		const draft = { id: 'draft-id', label: 'Draft title', href: '/gardens/new/advanced/draft-id' };
+		const tree = GardensOverviewView({
+			state: { status: 'ready', current: [], planned: [], previous: [], drafts: [draft] },
+			discardingId: draft.id,
+		});
+		const discard = nodes(tree).find((node) => node.type === 'button');
+		expect(discard.props.disabled).toBe(true);
+		expect(text(discard)).toContain('Discarding…');
+		expect(nodes(tree).find((node) => node.props?.href === draft.href)).toBeTruthy();
 	});
 
 	it('shows associated independent records and links to their existing workflows', () => {

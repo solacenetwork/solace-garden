@@ -115,13 +115,12 @@
 
 .gardens-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(min(100%, 23rem), 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
 	gap: 1rem;
 	padding: 0;
 	list-style: none;
 }
 
-.garden-card,
 .garden-facts,
 .garden-text,
 .gardens-state {
@@ -133,40 +132,87 @@
 
 .garden-card {
 	display: flex;
-	align-items: center;
-	gap: 1rem;
+	box-sizing: border-box;
+	min-width: 0;
+	min-height: 18rem;
+	margin: 0;
 	height: 100%;
 	color: var(--sg-color-text);
-	text-decoration: none;
+	background: var(--sg-color-surface);
+	border: 1px solid var(--sg-color-border);
+	border-radius: var(--sg-radius-card);
 	box-shadow: var(--sg-shadow-soft);
+	flex-direction: column;
+	overflow: hidden;
 }
 
-.garden-card:hover {
+.garden-card--saved {
+	text-decoration: none;
+}
+
+.garden-card--saved:hover {
+	color: var(--sg-color-primary-strong);
 	border-color: var(--sg-color-primary);
 }
 
-.garden-card:focus-visible {
-	outline: 3px solid var(--sg-color-primary);
-	outline-offset: 3px;
+.garden-card--saved:focus-visible,
+.garden-draft-card__discard:focus-visible {
+	outline: 3px solid var(--sg-color-focus);
+	outline-offset: 2px;
+}
+
+.garden-draft-card__resume:focus-visible {
+	outline: 3px solid var(--sg-color-focus);
+	outline-offset: -3px;
+}
+
+.garden-card__visual {
+	display: grid;
+	width: 100%;
+	height: 8.5rem;
+	min-height: 8.5rem;
+	padding: 0.75rem;
+	background: color-mix(in srgb, var(--sg-color-primary-soft) 72%, var(--sg-color-surface));
+	place-items: center;
+}
+
+.garden-card__visual img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 }
 
 .garden-card__content {
+	display: flex;
 	min-width: 0;
+	width: 100%;
+	padding: 1rem;
 	flex: 1;
-}
-
-.garden-card__icon {
-	color: var(--sg-color-primary);
-	font-size: 2rem;
+	flex-direction: column;
+	gap: 0.35rem;
 }
 
 .garden-card h3 {
 	margin: 0;
-	font-size: 1.25rem;
+	font-size: 1rem;
+	font-weight: 750;
+	line-height: 1.25;
+	overflow-wrap: anywhere;
 }
 
-.garden-card p {
-	margin-block: 0.5rem;
+.garden-card__subtitle,
+.garden-card__action-label,
+.garden-card__date {
+	color: var(--sg-color-text-muted);
+	font-size: 0.8125rem;
+	line-height: 1.35;
+	overflow-wrap: anywhere;
+}
+
+.garden-card__date {
+	margin-block-start: auto;
+	padding-block-start: 0.5rem;
 }
 
 .gardens-state {
@@ -359,46 +405,31 @@
 }
 
 .garden-drafts__list {
-	display: grid;
-	padding: 0;
 	margin: 1rem 0 0;
-	list-style: none;
-	gap: 0.75rem;
 }
 
-.garden-draft-card {
+.garden-card--draft {
 	display: flex;
-	padding: 1rem;
-	background: var(--sg-color-surface);
-	border: 1px solid var(--sg-color-border);
-	border-radius: 0.8rem;
-	align-items: center;
-	justify-content: space-between;
-	gap: 1rem;
 }
 
-.garden-draft-card > a {
+.garden-draft-card__resume {
 	display: flex;
 	min-width: 0;
+	width: 100%;
 	color: var(--sg-color-text);
 	text-decoration: none;
-	align-items: center;
-	gap: 0.75rem;
-}
-
-.garden-draft-card > a > i {
-	color: var(--sg-color-primary);
-	font-size: 1.35rem;
-}
-
-.garden-draft-card span {
-	display: flex;
-	min-width: 0;
+	flex: 1;
 	flex-direction: column;
 }
 
-.garden-draft-card small {
-	color: var(--sg-color-text-muted);
+.garden-draft-card__resume:hover {
+	color: var(--sg-color-primary-strong);
+}
+
+.garden-draft-card__discard {
+	min-height: 2.75rem;
+	margin: 0 1rem 1rem;
+	align-self: flex-start;
 }
 
 .garden-full-create {
@@ -696,8 +727,7 @@
 
 	.garden-full-create__header,
 	.garden-full-create__toolbar,
-	.garden-template-selection__header,
-	.garden-draft-card {
+	.garden-template-selection__header {
 		align-items: stretch;
 		flex-direction: column;
 	}

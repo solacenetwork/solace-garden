@@ -1,11 +1,19 @@
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useStorage } from '../../context/StorageContext.jsx';
+import { formatDateOnly } from '../Home/dashboardData.js';
 import { createGardenReaders, loadGardenDetail, loadGardenOverview } from './viewModel.js';
 import { GardenLifecycle } from './GardenLifecycle.jsx';
 import { GardenDeletion } from './GardenDeletion.jsx';
 import { GardenSaveTemplate } from './GardenSaveTemplate.jsx';
 import './style.css';
+
+const GARDEN_CARD_PLACEHOLDERS = Object.freeze({
+	draft: '/assets/img/garden/placeholders/wheelbarrow.svg',
+	current: '/assets/img/garden/placeholders/flowers.svg',
+	planned: '/assets/img/garden/placeholders/tools.svg',
+	previous: '/assets/img/garden/placeholders/veggies.svg',
+});
 
 function useGardenRead(load) {
 	const [state, setState] = useState({ status: 'loading' });
@@ -44,7 +52,32 @@ function ReadState({ state, onRetry }) {
 	return null;
 }
 
-function GardenSection({ title, id, items = [], emptyMessage }) {
+function GardenCardVisual({ src }) {
+	return (
+		<span class="garden-card__visual" aria-hidden="true">
+			<img src={src} alt="" loading="lazy" decoding="async" />
+		</span>
+	);
+}
+
+function GardenCardContent({ title, subtitle = null, startDate = null, actionLabel = null }) {
+	const formattedStartDate = formatDateOnly(startDate);
+	return (
+		<div class="garden-card__content">
+			<h3>{title}</h3>
+			{subtitle && <span class="garden-card__subtitle">{subtitle}</span>}
+			{actionLabel && <span class="garden-card__action-label">{actionLabel}</span>}
+			{formattedStartDate && (
+				<span class="garden-card__date">
+					<span>Starts </span>
+					<time dateTime={startDate}>{formattedStartDate}</time>
+				</span>
+			)}
+		</div>
+	);
+}
+
+function GardenSection({ title, id, items = [], emptyMessage, placeholder }) {
 	return (
 		<section class="gardens-section" aria-labelledby={id}>
 			<h2 id={id}>{title}</h2>
@@ -52,15 +85,9 @@ function GardenSection({ title, id, items = [], emptyMessage }) {
 				<ul class="gardens-grid">
 					{items.map((garden) => (
 						<li key={garden.id}>
-							<a class="garden-card" href={garden.href}>
-								<i class="bi bi-tree garden-card__icon" aria-hidden="true"></i>
-								<div class="garden-card__content">
-									<h3>{garden.name}</h3>
-									{garden.subtitle && <p class="garden-subtitle">{garden.subtitle}</p>}
-									<p class="garden-location"><i class="bi bi-geo-alt" aria-hidden="true"></i> {garden.locationName}</p>
-									<span class="badge">{garden.statusLabel}</span>
-								</div>
-								<i class="bi bi-chevron-right" aria-hidden="true"></i>
+							<a class="garden-card garden-card--saved" href={garden.href}>
+								<GardenCardVisual src={placeholder} />
+								<GardenCardContent title={garden.name} subtitle={garden.subtitle} startDate={garden.startDate} />
 							</a>
 						</li>
 					))}
@@ -71,7 +98,28 @@ function GardenSection({ title, id, items = [], emptyMessage }) {
 }
 
 function GardenDraftSection({ drafts = [], onDiscard, discardingId }) {
-	return <section class="gardens-section garden-drafts" aria-labelledby="garden-drafts-title"><h2 id="garden-drafts-title">Draft Gardens</h2><p>Continue an unfinished Garden or discard one you no longer need.</p>{drafts.length === 0 ? <p class="gardens-state">No unfinished Garden drafts.</p> : <ul class="garden-drafts__list">{drafts.map((draft) => <li class="garden-draft-card" key={draft.id}><a href={draft.href}><i class="bi bi-pencil-square" aria-hidden="true"></i><span><strong>{draft.label}</strong><small>Continue draft</small></span></a><button class="btn-text theme-danger" type="button" disabled={discardingId === draft.id} onClick={() => onDiscard(draft)}><i class="bi bi-trash3" aria-hidden="true"></i>{discardingId === draft.id ? 'Discarding…' : 'Discard Draft'}</button></li>)}</ul>}</section>;
+	return (
+		<section class="gardens-section garden-drafts" aria-labelledby="garden-drafts-title">
+			<h2 id="garden-drafts-title">Draft Gardens</h2>
+			<p>Continue an unfinished Garden or discard one you no longer need.</p>
+			{drafts.length === 0 ? <p class="gardens-state">No unfinished Garden drafts.</p> : (
+				<ul class="gardens-grid garden-drafts__list">
+					{drafts.map((draft) => (
+						<li class="garden-card garden-card--draft" key={draft.id}>
+							<a class="garden-draft-card__resume" href={draft.href}>
+								<GardenCardVisual src={GARDEN_CARD_PLACEHOLDERS.draft} />
+								<GardenCardContent title={draft.label} actionLabel="Continue draft" />
+							</a>
+							<button class="btn-text theme-danger garden-draft-card__discard" type="button" disabled={discardingId === draft.id} onClick={() => onDiscard(draft)}>
+								<i class="bi bi-trash3" aria-hidden="true"></i>
+								{discardingId === draft.id ? 'Discarding…' : 'Discard Draft'}
+							</button>
+						</li>
+					))}
+				</ul>
+			)}
+		</section>
+	);
 }
 
 export function GardensOverviewView({ state, onRetry, onDiscard = () => {}, discardingId = null, draftError = '' }) {
@@ -94,9 +142,9 @@ export function GardensOverviewView({ state, onRetry, onDiscard = () => {}, disc
 				<>
 					{draftError && <div class="garden-create__error" role="alert">{draftError}</div>}
 					<GardenDraftSection drafts={state.drafts} onDiscard={onDiscard} discardingId={discardingId} />
-					<GardenSection title="Current Gardens" id="current-gardens" items={state.current} emptyMessage="No active Gardens." />
-					<GardenSection title="Planned Gardens" id="planned-gardens" items={state.planned} emptyMessage="No planned Gardens." />
-					<GardenSection title="Previous Gardens" id="previous-gardens" items={state.previous} emptyMessage="No closed, completed, or archived Gardens." />
+					<GardenSection title="Current Gardens" id="current-gardens" items={state.current} emptyMessage="No active Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.current} />
+					<GardenSection title="Planned Gardens" id="planned-gardens" items={state.planned} emptyMessage="No planned Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.planned} />
+					<GardenSection title="Previous Gardens" id="previous-gardens" items={state.previous} emptyMessage="No closed, completed, or archived Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.previous} />
 				</>
 			)}
 		</section>
