@@ -127,7 +127,7 @@ export function GardensOverviewView({ state, onRetry, onDiscard = () => {}, disc
 		<section class="container gardens-page" aria-labelledby="gardens-title">
 			<header class="gardens-header gardens-header--overview">
 				<div>
-					<h1 id="gardens-title"><i class="bi bi-leaf-fill"></i> Gardens</h1>
+					<h1 id="gardens-title"><i class="bi bi-leaf-fill" aria-hidden="true"></i> Gardens</h1>
 					<p>Continue drafts, manage growing projects, and revisit previous Gardens.</p>
 				</div>
 				<nav class="gardens-header__actions" aria-label="Garden management">
