@@ -70,7 +70,7 @@ export const routeCatalog = [
 		id: 'gardens',
 		path: '/gardens',
 		label: 'Gardens',
-		icon: 'tree',
+		icon: 'leaf-fill',
 		description: 'Manage current and previous gardens and growing projects.',
 		view: 'gardens',
 	},
