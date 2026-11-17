@@ -11,7 +11,7 @@ import { StorageProvider } from './context/StorageContext.jsx';
 import { applicationRoutes } from './routes.js';
 import { Home } from './pages/Home/index.jsx';
 import { Lists } from './pages/Lists/index.jsx';
-import { Gardens, GardenDetail } from './pages/Gardens/index.jsx';
+import { Gardens, GardenDetail, GardenDrafts } from './pages/Gardens/index.jsx';
 import { CreateGarden } from './pages/Gardens/CreateGarden.jsx';
 import { GardenDraftRoute, NewGardenDraftRoute } from './pages/Gardens/FullGardenCreation.jsx';
 import { EditGarden } from './pages/Gardens/EditGarden.jsx';
@@ -32,6 +32,7 @@ const pageComponents = {
 	locations: Locations,
 	gardens: Gardens,
 	'garden-new': CreateGarden,
+	'garden-drafts': GardenDrafts,
 	'garden-wizard-new': () => <NewGardenDraftRoute mode="wizard" />,
 	'garden-advanced-new': () => <NewGardenDraftRoute mode="advanced" />,
 	'garden-wizard': (props) => <GardenDraftRoute {...props} mode="wizard" />,

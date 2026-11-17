@@ -25,6 +25,7 @@ function resolveRoute(path) {
 describe('application routes', () => {
 	it('resolves Garden overview and UUID detail routes without shadowing static workspaces', () => {
 		expect(resolveRoute('/gardens')).toMatchObject({ route: { view: 'gardens' }, params: {} });
+		expect(resolveRoute('/gardens/drafts')).toMatchObject({ route: { view: 'garden-drafts' }, params: {} });
 		expect(resolveRoute('/gardens/new')).toMatchObject({ route: { view: 'garden-new' }, params: {} });
 		expect(resolveRoute('/gardens/new/wizard')).toMatchObject({ route: { view: 'garden-wizard-new' }, params: {} });
 		expect(resolveRoute('/gardens/new/advanced')).toMatchObject({ route: { view: 'garden-advanced-new' }, params: {} });
@@ -39,6 +40,8 @@ describe('application routes', () => {
 		expect(findRoute(`/gardens/${NOTE_UUID}`)).toMatchObject({ id: 'gardens' });
 		expect(findRoute(`/gardens/${NOTE_UUID}/edit`)).toMatchObject({ id: 'gardens' });
 		expect(findRoute('/gardens/new')).toMatchObject({ id: 'gardens' });
+		expect(findRoute('/gardens/drafts')).toMatchObject({ id: 'gardens' });
+		expect(getSettingsHref('/gardens/drafts')).toBe('/settings?ref=gardens');
 		expect(getSettingsHref(`/gardens/${NOTE_UUID}`)).toBe('/settings?ref=gardens');
 		expect(getSettingsReturnPath('gardens')).toBe('/gardens');
 		for (const path of ['/gardens/one/extra', '/gardens/one/edit/extra', '/gardenstuff', '/unknown']) {
@@ -141,7 +144,7 @@ describe('destination registry and route contracts', () => {
 		expect(applicationRoutes.map(({ path }) => path)).toEqual([
 			'/notes/new/:draftId', '/notes/new', '/notes/:id',
 			'/gardens/new/wizard/:draftId', '/gardens/new/advanced/:draftId',
-			'/gardens/new/wizard', '/gardens/new/advanced', '/gardens/new',
+			'/gardens/new/wizard', '/gardens/new/advanced', '/gardens/new', '/gardens/drafts',
 			'/gardens/:id/edit', '/gardens/:id',
 			...destinations.map(([, path]) => path),
 		]);
@@ -179,7 +182,7 @@ describe('destination registry and route contracts', () => {
 
 	it('returns editor origins to their canonical destinations', () => {
 		for (const path of [
-			'/gardens/new', '/gardens/new/wizard', '/gardens/new/advanced',
+			'/gardens/new', '/gardens/new/wizard', '/gardens/new/advanced', '/gardens/drafts',
 			`/gardens/new/wizard/${NOTE_UUID}`, `/gardens/new/advanced/${NOTE_UUID}`,
 			`/gardens/${NOTE_UUID}`, `/gardens/${NOTE_UUID}/edit`,
 		]) {

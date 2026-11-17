@@ -1,8 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
+vi.mock('bootstrap/js/dist/carousel.js', () => ({ default: class Carousel {} }));
 
-import { GardensOverviewView, GardenDetailView } from './index.jsx';
+import { CardCarousel } from '../../components/CardCarousel.jsx';
+import {
+	discardGardenDraft, GardenDraftsView, GardensOverviewView, GardenDetailView,
+} from './index.jsx';
 import { GardenDeletionDialog } from './GardenDeletion.jsx';
 
 // Inspect the rendered view tree without a browser or additional DOM dependency.
@@ -10,7 +14,7 @@ function nodes(node) {
 	if (node === null || node === undefined || typeof node === 'boolean') return [];
 	if (Array.isArray(node)) return node.flatMap(nodes);
 	if (typeof node !== 'object') return [node];
-	if (typeof node.type === 'function') return nodes(node.type(node.props));
+	if (typeof node.type === 'function' && node.type !== CardCarousel) return nodes(node.type(node.props));
 	return [node, ...nodes(node.props.children)];
 }
 function text(tree) {
@@ -51,13 +55,30 @@ describe('Garden read-only views', () => {
 		expect(nodes(tree).filter((node) => node.type === 'img').every(({ props }) => props.alt === '')).toBe(true);
 	});
 
+	it('renders all Hub drafts in the shared filmstrip with a View All destination', () => {
+		const drafts = [
+			{ id: 'wizard-draft', label: 'Wizard draft', href: '/gardens/new/wizard/wizard-draft' },
+			{ id: 'advanced-draft', label: 'Advanced draft', href: '/gardens/new/advanced/advanced-draft' },
+		];
+		const tree = GardensOverviewView({
+			state: { status: 'ready', drafts, current: [], planned: [], previous: [] },
+		});
+		const carousel = nodes(tree).find((node) => node.type === CardCarousel);
+		expect(carousel.props).toMatchObject({
+			id: 'garden-drafts-carousel', label: 'Draft Gardens', className: 'garden-drafts__carousel',
+		});
+		expect(carousel.props.children).toHaveLength(2);
+		expect(nodes(carousel.props.children).filter((node) => node.props?.class === 'garden-draft-card__resume').map(({ props }) => props.href)).toEqual(drafts.map(({ href }) => href));
+		expect(nodes(tree).find((node) => node.props?.href === '/gardens/drafts')).toBeTruthy();
+	});
+
 	it('renders required and optional saved-Garden card content without Location or status', () => {
 		const tree = GardensOverviewView({
 			state: { status: 'ready', drafts: [], current: [garden], planned: [], previous: [] },
 		});
 		expect(text(tree)).toContain(garden.name);
 		expect(text(tree)).toContain(garden.subtitle);
-		expect(text(tree)).toContain('Starts');
+		expect(text(tree)).toContain('Start date:');
 		expect(nodes(tree).find((node) => node.type === 'time').props.dateTime).toBe(garden.startDate);
 		expect(text(tree)).not.toContain(garden.locationName);
 		expect(text(tree)).not.toContain(garden.statusLabel);
@@ -172,6 +193,33 @@ describe('Garden read-only views', () => {
 		expect(nodes(tree).find((node) => node.props?.href === draft.href)).toBeTruthy();
 	});
 
+	it('renders the dedicated Drafts page as a grid with both editor destinations', () => {
+		const drafts = [
+			{ id: 'wizard-draft', label: 'Wizard draft', href: '/gardens/new/wizard/wizard-draft' },
+			{ id: 'advanced-draft', label: 'Advanced draft', href: '/gardens/new/advanced/advanced-draft' },
+		];
+		const tree = GardenDraftsView({ state: { status: 'ready', drafts } });
+		expect(text(tree)).toContain('Draft Gardens');
+		expect(nodes(tree).find((node) => node.props?.href === '/gardens')).toBeTruthy();
+		expect(nodes(tree).some((node) => node.type === CardCarousel)).toBe(false);
+		expect(nodes(tree).find((node) => node.props?.class === 'gardens-grid garden-drafts__grid')).toBeTruthy();
+		expect(nodes(tree).filter((node) => node.props?.class === 'garden-draft-card__resume').map(({ props }) => props.href)).toEqual(drafts.map(({ href }) => href));
+		expect(nodes(tree).filter((node) => node.props?.class?.includes('garden-draft-card__discard'))).toHaveLength(2);
+	});
+
+	it('handles dedicated Draft loading, error, and empty states', () => {
+		const onRetry = vi.fn();
+		const loading = GardenDraftsView({ state: { status: 'loading' }, onRetry });
+		expect(nodes(loading).some((node) => node.props?.role === 'status')).toBe(true);
+		const error = GardenDraftsView({ state: { status: 'error' }, onRetry });
+		expect(nodes(error).some((node) => node.props?.role === 'alert')).toBe(true);
+		nodes(error).find((node) => node.type === 'button').props.onClick();
+		expect(onRetry).toHaveBeenCalledOnce();
+		const empty = GardenDraftsView({ state: { status: 'ready', drafts: [] } });
+		expect(text(empty)).toContain('No unfinished Garden drafts.');
+		expect(nodes(empty).some((node) => node.type === CardCarousel)).toBe(false);
+	});
+
 	it('shows associated independent records and links to their existing workflows', () => {
 		const tree = GardenDetailView({
 			state: {
@@ -202,5 +250,44 @@ describe('Garden read-only views', () => {
 		expect(copy).toContain('associations with this Garden will be cleared');
 		expect(copy).toContain('cannot be undone without restoring a backup');
 		expect(nodes(tree).find((node) => node.type === 'dialog')).toBeTruthy();
+	});
+});
+
+describe('Garden draft discard controller', () => {
+	const draft = { id: 'draft-id', label: 'Draft title' };
+
+	it('cancels without deleting or changing pending state', async () => {
+		const drafts = { remove: vi.fn() };
+		const setDiscardingId = vi.fn();
+		expect(await discardGardenDraft(draft, drafts, {
+			confirm: vi.fn(() => false), setDiscardingId,
+		})).toBe(false);
+		expect(drafts.remove).not.toHaveBeenCalled();
+		expect(setDiscardingId).not.toHaveBeenCalled();
+	});
+
+	it('deletes, refreshes the visible collection, and clears pending state', async () => {
+		const drafts = { remove: vi.fn(async () => true) };
+		const setDiscardingId = vi.fn();
+		const setError = vi.fn();
+		const onRemoved = vi.fn();
+		expect(await discardGardenDraft(draft, drafts, {
+			confirm: vi.fn(() => true), onRemoved, setDiscardingId, setError,
+		})).toBe(true);
+		expect(drafts.remove).toHaveBeenCalledWith(draft.id);
+		expect(onRemoved).toHaveBeenCalledOnce();
+		expect(setError).toHaveBeenCalledWith('');
+		expect(setDiscardingId.mock.calls).toEqual([[draft.id], [null]]);
+	});
+
+	it('reports deletion failures accessibly and clears pending state', async () => {
+		const drafts = { remove: vi.fn(async () => { throw new Error('storage failed'); }) };
+		const setDiscardingId = vi.fn();
+		const setError = vi.fn();
+		expect(await discardGardenDraft(draft, drafts, {
+			confirm: vi.fn(() => true), setDiscardingId, setError,
+		})).toBe(false);
+		expect(setError).toHaveBeenLastCalledWith('This Garden draft could not be discarded. Please try again.');
+		expect(setDiscardingId.mock.calls).toEqual([[draft.id], [null]]);
 	});
 });

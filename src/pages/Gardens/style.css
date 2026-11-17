@@ -418,7 +418,30 @@
 	color: var(--sg-color-text-muted);
 }
 
-.garden-drafts__list {
+.garden-drafts__header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.garden-drafts__header h2 {
+	margin: 0;
+}
+
+.garden-drafts__header a {
+	color: var(--sg-color-primary-strong);
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.garden-drafts__header a:focus-visible {
+	outline: 3px solid var(--sg-color-focus);
+	outline-offset: 2px;
+}
+
+.garden-drafts__carousel,
+.garden-drafts__grid {
 	margin: 1rem 0 0;
 }
 

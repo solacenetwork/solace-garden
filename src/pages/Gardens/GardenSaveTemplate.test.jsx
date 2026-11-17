@@ -3,6 +3,7 @@ import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
+vi.mock('bootstrap/js/dist/carousel.js', () => ({ default: class Carousel {} }));
 
 import { createGardenLifecycleService } from '../../services/gardenLifecycle.js';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';

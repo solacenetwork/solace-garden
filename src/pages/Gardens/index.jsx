@@ -1,8 +1,11 @@
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useState } from 'preact/hooks';
+import { CardCarousel } from '../../components/CardCarousel.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { formatDateOnly } from '../Home/dashboardData.js';
-import { createGardenReaders, loadGardenDetail, loadGardenOverview } from './viewModel.js';
+import {
+	createGardenReaders, loadGardenDetail, loadGardenDrafts, loadGardenOverview,
+} from './viewModel.js';
 import { GardenLifecycle } from './GardenLifecycle.jsx';
 import { GardenDeletion } from './GardenDeletion.jsx';
 import { GardenSaveTemplate } from './GardenSaveTemplate.jsx';
@@ -77,6 +80,21 @@ function GardenCardContent({ title, subtitle = null, startDate = null, actionLab
 	);
 }
 
+export function GardenDraftCard({ draft, onDiscard, discardingId = null }) {
+	return (
+		<article class="garden-card garden-card--draft">
+			<a class="garden-draft-card__resume" href={draft.href}>
+				<GardenCardVisual src={GARDEN_CARD_PLACEHOLDERS.draft} />
+				<GardenCardContent title={draft.label} actionLabel="Continue draft" />
+			</a>
+			<button class="btn-text theme-danger garden-draft-card__discard" type="button" disabled={discardingId === draft.id} onClick={() => onDiscard(draft)}>
+				<i class="bi bi-trash3" aria-hidden="true"></i>
+				{discardingId === draft.id ? 'Discarding…' : 'Discard Draft'}
+			</button>
+		</article>
+	);
+}
+
 function GardenSection({ title, id, items = [], emptyMessage, placeholder }) {
 	return (
 		<section class="gardens-section" aria-labelledby={id}>
@@ -97,26 +115,33 @@ function GardenSection({ title, id, items = [], emptyMessage, placeholder }) {
 	);
 }
 
-function GardenDraftSection({ drafts = [], onDiscard, discardingId }) {
+function GardenDraftGrid({ drafts, onDiscard, discardingId }) {
+	return (
+		<ul class="gardens-grid garden-drafts__grid">
+			{drafts.map((draft) => (
+				<li key={draft.id}>
+					<GardenDraftCard draft={draft} onDiscard={onDiscard} discardingId={discardingId} />
+				</li>
+			))}
+		</ul>
+	);
+}
+
+function GardenDraftSection({ drafts = [], onDiscard, discardingId, error = '' }) {
 	return (
 		<section class="gardens-section garden-drafts" aria-labelledby="garden-drafts-title">
-			<h2 id="garden-drafts-title">Draft Gardens</h2>
+			<div class="garden-drafts__header">
+				<h2 id="garden-drafts-title">Draft Gardens</h2>
+				<a href="/gardens/drafts">View All</a>
+			</div>
 			<p>Continue an unfinished Garden or discard one you no longer need.</p>
+			{error && <div class="garden-create__error" role="alert">{error}</div>}
 			{drafts.length === 0 ? <p class="gardens-state">No unfinished Garden drafts.</p> : (
-				<ul class="gardens-grid garden-drafts__list">
+				<CardCarousel id="garden-drafts-carousel" label="Draft Gardens" className="garden-drafts__carousel">
 					{drafts.map((draft) => (
-						<li class="garden-card garden-card--draft" key={draft.id}>
-							<a class="garden-draft-card__resume" href={draft.href}>
-								<GardenCardVisual src={GARDEN_CARD_PLACEHOLDERS.draft} />
-								<GardenCardContent title={draft.label} actionLabel="Continue draft" />
-							</a>
-							<button class="btn-text theme-danger garden-draft-card__discard" type="button" disabled={discardingId === draft.id} onClick={() => onDiscard(draft)}>
-								<i class="bi bi-trash3" aria-hidden="true"></i>
-								{discardingId === draft.id ? 'Discarding…' : 'Discard Draft'}
-							</button>
-						</li>
+						<GardenDraftCard draft={draft} onDiscard={onDiscard} discardingId={discardingId} key={draft.id} />
 					))}
-				</ul>
+				</CardCarousel>
 			)}
 		</section>
 	);
@@ -140,11 +165,32 @@ export function GardensOverviewView({ state, onRetry, onDiscard = () => {}, disc
 			</header>
 			{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (
 				<>
-					{draftError && <div class="garden-create__error" role="alert">{draftError}</div>}
-					<GardenDraftSection drafts={state.drafts} onDiscard={onDiscard} discardingId={discardingId} />
+					<GardenDraftSection drafts={state.drafts} onDiscard={onDiscard} discardingId={discardingId} error={draftError} />
 					<GardenSection title="Current Gardens" id="current-gardens" items={state.current} emptyMessage="No active Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.current} />
 					<GardenSection title="Planned Gardens" id="planned-gardens" items={state.planned} emptyMessage="No planned Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.planned} />
 					<GardenSection title="Previous Gardens" id="previous-gardens" items={state.previous} emptyMessage="No closed, completed, or archived Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.previous} />
+				</>
+			)}
+		</section>
+	);
+}
+
+export function GardenDraftsView({ state, onRetry, onDiscard = () => {}, discardingId = null, draftError = '' }) {
+	return (
+		<section class="container gardens-page garden-drafts-page" aria-labelledby="garden-drafts-page-title">
+			<a class="btn-outline gardens-back" href="/gardens">
+				<i class="bi bi-arrow-left" aria-hidden="true"></i> All Gardens
+			</a>
+			<header class="gardens-header">
+				<h1 id="garden-drafts-page-title">Draft Gardens</h1>
+				<p>Continue an unfinished Garden or discard one you no longer need.</p>
+			</header>
+			{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (
+				<>
+					{draftError && <div class="garden-create__error" role="alert">{draftError}</div>}
+					{state.drafts.length === 0
+						? <p class="gardens-state">No unfinished Garden drafts.</p>
+						: <GardenDraftGrid drafts={state.drafts} onDiscard={onDiscard} discardingId={discardingId} />}
 				</>
 			)}
 		</section>
@@ -221,29 +267,62 @@ export function GardenDetailView({ state, onRetry, lifecycle = null, deletion = 
 	);
 }
 
-export function Gardens() {
-	const { repositories } = useStorage();
-	const load = useMemo(() => {
-		const readers = createGardenReaders(repositories);
-		return () => loadGardenOverview(readers);
-	}, [repositories]);
-	const [state, retry] = useGardenRead(load);
+export async function discardGardenDraft(draft, drafts, {
+	confirm = globalThis.confirm,
+	onRemoved = () => {},
+	setDiscardingId = () => {},
+	setError = () => {},
+} = {}) {
+	if (!confirm(`Permanently discard the unfinished Garden “${draft.label}”?`)) return false;
+	setDiscardingId(draft.id);
+	setError('');
+	try {
+		await drafts.remove(draft.id);
+		onRemoved();
+		return true;
+	} catch {
+		setError('This Garden draft could not be discarded. Please try again.');
+		return false;
+	} finally {
+		setDiscardingId(null);
+	}
+}
+
+function useGardenDraftDiscard(drafts, onRemoved) {
 	const [discardingId, setDiscardingId] = useState(null);
 	const [draftError, setDraftError] = useState('');
-	async function discardDraft(draft) {
-		if (!globalThis.confirm(`Permanently discard the unfinished Garden “${draft.label}”?`)) return;
-		setDiscardingId(draft.id);
-		setDraftError('');
-		try {
-			await createGardenReaders(repositories).drafts.remove(draft.id);
-			retry();
-		} catch {
-			setDraftError('This Garden draft could not be discarded. Please try again.');
-		} finally {
-			setDiscardingId(null);
-		}
-	}
+	const discardDraft = (draft) => discardGardenDraft(draft, drafts, {
+		onRemoved,
+		setDiscardingId,
+		setError: setDraftError,
+	});
+	return { discardDraft, discardingId, draftError };
+}
+
+export function Gardens() {
+	const { repositories } = useStorage();
+	const readers = useMemo(() => createGardenReaders(repositories), [repositories]);
+	const load = useMemo(() => () => loadGardenOverview(readers), [readers]);
+	const [state, retry] = useGardenRead(load);
+	const { discardDraft, discardingId, draftError } = useGardenDraftDiscard(readers.drafts, retry);
 	return <GardensOverviewView state={state} onRetry={retry} onDiscard={discardDraft} discardingId={discardingId} draftError={draftError} />;
+}
+
+export function GardenDrafts() {
+	const { repositories } = useStorage();
+	const readers = useMemo(() => createGardenReaders(repositories), [repositories]);
+	const load = useMemo(() => () => loadGardenDrafts(readers), [readers]);
+	const [state, retry] = useGardenRead(load);
+	const { discardDraft, discardingId, draftError } = useGardenDraftDiscard(readers.drafts, retry);
+	return (
+		<GardenDraftsView
+			state={state}
+			onRetry={retry}
+			onDiscard={discardDraft}
+			discardingId={discardingId}
+			draftError={draftError}
+		/>
+	);
 }
 
 function GardenDetailRecord({ id }) {

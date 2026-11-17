@@ -5,7 +5,9 @@ import { initializeDexieStorage } from '../../storage/dexie/initializeDexieStora
 import { seedGardenSamples } from '../../dev/seedGardens.js';
 import { DEFAULT_LOCATION_ID } from '../../storage/locationValidation.js';
 import { StorageError } from '../../storage/errors.js';
-import { createGardenReaders, loadGardenDetail, loadGardenOverview } from './viewModel.js';
+import {
+	createGardenReaders, loadGardenDetail, loadGardenDrafts, loadGardenOverview,
+} from './viewModel.js';
 
 const MISSING_ID = '550e8400-e29b-41d4-a716-446655440099';
 
@@ -127,6 +129,24 @@ describe('Garden browsing data', () => {
 		}));
 	});
 
+	it('loads the dedicated Draft collection with the same labels, order, and editor links', async () => {
+		const wizard = await readers.drafts.create();
+		await readers.drafts.save({
+			id: wizard.id,
+			fields: { ...wizard.fields, name: 'Wizard draft' },
+			preferredEditor: 'wizard',
+		});
+		const result = await loadGardenDrafts(readers);
+		expect(result).toEqual({
+			status: 'ready',
+			drafts: [expect.objectContaining({
+				id: wizard.id,
+				label: 'Wizard draft',
+				href: `/gardens/new/wizard/${wizard.id}`,
+			})],
+		});
+	});
+
 	it.each(['invalid-id', MISSING_ID])('returns not-found for missing or invalid IDs: %s', async (id) => {
 		expect(await loadGardenDetail(readers, id)).toEqual({ status: 'not-found' });
 	});
@@ -136,6 +156,7 @@ describe('Garden browsing data', () => {
 		expect(await loadGardenDetail({ ...readers, gardens: { getById: failure } }, samples[0].id)).toEqual({ status: 'error' });
 		expect(await loadGardenDetail({ ...readers, types: { list: failure } }, samples[0].id)).toEqual({ status: 'error' });
 		expect(await loadGardenOverview({ ...readers, locations: { list: failure } })).toEqual({ status: 'error' });
+		expect(await loadGardenDrafts({ ...readers, drafts: { list: failure } })).toEqual({ status: 'error' });
 		storage.close();
 		expect(await loadGardenDetail(readers, samples[0].id)).toEqual({ status: 'error' });
 		expect(await loadGardenOverview(readers)).toEqual({ status: 'error' });

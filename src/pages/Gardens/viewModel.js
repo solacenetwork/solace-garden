@@ -31,6 +31,14 @@ function gardenView(record, locations, types = []) {
 	};
 }
 
+function gardenDraftView(draft) {
+	return {
+		...draft,
+		label: draft.fields.name.trim() || 'Untitled Garden',
+		href: `/gardens/new/${draft.preferredEditor}/${draft.id}`,
+	};
+}
+
 export function groupGardenRecords(items) {
 	const groups = { current: [], planned: [], previous: [] };
 	for (const item of items) {
@@ -55,12 +63,16 @@ export async function loadGardenOverview({ gardens, locations, drafts }) {
 		return {
 			status: 'ready',
 			...groups,
-			drafts: unfinished.map((draft) => ({
-				...draft,
-				label: draft.fields.name.trim() || 'Untitled Garden',
-				href: `/gardens/new/${draft.preferredEditor}/${draft.id}`,
-			})),
+			drafts: unfinished.map(gardenDraftView),
 		};
+	} catch {
+		return { status: 'error' };
+	}
+}
+
+export async function loadGardenDrafts({ drafts }) {
+	try {
+		return { status: 'ready', drafts: (await drafts.list()).map(gardenDraftView) };
 	} catch {
 		return { status: 'error' };
 	}
