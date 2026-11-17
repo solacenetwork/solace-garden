@@ -69,7 +69,7 @@ function GardenCardContent({ title, subtitle = null, startDate = null, actionLab
 			{actionLabel && <span class="garden-card__action-label">{actionLabel}</span>}
 			{formattedStartDate && (
 				<span class="garden-card__date">
-					<span>Starts </span>
+					<span>Start date: </span>
 					<time dateTime={startDate}>{formattedStartDate}</time>
 				</span>
 			)}
