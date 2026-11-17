@@ -23,6 +23,7 @@ import { Settings } from './pages/Settings/index.jsx';
 import { Templates } from './pages/Templates/index.jsx';
 import { NotFound } from './pages/_404.jsx';
 import { CAROUSEL_POC_PATH } from './dev/carousel/route.js';
+import { HUBTEST_PATH } from './dev/hubtest/route.js';
 import './style.css';
 
 const pageComponents = {
@@ -100,6 +101,15 @@ async function startApplication() {
 	) {
 		const { CarouselPoc } = await import('./dev/carousel/CarouselPoc.jsx');
 		render(<CarouselPoc />, root);
+		return;
+	}
+
+	if (
+		import.meta.env.DEV
+		&& globalThis.location?.pathname === HUBTEST_PATH
+	) {
+		const { HubTest } = await import('./dev/hubtest/HubTest.jsx');
+		render(<HubTest />, root);
 		return;
 	}
 
