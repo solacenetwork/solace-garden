@@ -68,6 +68,13 @@ export async function loadGardenEdit(workspace, id) {
 	}
 }
 
+export async function persistGardenIdentity(gardens, id, identity) {
+	const changes = { icon: identity.icon, color: identity.color };
+	const updated = await gardens.update(id, changes);
+	if (!updated) throw new Error('Garden not found');
+	return changes;
+}
+
 function editError(error) {
 	if (error instanceof ValidationError) return error.message;
 	if (error instanceof StorageError) {
@@ -205,12 +212,11 @@ function GardenEditRecord({ id }) {
 		}
 	}
 
-	async function saveIdentity(type, value) {
+	async function saveIdentity(identity) {
 		try {
-			const updated = await workspace.gardens.update(id, { [type]: value });
-			if (!updated) throw new Error('Garden not found');
+			const savedIdentity = await persistGardenIdentity(workspace.gardens, id, identity);
 			setState((current) => current.status === 'ready'
-				? { ...current, garden: { ...current.garden, [type]: value } }
+				? { ...current, garden: { ...current.garden, ...savedIdentity } }
 				: current);
 			return true;
 		} catch (error) {

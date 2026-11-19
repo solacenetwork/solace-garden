@@ -7,7 +7,8 @@ import { GardenFields } from '../../components/GardenFields.jsx';
 import { createGardensService } from '../../services/gardens.js';
 import { ValidationError } from '../../storage/index.js';
 import {
-	GardenEditView, gardenEditFields, gardenEditInput, loadGardenEdit, validateGardenEdit,
+	GardenEditView, gardenEditFields, gardenEditInput, loadGardenEdit, persistGardenIdentity,
+	validateGardenEdit,
 } from './EditGarden.jsx';
 
 function nodes(node) {
@@ -141,5 +142,15 @@ describe('Garden editing UI', () => {
 		expect(invalid).toEqual({ status: 'not-found' });
 		const missing = await loadGardenEdit({ gardens: { getById: async () => null } }, ID);
 		expect(missing).toEqual({ status: 'not-found' });
+	});
+
+	it('persists only both identity fields and rejects a missing Garden', async () => {
+		const gardens = { update: vi.fn(async () => true) };
+		expect(await persistGardenIdentity(gardens, ID, { icon: 'tree-fill', color: '#397CAD', name: 'Unsaved name' })).toEqual({
+			icon: 'tree-fill', color: '#397CAD',
+		});
+		expect(gardens.update).toHaveBeenCalledWith(ID, { icon: 'tree-fill', color: '#397CAD' });
+		gardens.update.mockResolvedValueOnce(false);
+		await expect(persistGardenIdentity(gardens, ID, { icon: null, color: null })).rejects.toThrow('Garden not found');
 	});
 });

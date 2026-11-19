@@ -49,6 +49,17 @@ export function resetGardenIdentityDraft(draft) {
 		: { ...draft, draftColor: null, customColor: '', isCustomColor: false };
 }
 
+export function validateGardenIdentityDraft(draft) {
+	const icon = validateBootstrapIconName(draft.isCustomIcon ? draft.customIcon : draft.draftIcon);
+	const color = validateGardenColor(draft.isCustomColor ? draft.customColor : draft.draftColor);
+	return {
+		icon,
+		color,
+		isValid: icon.isValid && color.isValid,
+		identity: { icon: icon.name, color: color.color },
+	};
+}
+
 function IconChoices({ values, selected, onSelect }) {
 	return (
 		<div class="garden-identity-options garden-identity-options--icons">
@@ -94,9 +105,10 @@ export function GardenIdentityDialogView({
 	onCancel = () => {},
 	onSubmit = () => {},
 }) {
-	const iconValidation = validateBootstrapIconName(isCustomIcon ? customIcon : draftIcon);
-	const colorValidation = validateGardenColor(isCustomColor ? customColor : draftColor);
-	const activeValidation = activeType === 'icon' ? iconValidation : colorValidation;
+	const validation = validateGardenIdentityDraft({
+		draftIcon, draftColor, customIcon, customColor, isCustomIcon, isCustomColor,
+	});
+	const { icon: iconValidation, color: colorValidation } = validation;
 	const selectedIcon = isCustomIcon ? null : draftIcon;
 	const selectedColor = isCustomColor ? null : draftColor;
 	return (
@@ -202,8 +214,8 @@ export function GardenIdentityDialogView({
 				<div class="dialog-footer garden-identity-dialog__footer">
 					<button class="btn-text" type="button" disabled={saving} onClick={onReset}>Reset</button>
 					<button class="btn-outline" type="button" disabled={saving} onClick={onCancel}>Cancel</button>
-					<button class="btn-solid theme-primary" type="submit" disabled={saving || !activeValidation.isValid}>
-						{saving ? 'Saving…' : activeType === 'icon' ? 'Save Icon' : 'Save Color'}
+					<button class="btn-solid theme-primary" type="submit" disabled={saving || !validation.isValid}>
+						{saving ? 'Saving…' : 'Save Identity'}
 					</button>
 				</div>
 			</form>
@@ -298,16 +310,13 @@ export function GardenIdentityModal({ open, type = 'color', icon = null, color =
 	async function save(event) {
 		event?.preventDefault();
 		if (savingRef.current) return;
-		const validation = draft.activeType === 'icon'
-			? validateBootstrapIconName(draft.isCustomIcon ? draft.customIcon : draft.draftIcon)
-			: validateGardenColor(draft.isCustomColor ? draft.customColor : draft.draftColor);
+		const validation = validateGardenIdentityDraft(draft);
 		if (!validation.isValid) return;
-		const value = draft.activeType === 'icon' ? validation.name : validation.color;
 		savingRef.current = true;
 		setSaving(true);
 		setError('');
 		try {
-			const saved = await onSave(draft.activeType, value);
+			const saved = await onSave(validation.identity);
 			if (saved === false) throw new Error('Garden identity was not saved.');
 			savingRef.current = false;
 			setSaving(false);

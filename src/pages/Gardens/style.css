@@ -766,6 +766,12 @@
 	--bs-dialog-width: min(52rem, calc(100vw - 2rem));
 }
 
+@media (max-width: 47.999rem) {
+	.garden-identity-dialog {
+		--bs-dialog-width: 100vw;
+	}
+}
+
 .garden-identity-dialog__form {
 	display: flex;
 	min-height: 0;

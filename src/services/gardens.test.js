@@ -65,11 +65,10 @@ describe('Garden data foundation', () => {
 		});
 	});
 
-	it('normalizes and independently persists Garden identity fields across reopening', async () => {
-		const created = await gardens.create(input);
+	it('normalizes and atomically persists Garden identity fields across reopening', async () => {
+		const created = await gardens.create({ ...input, subtitle: 'Saved subtitle stays untouched', notes: 'Saved notes' });
 		const editor = createGardensService(storage.repositories.gardens, { now: () => UPDATED });
-		expect(await editor.update(created.id, { icon: ' BI-Flower1 ' })).toBe(true);
-		expect(await editor.update(created.id, { color: '287d46' })).toBe(true);
+		expect(await editor.update(created.id, { icon: ' BI-Flower1 ', color: '287d46' })).toBe(true);
 		expect(await gardens.getById(created.id)).toEqual({
 			...created, icon: 'flower1', color: '#287D46', updatedAt: UPDATED,
 		});
