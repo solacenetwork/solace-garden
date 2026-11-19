@@ -9,6 +9,7 @@ workflow is required.
 | Command | Scope |
 |---|---|
 | `npx playwright test tests/e2e/gardens/gardens-hub.spec.mjs` | Garden lifecycle classification, section ordering, and navigation |
+| `npx playwright test tests/e2e/gardens/garden-identity.spec.mjs` | Step 6.5 Garden Identity interactions and persistence |
 | `npm run test:e2e:smoke` | Restored IndexedDB fixture and populated page rendering |
 | `npm run test:e2e:layout` | Scrolling and bottom-control reachability |
 | `npm run test:e2e:lists` | Tasks and Wish List interactions |
@@ -20,7 +21,8 @@ workflow is required.
 Use the underlying Playwright CLI for a particular test or matching name:
 
 ```bash
-npx playwright test tests/e2e/layout/ --grep "800x600"
+npx playwright test tests/e2e/layout/ --grep "short desktop"
+npx playwright test tests/e2e/layout/ --grep "mobile-width"
 npx playwright test tests/e2e/layout/ --grep "standard"
 npx playwright test tests/e2e/lists/delete.spec.mjs --grep "/tasks"
 ```
@@ -42,24 +44,37 @@ changing the committed JSON file or the fixture-authoring browser profile.
 
 The fixture contains only `http://localhost:5173` storage and no cookies.
 
-## Reported defects under investigation
+## Viewport cleanup and Step 6.5 Garden Identity
 
-The November 16, 2026 Chromium laptop reports describe page bottoms that
-could not be reached at normal zoom, and unresponsive Task/Wish List Delete
-buttons. The layout suite exercises four routes at both Simple and Standard
-mode across 1366x768, 1280x600, 1024x600, 800x600, and 768x480 CSS viewports.
-The deletion suite checks both cancel and confirm behavior, plus persistence
-after reload. The Note editor suite opens an existing, non-empty draft and
-checks incremental wheel scrolling and native Tab navigation to the Save Note
-button in both interface modes at 1366x650 and 1366x600. The suite does not
-click Save or discard the draft.
+The original 40 viewport cases repeated the same bottom-reachability check over
+five desktop sizes, four routes, and both interface modes. They are consolidated
+into two representative cases: all four routes in Simple and Standard at
+1280x600, and all four routes at a 390x844 mobile-width viewport. This keeps
+route, mode, short-desktop, and mobile coverage while removing redundant
+viewport permutations. The repeated cases at 1366x768, 1024x600, 800x600, and
+768x480 were removed. The Note editor's eight
+wheel/keyboard-by-mode-and-height cases are consolidated into one long-form
+case that retains wheel scrolling and Tab reachability in both modes at
+1366x600.
 
-These are regression tests, **not fixes**. A failing case should be investigated
-rather than disabled or marked as passed. Physical screen resolution is not
-always the browser's CSS viewport: browser chrome, OS display scaling, and zoom
-can change the effective dimensions. Record the failing Chromium window's
-`window.innerWidth`, `window.innerHeight`, `window.devicePixelRatio`, and
-selected interface mode when reproducing a device-specific layout issue.
+The Playwright config uses `viewport: null`; tests that exercise responsive
+behavior set their CSS viewport explicitly. Seven Garden Identity cases use an
+isolated synthetic Garden appended to the committed fixture snapshot. They cover
+initial Color/Icon tabs, color and icon persistence, custom icon validation,
+independent resets, cancel/close dismissal, and mobile dialog scrolling and
+footer reachability.
+
+The suite changed from 59 tests to 21: 40 viewport tests became 2, eight Note
+editor tests became 1, and 7 Garden Identity tests were added. Other suites were
+left unchanged.
+
+The deletion suite continues to check both cancel and confirm behavior, plus
+persistence after reload. Layout and Note editor checks are regression tests,
+not fixes: investigate a failing case rather than disabling it or marking it
+passed. Physical screen resolution is not always the browser's CSS viewport;
+record the failing Chromium window's `window.innerWidth`,
+`window.innerHeight`, `window.devicePixelRatio`, and selected interface mode
+when reproducing a device-specific issue.
 
 For day-to-day development, run the affected subset. Run smoke tests after
 typical changes, and the complete suite at milestone acceptance.

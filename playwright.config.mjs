@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -13,7 +13,7 @@ export default defineConfig({
   ],
   outputDir: 'test-results',
   use: {
-    ...devices['Desktop Chrome'],
+    viewport: null,
     browserName: 'chromium',
     baseURL: 'http://localhost:5173',
     launchOptions: { timeout: 90_000 },
