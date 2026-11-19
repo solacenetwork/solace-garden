@@ -149,15 +149,39 @@ test('Cancel and upper-right close discard identity selections', async ({ page }
   await expectIdentity(page, { color: '#287D46', icon: 'tree-fill' });
 });
 
-test('Mobile identity dialog fills the viewport, scrolls, and keeps Save reachable', async ({ page }) => {
+test('Mobile identity dialog fills the viewport, scrolls, and keeps Save reachable', async ({ page }, testInfo) => {
   const viewport = { width: 390, height: 844 };
   await openGardenEditor(page, viewport);
   const dialog = await openIdentityDialog(page, 'Choose Icon');
-  const box = await dialog.boundingBox();
-  expect(box).not.toBeNull();
-  expect(box.x).toBe(0);
-  expect(box.y).toBe(0);
-  expect(box.height).toBe(viewport.height);
+  const measurements = await dialog.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return {
+      innerWidth: window.innerWidth,
+      clientWidth: document.documentElement.clientWidth,
+      scrollbarGutter: getComputedStyle(document.documentElement).scrollbarGutter,
+      dialog: {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        computedWidth: style.width,
+        maxWidth: style.maxWidth,
+        boxSizing: style.boxSizing,
+      },
+    };
+  });
+  await testInfo.attach('mobile-dialog-measurements.json', {
+    body: JSON.stringify(measurements, null, 2),
+    contentType: 'application/json',
+  });
+  console.log('Garden Identity mobile measurements:', JSON.stringify(measurements));
+
+  expect(measurements.innerWidth).toBe(viewport.width);
+  expect(measurements.scrollbarGutter).toContain('stable');
+  expect(measurements.dialog.x).toBe(0);
+  expect(measurements.dialog.y).toBe(0);
+  expect(measurements.dialog.height).toBe(viewport.height);
 
   const body = dialog.locator('.dialog-body');
   await expect.poll(() => body.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
@@ -171,5 +195,5 @@ test('Mobile identity dialog fills the viewport, scrolls, and keeps Save reachab
   await save.click();
   await expect(dialog).toBeHidden();
   await expectIdentity(page, { color: '#287D46', icon: '9-circle-fill' });
-  expect(box.width).toBe(viewport.width);
+  expect(measurements.dialog.width).toBe(viewport.width);
 });
