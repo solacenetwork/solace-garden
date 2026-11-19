@@ -421,7 +421,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ### Step 6 — Gardens hub and draft discovery
 
-**Implementation status (November 16, 2026):** Step 6A implements the four Hub categories and header actions, removes the nested Standard-navigation Templates entry, and preserves direct routes. Step 6B implements vertical image-first saved and Draft cards with category SVG placeholders, title, optional subtitle, optional start date, and separate Draft resume/discard controls. Both remain pending independent browser and device acceptance. The Draft filmstrip and Drafts page, followed by browser acceptance, remain the separate Steps 6C–D.
+**Implementation status (accepted November 2026):** Steps 6A–6D are complete and accepted. Step 6A established the four Hub categories and header actions, removed the nested Standard-navigation Templates entry, and preserved direct routes. Step 6B established image-first saved and Draft Garden cards with distinct fallback illustrations and separate Draft resume/discard actions. Step 6C delivered the Draft filmstrip and dedicated `/gardens/drafts` page. Step 6D confirmed draft editor preference persistence (the initially suspected regression was caused by modified-date reordering, not lost preferences), responsive/browser behavior, and manual acceptance. The Chromium laptop viewport clipping issue was resolved and retested. Final reported verification: 470 passing Vitest tests, 59 passing Playwright end-to-end tests, and a successful production build. The accepted standalone saved-Garden card arrangement remains functional; collection-level presentation refinement is separately planned in Step 6.6.
 
 **Purpose:** Make saved Gardens and unfinished creation sessions easy to distinguish and find.
 
@@ -446,6 +446,24 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - Preserve operational data integrity; no legacy alpha-data migrations, and no Dexie schema version bump solely for record-property changes when store/index definitions remain unchanged.
 
 **Acceptance:** Persist chosen icon/color across reload and edits; distinguish identically named Gardens; check null/default rendering, accessibility and contrast, compact lists and card layouts, both interface modes, and existing Garden lifecycle tests before Step 7.
+
+### Step 6.6 — Expandable Garden collections (approved V1 direction; not yet integrated)
+
+**Status (November 19, 2026):** The development-only `/dev/hubtest` prototype, commit [`a2f8972`](https://github.com/solacenetwork/solace-garden/commit/a2f897234087f9524aec160386c02834acad475c), was manually tested on desktop and mobile and accepted as the direction for V1 collection presentation. Production integration has **not** started. Preserve the prototype as a reference until integration is accepted.
+
+**Purpose:** Give gardeners a compact, quick-scroll view of saved Gardens and an in-place way to browse the complete collection, without changing individual Garden cards.
+
+- For **Current, Planned, and Previous Gardens**, default to the existing horizontally scrollable `CardCarousel` filmstrip.
+- Provide a **View All** control on each collection that swaps the filmstrip for a responsive multi-column grid of the **same cards**, in place on the Gardens Hub. Hide/unmount the filmstrip while expanded.
+- Provide **Collapse** to replace the grid with the filmstrip again; restore the ordinary compact view rather than navigating to a separate page.
+- Keep expansion state **temporary and component-local** for V1; no IndexedDB, localStorage, account preference, or saved expansion state.
+- Reuse a single Garden card renderer and existing production data/actions across both presentations. Preserve links, lifecycle behavior, empty states, and card identity; do not duplicate card markup or build a generalized widget framework.
+- Preserve keyboard focus and accessible View All/Collapse controls, touch scrolling, responsive layouts, and both Simple and Standard interface modes.
+- **Draft Gardens are excluded from this initial scope.** Keep their existing filmstrip, resume/discard controls, and dedicated `/gardens/drafts` page unless a later design decision changes them.
+- **Separation of concerns:** Step 6.5 defines individual Garden icon/color identity and card-level presentation. Step 6.6 defines collection layout and browsing behavior. Neither depends on rewriting the other.
+- Future per-filmstrip sorting and manual card arrangement/Edit Mode remain deferred V2/V3 candidates in `PARKING_LOT.md`; do not pull them into V1.
+
+**Acceptance:** With real Garden records, View All expands the relevant saved-Garden section in place, Collapse restores a functioning filmstrip, Garden actions and lifecycle remain intact, and responsive/touch/keyboard behavior works on desktop and mobile in both interface modes. Existing unit, end-to-end, and production-build checks remain green.
 
 ### Step 7 — Welcome and Garden creation presentation
 
