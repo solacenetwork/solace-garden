@@ -2,9 +2,11 @@ import { ValidationError } from './errors.js';
 import { validateRecordId } from './validation.js';
 import { validateLocationId } from './locationValidation.js';
 import { GARDEN_TYPE_DEFINITIONS, validateGardenTypeSelection } from './gardenTypeValidation.js';
+import { validateBootstrapIconName, validateGardenColor } from '../gardenIdentity.js';
 
 export const GARDEN_EDITABLE_FIELDS = Object.freeze([
 	'name', 'subtitle', 'description', 'locationId', 'typeIds', 'startDate', 'endDate', 'notes',
+	'icon', 'color',
 ]);
 const VISUAL_FIELDS = ['icon', 'color', 'thumbnailMediaId', 'layoutMediaId'];
 const RECORD_FIELDS = [...GARDEN_EDITABLE_FIELDS, ...VISUAL_FIELDS,
@@ -71,6 +73,18 @@ export function normalizeGardenFields(input) {
 		} else if (field === 'locationId') {
 			validateLocationId(value);
 			result.locationId = value;
+		} else if (field === 'icon') {
+			const validation = validateBootstrapIconName(value);
+			if (!validation.isValid) {
+				throw gardenError('INVALID_GARDEN_ICON', validation.error, field);
+			}
+			result.icon = validation.name;
+		} else if (field === 'color') {
+			const validation = validateGardenColor(value);
+			if (!validation.isValid) {
+				throw gardenError('INVALID_GARDEN_COLOR', validation.error, field);
+			}
+			result.color = validation.color;
 		}
 	}
 	return result;
@@ -95,13 +109,19 @@ export function validateGardenLifecycle(value, field = 'lifecycle') {
 	return value;
 }
 
-export function validateGardenRecord(record, { creating = false } = {}) {
+export function validateGardenRecord(record, {
+	creating = false,
+	preserveInvalidIcon = false,
+	preserveInvalidColor = false,
+} = {}) {
 	validateGardenFields(record, RECORD_FIELDS);
 	validateRecordId(record.id);
+	const normalizedFields = GARDEN_EDITABLE_FIELDS.filter((field) =>
+		!(field === 'icon' && preserveInvalidIcon) && !(field === 'color' && preserveInvalidColor));
 	const normalized = normalizeGardenFields(Object.fromEntries(
-		GARDEN_EDITABLE_FIELDS.map((field) => [field, record[field]]),
+		normalizedFields.map((field) => [field, record[field]]),
 	));
-	for (const field of GARDEN_EDITABLE_FIELDS) {
+	for (const field of normalizedFields) {
 		if (JSON.stringify(normalized[field]) !== JSON.stringify(record[field])) {
 			throw gardenError('INVALID_GARDEN', `${field} must be normalized before persistence.`, field);
 		}

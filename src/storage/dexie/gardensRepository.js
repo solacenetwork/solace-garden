@@ -62,7 +62,7 @@ export function createGardensRepository(database, {
 					'This Garden changed after the page was loaded. Reload it and try again.');
 			}
 			const garden = { ...existing, ...mutate(existing), updatedAt };
-			validateGardenRecord(garden);
+			validateGardenRecord(garden, { preserveInvalidIcon: true, preserveInvalidColor: true });
 			await gardens.put(garden);
 			return true;
 		}));
@@ -111,7 +111,10 @@ export function createGardensRepository(database, {
 					throw gardenError('GARDEN_READ_ONLY', 'Closed or archived Gardens cannot be edited.');
 				}
 				const garden = { ...existing, ...patch };
-				validateGardenRecord(garden);
+				validateGardenRecord(garden, {
+					preserveInvalidIcon: !Object.hasOwn(changes, 'icon'),
+					preserveInvalidColor: !Object.hasOwn(changes, 'color'),
+				});
 				await checkReferences(garden);
 				await gardens.put(garden);
 				return true;

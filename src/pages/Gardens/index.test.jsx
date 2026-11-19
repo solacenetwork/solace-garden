@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
 vi.mock('bootstrap/js/dist/carousel.js', () => ({ default: class Carousel {} }));
+vi.mock('bootstrap/js/dist/tab.js', () => ({ default: class Tab {} }));
 
 import { CardCarousel } from '../../components/CardCarousel.jsx';
 import {
@@ -82,6 +83,22 @@ describe('Garden read-only views', () => {
 		expect(nodes(tree).find((node) => node.type === 'time').props.dateTime).toBe(garden.startDate);
 		expect(text(tree)).not.toContain(garden.locationName);
 		expect(text(tree)).not.toContain(garden.statusLabel);
+	});
+
+	it('adds identity badges to saved cards and detail without replacing their artwork or names', () => {
+		const identified = { ...garden, icon: 'tree-fill', color: '#287D46' };
+		const overview = GardensOverviewView({
+			state: { status: 'ready', drafts: [], current: [identified], planned: [], previous: [] },
+		});
+		const cardBadge = nodes(overview).find((node) => node.props?.class?.includes('garden-card__identity'));
+		expect(cardBadge.props.style['--garden-identity-color']).toBe('#287D46');
+		expect(nodes(cardBadge).find((node) => node.type === 'i').props.class).toBe('bi bi-tree-fill');
+		expect(nodes(overview).some((node) => node.type === 'img')).toBe(true);
+		expect(text(overview)).toContain(identified.name);
+
+		const detail = GardenDetailView({ state: { status: 'ready', garden: identified } });
+		expect(nodes(detail).find((node) => node.props?.class === 'garden-detail__identity')).toBeTruthy();
+		expect(text(detail)).toContain(identified.name);
 	});
 
 	it('omits missing card details and preserves long title and subtitle text', () => {

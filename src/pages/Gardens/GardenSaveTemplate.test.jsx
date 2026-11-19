@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
 vi.mock('bootstrap/js/dist/carousel.js', () => ({ default: class Carousel {} }));
+vi.mock('bootstrap/js/dist/tab.js', () => ({ default: class Tab {} }));
 
 import { createGardenLifecycleService } from '../../services/gardenLifecycle.js';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';

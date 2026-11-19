@@ -1,6 +1,7 @@
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { GardenFields } from '../../components/GardenFields.jsx';
+import { GardenIdentityEditor } from '../../components/GardenIdentity.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createGardensService } from '../../services/gardens.js';
 import { createGardenTypesService } from '../../services/gardenTypes.js';
@@ -86,6 +87,7 @@ export function GardenEditView({
 	onCancel = () => {},
 	onRetry = () => {},
 	forceReadOnly = false,
+	identity = null,
 }) {
 	if (state.status === 'loading') {
 		return <section class="container gardens-page"><p class="gardens-state" role="status">Loading Garden editor…</p></section>;
@@ -110,6 +112,7 @@ export function GardenEditView({
 			</header>
 			{readOnly && <div class="garden-edit__notice" role="status"><i class="bi bi-lock" aria-hidden="true"></i><span>This Garden is read-only because it {readOnlyReason}. It must be unlocked in a later lifecycle workflow before it can be edited.</span></div>}
 			{message && <div class="garden-create__error" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{message}</span></div>}
+			{identity}
 			<form class="garden-full-create__form" noValidate onSubmit={readOnly ? (event) => event.preventDefault() : onSubmit}>
 				<GardenFields
 					fields={fields}
@@ -202,10 +205,36 @@ function GardenEditRecord({ id }) {
 		}
 	}
 
+	async function saveIdentity(type, value) {
+		try {
+			const updated = await workspace.gardens.update(id, { [type]: value });
+			if (!updated) throw new Error('Garden not found');
+			setState((current) => current.status === 'ready'
+				? { ...current, garden: { ...current.garden, [type]: value } }
+				: current);
+			return true;
+		} catch (error) {
+			if (error?.code === 'GARDEN_READ_ONLY') setForceReadOnly(true);
+			throw error;
+		}
+	}
+
 	if (state.status !== 'ready' || !fields) {
 		return <GardenEditView state={state} onRetry={() => setAttempt((value) => value + 1)} />;
 	}
-	return <GardenEditView state={state} fields={fields} errors={errors} message={message} saving={saving} forceReadOnly={forceReadOnly} onChange={changeField} onSubmit={save} onCancel={() => route(`/gardens/${id}`)} />;
+	const identityReadOnly = forceReadOnly || state.garden.isClosed || state.garden.status === 'archived';
+	return <GardenEditView
+		state={state}
+		fields={fields}
+		errors={errors}
+		message={message}
+		saving={saving}
+		forceReadOnly={forceReadOnly}
+		identity={<GardenIdentityEditor garden={state.garden} disabled={saving || identityReadOnly} onSave={saveIdentity} />}
+		onChange={changeField}
+		onSubmit={save}
+		onCancel={() => route(`/gardens/${id}`)}
+	/>;
 }
 
 export function EditGarden({ id }) {

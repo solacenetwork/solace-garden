@@ -1,4 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
+vi.mock('bootstrap/js/dist/tab.js', () => ({ default: class Tab {} }));
 import { CharacterCounter } from '../../components/CharacterCounter.jsx';
 import { GardenFields } from '../../components/GardenFields.jsx';
 import { createGardensService } from '../../services/gardens.js';

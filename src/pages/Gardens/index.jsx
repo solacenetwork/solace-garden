@@ -1,6 +1,7 @@
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { CardCarousel } from '../../components/CardCarousel.jsx';
+import { GardenIdentityBadge } from '../../components/GardenIdentity.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { formatDateOnly } from '../Home/dashboardData.js';
 import {
@@ -55,10 +56,11 @@ function ReadState({ state, onRetry }) {
 	return null;
 }
 
-function GardenCardVisual({ src }) {
+function GardenCardVisual({ src, garden = null }) {
 	return (
 		<span class="garden-card__visual" aria-hidden="true">
 			<img src={src} alt="" loading="lazy" decoding="async" />
+			{garden && <GardenIdentityBadge icon={garden.icon} color={garden.color} className="garden-card__identity" />}
 		</span>
 	);
 }
@@ -104,7 +106,7 @@ function GardenSection({ title, id, items = [], emptyMessage, placeholder }) {
 					{items.map((garden) => (
 						<li key={garden.id}>
 							<a class="garden-card garden-card--saved" href={garden.href}>
-								<GardenCardVisual src={placeholder} />
+								<GardenCardVisual src={placeholder} garden={garden} />
 								<GardenCardContent title={garden.name} subtitle={garden.subtitle} startDate={garden.startDate} />
 							</a>
 						</li>
@@ -225,9 +227,12 @@ export function GardenDetailView({ state, onRetry, lifecycle = null, deletion = 
 			{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (
 				<>
 					<header class="gardens-header garden-detail__header">
-						<div>
-							<h1>{garden.name}</h1>
-							{garden.subtitle && <p class="garden-subtitle">{garden.subtitle}</p>}
+						<div class="garden-detail__identity">
+							<GardenIdentityBadge icon={garden.icon} color={garden.color} />
+							<div>
+								<h1>{garden.name}</h1>
+								{garden.subtitle && <p class="garden-subtitle">{garden.subtitle}</p>}
+							</div>
 						</div>
 						<div class="garden-detail__actions">
 							{!garden.isClosed && garden.status !== 'archived' && (

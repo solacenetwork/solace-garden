@@ -65,6 +65,50 @@ describe('Garden data foundation', () => {
 		});
 	});
 
+	it('normalizes and independently persists Garden identity fields across reopening', async () => {
+		const created = await gardens.create(input);
+		const editor = createGardensService(storage.repositories.gardens, { now: () => UPDATED });
+		expect(await editor.update(created.id, { icon: ' BI-Flower1 ' })).toBe(true);
+		expect(await editor.update(created.id, { color: '287d46' })).toBe(true);
+		expect(await gardens.getById(created.id)).toEqual({
+			...created, icon: 'flower1', color: '#287D46', updatedAt: UPDATED,
+		});
+		await editor.update(created.id, { icon: null });
+		expect(await gardens.getById(created.id)).toMatchObject({ icon: null, color: '#287D46' });
+		storage.close();
+		storage = await initializeDexieStorage({ dependencies });
+		expect(await storage.repositories.gardens.getById(created.id)).toMatchObject({
+			icon: null, color: '#287D46', name: created.name, locationId: created.locationId,
+		});
+	});
+
+	it('rejects malformed identity values atomically at service and repository boundaries', async () => {
+		const created = await gardens.create(input);
+		for (const [changes, code] of [
+			[{ icon: 'bi bi-flower1' }, 'INVALID_GARDEN_ICON'],
+			[{ icon: 'not-installed' }, 'INVALID_GARDEN_ICON'],
+			[{ color: '#123' }, 'INVALID_GARDEN_COLOR'],
+			[{ color: 'red' }, 'INVALID_GARDEN_COLOR'],
+		]) {
+			await expect(gardens.update(created.id, changes)).rejects.toMatchObject({ code });
+			await expect(storage.repositories.gardens.update(created.id, { ...changes, updatedAt: UPDATED })).rejects.toMatchObject({ code });
+			expect(await gardens.getById(created.id)).toEqual(created);
+		}
+		await expect(gardens.create({ ...input, icon: 'flower1' })).rejects.toMatchObject({ code: 'UNSUPPORTED_GARDEN_FIELD' });
+		await expect(gardens.create({ ...input, color: '#287D46' })).rejects.toMatchObject({ code: 'UNSUPPORTED_GARDEN_FIELD' });
+	});
+
+	it('preserves obsolete stored identity values until that field is explicitly corrected or reset', async () => {
+		const created = await gardens.create(input);
+		await raw.table('gardens').update(created.id, { icon: 'removed-package-icon' });
+		await gardens.update(created.id, { subtitle: 'Still editable' });
+		expect(await gardens.getById(created.id)).toMatchObject({
+			icon: 'removed-package-icon', subtitle: 'Still editable',
+		});
+		await gardens.update(created.id, { icon: null });
+		expect(await gardens.getById(created.id)).toMatchObject({ icon: null, subtitle: 'Still editable' });
+	});
+
 	it('edits every supported field while preserving identity, audit history, and independent Notes', async () => {
 		const otherLocation = await storage.repositories.locations.create({
 			name: 'Community Plot', hardinessZone: null, isSystemDefault: false,
@@ -128,7 +172,7 @@ describe('Garden data foundation', () => {
 		await gardens.update(created.id, { endDate: null });
 	});
 
-	it.each(['id', 'createdAt', 'updatedAt', 'status', 'isClosed', 'icon', 'color', 'thumbnailMediaId', 'layoutMediaId', 'unknown'])(
+	it.each(['id', 'createdAt', 'updatedAt', 'status', 'isClosed', 'thumbnailMediaId', 'layoutMediaId', 'unknown'])(
 		'rejects caller-managed field %s', async (field) => {
 			const created = await gardens.create(input);
 			await expect(gardens.create({ ...input, [field]: 'override' })).rejects.toBeInstanceOf(ValidationError);
@@ -144,6 +188,8 @@ describe('Garden data foundation', () => {
 		const created = await gardens.create(input);
 		await raw.table('gardens').update(created.id, state);
 		await expect(gardens.update(created.id, { name: 'Blocked' })).rejects.toMatchObject({ code: 'GARDEN_READ_ONLY' });
+		await expect(gardens.update(created.id, { icon: 'flower1' })).rejects.toMatchObject({ code: 'GARDEN_READ_ONLY' });
+		await expect(gardens.update(created.id, { color: '#287D46' })).rejects.toMatchObject({ code: 'GARDEN_READ_ONLY' });
 		await expect(storage.repositories.gardens.update(created.id, { name: 'Blocked' })).rejects.toMatchObject({ code: 'GARDEN_READ_ONLY' });
 		expect(await gardens.getById(created.id)).toEqual({ ...created, ...state });
 	});

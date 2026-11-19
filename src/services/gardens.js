@@ -2,13 +2,16 @@ import {
 	GARDEN_EDITABLE_FIELDS, normalizeGardenFields, validateGardenDateOrder, validateGardenFields,
 } from '../storage/gardenValidation.js';
 
+const GARDEN_CREATION_FIELDS = GARDEN_EDITABLE_FIELDS.filter((field) => !['icon', 'color'].includes(field));
+
 function newGardenRecord(input, timestamp) {
-	validateGardenFields(input, GARDEN_EDITABLE_FIELDS);
+	validateGardenFields(input, GARDEN_CREATION_FIELDS);
 	const record = {
 		subtitle: null, description: null, typeIds: [], startDate: null, endDate: null, notes: null,
+		icon: null, color: null,
 		...normalizeGardenFields({ name: input.name, locationId: input.locationId, ...input }),
 		status: 'planned', isClosed: false,
-		icon: null, color: null, thumbnailMediaId: null, layoutMediaId: null,
+		thumbnailMediaId: null, layoutMediaId: null,
 		createdAt: timestamp, updatedAt: timestamp,
 	};
 	validateGardenDateOrder(record);
