@@ -56,6 +56,9 @@ describe('Welcome introduction', () => {
 	it('renders JSON content, ordered indicators, and only the configured optional CTA', async () => {
 		const slides = await configuredSlides();
 		const tree = WelcomeCarouselView({ slides });
+		expect(tree.props.class).toBe('carousel carousel-overlay welcome-carousel');
+		expect(tree.props.class).not.toContain('carousel-fade');
+		expect(nodes(tree).find(({ props }) => props?.class === 'carousel-inner welcome-carousel__viewport')).toBeTruthy();
 		const renderedSlides = nodes(tree).filter(({ props }) => props?.class?.includes('welcome-carousel__slide'));
 		expect(renderedSlides.map(({ key }) => key)).toEqual(slides.map(({ id }) => id));
 		for (const slide of slides) {

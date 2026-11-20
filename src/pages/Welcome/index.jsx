@@ -31,7 +31,7 @@ export function WelcomeCarouselView({ slides, carouselRef = null }) {
 	const carouselId = 'welcome-carousel';
 	return (
 		<div
-			class="carousel carousel-fade carousel-overlay welcome-carousel"
+			class="carousel carousel-overlay welcome-carousel"
 			id={carouselId}
 			ref={carouselRef}
 			role="region"
