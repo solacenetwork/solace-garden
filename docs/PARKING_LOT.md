@@ -11,6 +11,24 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future idea: Preferred Garden creation method
+
+**Status (November 19, 2026):** Deferred user preference, not an implementation requirement for Step 7. Initial default remains the guided Wizard.
+
+- Add a preference such as **“When I click Create Garden, open: Wizard | Advanced Form.”** The preference selects the default entry point only; both methods remain accessible at all times.
+- Do not automatically switch a user to Advanced after a certain number of Gardens. A gardener who has created 10–20 Gardens may choose Advanced themselves.
+- Wizard remains guided and incremental; Advanced presents the full form for experienced users and historical-record entry. The agreed initial lifecycle-status selections for Step 7 belong in [UI_REDESIGN.md](UI_REDESIGN.md), not in this deferred preference.
+
+## Future idea: Preserve unsaved changes to existing Gardens across sessions
+
+**Status (November 19, 2026):** Deferred workflow improvement prompted by manual use; not a Step 6.5 or Step 7 implementation instruction.
+
+- **Terminology:** **Draft** means only a proposed Garden not yet officially created. An official Garden with pending edits is a **Garden with Unsaved Changes**. Do not call the latter a draft in the user interface.
+- Explore automatically preserving edits to an existing Garden locally across navigation, reloads, closed tabs, and later sessions **without committing those edits to the official Garden record**. Clearly indicate when work has been preserved but still needs **Save Changes** to update the Garden.
+- Keep explicit Save Changes and Discard Changes semantics. On returning to the editor, present preserved pending changes rather than silently losing them or silently applying them to the official record.
+- Preserve already committed Garden data, correct identity-field updates, and normal operational data integrity. Review interaction with navigation/Back links, standalone identity saves, and edit conflicts before scoping implementation.
+- The aim is to reduce editing friction and inconsistent navigation expectations created by the convenient autosave behavior of proposed-Garden Drafts; this is a future exploration, not approval of a specific storage design.
+
 ## Future candidate: External support and knowledge base
 
 **Status:** Parked idea (November 2026), not a V1 launch requirement or committed platform choice.
