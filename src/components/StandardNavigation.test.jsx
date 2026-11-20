@@ -99,7 +99,7 @@ describe('StandardNavigation', () => {
 	});
 
 	it.each([
-		['/gardens', 'gardens'], ['/gardens/new', 'gardens'], ['/gardens/new/wizard/draft-1', 'gardens'],
+		['/gardens', 'gardens'], ['/gardens/new', 'gardens'], ['/gardens/new/quickstart', 'gardens'], ['/gardens/new/wizard/draft-1', 'gardens'],
 		['/gardens/new/advanced/draft-2', 'gardens'], ['/gardens/drafts', 'gardens'], ['/gardens/garden-1', 'gardens'], ['/gardens/garden-1/edit', 'gardens'],
 		['/journal', 'journal', 'page'], ['/photos', 'photos', 'page'], ['/plants', 'plants', 'page'], ['/notes/new/draft-1', undefined, undefined],
 	])('marks the primary destination for %s', (path, expected, ariaCurrent = 'page') => {
@@ -180,7 +180,7 @@ describe('StandardNavigation', () => {
 
 	it.each([
 		...routeCatalog.map((route) => [route.path, ({ photos: 'Gallery', plants: 'PlantDB' })[route.id] ?? route.label]),
-		['/gardens/new', 'Gardens'], ['/gardens/drafts', 'Gardens'], ['/gardens/garden-1', 'Gardens'], ['/gardens/garden-1/edit', 'Gardens'],
+		['/gardens/new', 'Gardens'], ['/gardens/new/quickstart', 'Gardens'], ['/gardens/drafts', 'Gardens'], ['/gardens/garden-1', 'Gardens'], ['/gardens/garden-1/edit', 'Gardens'],
 		['/gardens/new/wizard/draft-1', 'Gardens'], ['/notes/new/draft-1', 'Notes'], ['/missing-destination', 'Navigation'],
 	])('identifies %s with the noninteractive phone label %s', (path, expected) => {
 		hooks.path = path;

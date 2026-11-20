@@ -27,6 +27,7 @@ describe('application routes', () => {
 		expect(resolveRoute('/gardens')).toMatchObject({ route: { view: 'gardens' }, params: {} });
 		expect(resolveRoute('/gardens/drafts')).toMatchObject({ route: { view: 'garden-drafts' }, params: {} });
 		expect(resolveRoute('/gardens/new')).toMatchObject({ route: { view: 'garden-new' }, params: {} });
+		expect(resolveRoute('/gardens/new/quickstart')).toMatchObject({ route: { view: 'garden-quickstart' }, params: {} });
 		expect(resolveRoute('/gardens/new/wizard')).toMatchObject({ route: { view: 'garden-wizard-new' }, params: {} });
 		expect(resolveRoute('/gardens/new/advanced')).toMatchObject({ route: { view: 'garden-advanced-new' }, params: {} });
 		expect(resolveRoute(`/gardens/new/wizard/${NOTE_UUID}`)).toMatchObject({ route: { view: 'garden-wizard' }, params: { draftId: NOTE_UUID } });
@@ -145,7 +146,7 @@ describe('destination registry and route contracts', () => {
 		expect(applicationRoutes.map(({ path }) => path)).toEqual([
 			'/notes/new/:draftId', '/notes/new', '/notes/:id',
 			'/gardens/new/wizard/:draftId', '/gardens/new/advanced/:draftId',
-			'/gardens/new/wizard', '/gardens/new/advanced', '/gardens/new', '/gardens/drafts',
+			'/gardens/new/wizard', '/gardens/new/advanced', '/gardens/new/quickstart', '/gardens/new', '/gardens/drafts',
 			'/gardens/:id/edit', '/gardens/:id',
 			...destinations.map(([, path]) => path),
 		]);
@@ -183,7 +184,7 @@ describe('destination registry and route contracts', () => {
 
 	it('returns editor origins to their canonical destinations', () => {
 		for (const path of [
-			'/gardens/new', '/gardens/new/wizard', '/gardens/new/advanced', '/gardens/drafts',
+			'/gardens/new', '/gardens/new/quickstart', '/gardens/new/wizard', '/gardens/new/advanced', '/gardens/drafts',
 			`/gardens/new/wizard/${NOTE_UUID}`, `/gardens/new/advanced/${NOTE_UUID}`,
 			`/gardens/${NOTE_UUID}`, `/gardens/${NOTE_UUID}/edit`,
 		]) {

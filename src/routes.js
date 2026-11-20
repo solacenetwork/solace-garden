@@ -153,6 +153,7 @@ export const applicationRoutes = [
 	{ path: '/gardens/new/advanced/:draftId', view: 'garden-advanced' },
 	{ path: '/gardens/new/wizard', view: 'garden-wizard-new' },
 	{ path: '/gardens/new/advanced', view: 'garden-advanced-new' },
+	{ path: '/gardens/new/quickstart', view: 'garden-quickstart' },
 	{ path: '/gardens/new', view: 'garden-new' },
 	{ path: '/gardens/drafts', view: 'garden-drafts' },
 	{ path: '/gardens/:id/edit', view: 'garden-edit' },

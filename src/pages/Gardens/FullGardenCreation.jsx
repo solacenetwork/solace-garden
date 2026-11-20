@@ -15,6 +15,7 @@ import { createGardenTypesService } from '../../services/gardenTypes.js';
 import { createLocationsService, DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import { StorageError, ValidationError } from '../../storage/errors.js';
 import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
+import { templateSourceSearch } from './creationNavigation.js';
 
 const STATUS_TEXT = {
 	'all-saved': 'All changes saved',
@@ -518,7 +519,7 @@ export function GardenDraftRoute({ params, mode }) {
 }
 
 export function NewGardenDraftRoute({ mode }) {
-	const { route } = useLocation();
+	const { query, route } = useLocation();
 	const { drafts } = useGardenCreationWorkspace();
 	const started = useRef(false);
 	const [error, setError] = useState('');
@@ -527,11 +528,11 @@ export function NewGardenDraftRoute({ mode }) {
 		started.current = true;
 		let active = true;
 		drafts.create({ preferredEditor: mode }).then((draft) => {
-			if (active) route(`/gardens/new/${mode}/${draft.id}`, true);
+			if (active) route(`/gardens/new/${mode}/${draft.id}${templateSourceSearch(query)}`, true);
 		}, (creationFailure) => {
 			if (active) setError(creationError(creationFailure, 'started'));
 		});
 		return () => { active = false; };
-	}, [drafts, mode, route]);
+	}, [drafts, mode, query, route]);
 	return <GardenDraftLoadState state={error ? { status: 'error', message: error } : { status: 'loading' }} />;
 }
