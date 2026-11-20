@@ -2,7 +2,7 @@
 
 **Status:** Authoritative UI decision record — approved direction consolidated; detailed layouts and responsive states remain open.  
 **Started:** November 14, 2026  
-**Development position (November 16, 2026):** UI redesign Steps 1–5 and supplemental Steps 4.5A/B accepted. Step 5.5 local Playwright foundation accepted with 57/57 tests passing on the developer's desktop (49.6 seconds); see [TESTING_NOTES.md](TESTING_NOTES.md). Steps 6A–B Hub structure, navigation, and Garden cards are implemented for review but not accepted; Steps 6C–D, 6.5, and 7–10 remain ahead of Milestone 8G.
+**Development position (November 20, 2026):** Steps 1–5 (including 4.5A/B and testing checkpoint 5.5), **6A–6D, 6.5, and 6.6 are complete and accepted**. The Garden Hub, saved-Garden identity, and overflow-aware expandable collections passed implementation review and manual acceptance. The next work is Step 7 (Welcome entry page only), Step 8A (actual Garden creation Wizard/Advanced), and Step 8B (contextual/secondary pages), followed by Steps 9–10. Playwright changes are assigned to Copilot when necessary, not Codex.
 
 ## 1. Purpose and scope
 
@@ -189,13 +189,25 @@ This is the authoritative placement map. An approved placement does not mean its
 
 **Still open:** exact shell icon artwork; final confirmation of the 60px iconbar and 300px panel dimensions (including their combined footprint); priority of the four tools when space is constrained; how deliberate More destinations combine with Bootstrap 6 Nav overflow; Add New menu entries/order and their relationship to page-specific Create actions; header container/padding; and remaining device-specific layouts. The existing Settings selector remains available at every width, including Standard Mode on narrow phones. Journal remains a primary navigation destination, not a permanent toolbar tool. Welcome design details are in Section 7A.
 
-### Welcome page and startup behavior — approved direction, details open
+### Welcome page and startup behavior — approved Step 7 design (November 20, 2026)
 
-The Welcome requirements are separate from the Home dashboard specification below. A fresh installation defaults **Show Welcome at startup** to checked. While checked, normal launches show the full-page `/welcome`; when unchecked, normal launches go to Home (`/`). Direct/deep links to other destinations are preserved. Skipping or choosing Go to Gardens does not silently change the preference. Welcome remains available from Help regardless of the preference. Store the explicit setting in existing local UI preferences; do not revive the obsolete one-time `welcomeSeen` rule or add alpha compatibility work.
+The Welcome requirements are separate from the Home dashboard and from the actual Garden creation work in Step 8A. A fresh installation defaults **Show Welcome at startup** to checked. While checked, normal launches show the full-page `/welcome`; when unchecked, normal launches go to Home (`/`). Direct/deep links to other destinations are preserved. Skipping or choosing Go to Gardens does not silently change the preference. Welcome remains available from Help regardless of the preference. Store the explicit setting in existing local UI preferences; do not revive the obsolete one-time `welcomeSeen` rule or add alpha compatibility work.
 
-**Approved presentation direction:** Use a short, skippable **Bootstrap 6 carousel** to introduce the main app features, explain the purpose of Gardens, and lead to **Create Your First Garden** in the existing Garden creation Wizard. This is an introduction, not a second onboarding wizard or a gate to normal use. Keep visible Skip Introduction / Go to Gardens access. The Welcome page also carries the beta/local-storage/backup guidance required by GOALS.md and ROADMAP.md.
+**Approved visual direction:** Adapt the large photographic slideshow from the [Bootstrap 5.3 carousel example](https://getbootstrap.com/docs/5.3/examples/carousel/) using the project's **installed Bootstrap 6** implementation, not copied Bootstrap 5 markup. The Welcome page has **four manually navigated slides**, each with one large garden photograph, concise heading/subheading/description overlaid on the image, a legibility gradient, Previous/Next controls, and visible slide indicators. No autoplay. Keep a consistent, readable composition at mobile, tablet, and desktop sizes, in both interface modes. Preserve accessible focus, controls, contrast, and reduced-motion behavior.
 
-**Still open:** exact slide count and sequence; copy; illustrations/screenshots; CTA placement (final slide or throughout); control styling; and touch, keyboard, screen-reader, and responsive details. The checkbox/default, full-page route, startup behavior, deep-link exception, Help link, and carousel purpose are approved.
+**Approved content architecture:** Store an ordered list of slides in a simple, static JSON file (e.g. `public/assets/data/welcome-slides.json`), with stable IDs, titles, supporting copy, image paths, and an optional final-slide CTA. A reusable Preact component renders the slide data; changing copy, photos, slide order, or slide count must not require JSX edits. Keep layout, carousel behavior, accessible controls, and route logic in the component/CSS rather than in the JSON. Begin with existing photographs in `public/assets/temp/stock-images/` as replaceable placeholders; confirm paths and image sizes. Serve/precaching must support offline installed-PWA use without depending on a live network request.
+
+**Approved four-slide story (copy may be polished during implementation):**
+1. **Welcome to SOLACE Garden!** — *Your garden, organized.* Introduce managing Gardens and planning the growing season.
+2. **Stay Organized** — Tasks, calendar/schedule, and a Wish List for needed items.
+3. **Capture Your Garden's Story** — Journal observations, notes on what worked, photographs, and PlantDB; avoid implying unfinished features already work.
+4. **Let's Get Growing!** — Offer **Create Your First Garden** linking directly to the existing guided Wizard route (`/gardens/new/wizard`) and a way to explore the Gardens Hub instead. Welcome itself creates no record or draft.
+
+**Persistent page controls:** Make **Skip Introduction / Go to Gardens** available without completing slides. Place **Show Welcome at startup** beneath the carousel as a regular preference control, not over the photo; toggling it affects future normal launches rather than navigating immediately. Do not require an acknowledgment or a mandatory tutorial.
+
+**Separate beta notice and support:** Do **not** put beta-status, local-storage risk, or backup warnings into the Welcome slideshow or make them part of the Welcome workflow. Keep substantive backup instructions in Help/FAQ or documentation. A **separate** first-time dismissible beta alert linking to that guidance is a candidate for beta-release work; its trigger, persistence, accessible dialog behavior, and retirement after beta require separate approval. This supersedes the earlier proposal to place beta/backup messaging directly on Welcome. Optional PWA installation guidance/action remains a Help/About responsibility, potentially linked separately later; it is not a Step 7 slideshow requirement.
+
+**Still to validate in implementation:** exact final copy and mapping of the existing placeholder photographs; overlay/contrast across each photo; Bootstrap 6 API and focus behavior; aspect ratios/cropping and image loading on phones/tablets/desktops; static JSON loading/offline behavior; first-launch and deep-link preferences.
 
 ### Home dashboard — approved structure, visual design to finalize (November 14, 2026)
 
@@ -249,7 +261,7 @@ Keep these states simple and usable in both modes. A user may have Previous Gard
 
 **Evidence:** Quick Start alongside Wizard and Advanced looks like one continuous form, though the choices currently start independent workflows. Wizard Details resembles Advanced; validation may appear below the viewport.
 
-**November 16 Step 7 creation hypothesis (prototype before accepting):** Make Quick Start the **first step of the Wizard**, rather than presenting three parallel choices. Keep **Advanced** as a separate consolidated editor. The first Wizard step collects minimal valid Garden details (candidate: name and location), then offers:
+**Step 8A creation direction (prototype before accepting):** Make Quick Start the **first step of the Wizard**, rather than presenting three parallel choices. Keep **Advanced** as a separate consolidated editor. The first Wizard step collects minimal valid Garden details (candidate: name and location), then offers:
 - **Save & Finish:** explicitly creates a saved Garden with defaults, as the quick path, **only on the first step**.
 - **Add More Details:** enters the guided remaining Wizard steps **without creating** a Garden.
 - **Finish Later:** exits with the autosaved **draft**, not a saved Garden; visually subordinate to the two main choices.
@@ -312,7 +324,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [ ] Validate Bootstrap 6 Carousel touch/scroll-snap behavior for Home and Draft Gardens rails on real devices; confirm card widths, visible count, scroll affordances, and keyboard access.
 - [ ] Gardens hub order and presentation for Current, Planned, Previous; meaning of Current versus Active; Draft rail placement; Templates/Create Garden entry points; need for any filtered routes.
 - [ ] Garden card long-title clamp and whether to enforce a generous name-length limit.
-- [ ] Welcome slide count, copy, artwork, CTA placement, and accessible responsive controls.
+- [x] Welcome four-slide content direction, JSON-driven slide data, photographic overlay layout, manual controls, and final CTA placement approved November 20; exact copy, image selection, accessible/responsive implementation and testing remain for Step 7.
 - [ ] Quick Start/Wizard/Advanced choice screen, safe carry-forward behavior, actual Wizard steps, validation visibility, and resume-step behavior.
 - [ ] Templates and Notes contextual UI; grouped Notes/search/linked-Garden indicators. A combined Lists overview is deferred to V2 consideration.
 - [ ] Help/About content and contextual navigation treatment; Harvest placement; Search's harmless interim state until the search feature exists.
@@ -321,7 +333,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ## 9. Implementation punch list — proposed sequence
 
-**Plan:** ten separately reviewable main steps, with a proposed local Playwright testing checkpoint between Steps 5 and 6. Step 1 is an architecture/inventory pass with no intended visual change; Steps 2–8 implement the redesign in focused slices; Step 9 is integrated responsive/regression acceptance; Step 10 is a focused post-review UI polish pass based on observed usability issues, with targeted regression verification before sign-off. Supplemental Steps 4.5A/B covered Carousel research and implementation. Do not combine these into one broad Codex task. Each step gets its own prompt, tests, review, and manual acceptance before proceeding.
+**Plan:** Ten main steps, with additional numbered checkpoints and Step 8 split into **8A (Garden creation)** and **8B (contextual pages)**. Step 7 covers **Welcome only**; Step 8A covers Quick Start/Wizard/Advanced. Step 9 is integrated responsive/regression acceptance and Step 10 is post-review UI polish. Keep each implementation task separately reviewable and manually accepted. Supplemental Steps 4.5A/B covered Carousel research and implementation. Do not combine these into one broad Codex task. Each step gets its own prompt, tests, review, and manual acceptance before proceeding.
 
 ### Step 1 — Existing-code audit and route/navigation separation
 
@@ -419,7 +431,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 **Next:** Review Steps 6A–B and complete their independent browser/device acceptance before proceeding to Step 6C.
 
-### Step 6 — Gardens hub and draft discovery
+### Step 6 — Gardens hub and draft discovery (Steps 6A–6D accepted)
 
 **Implementation status (accepted November 2026):** Steps 6A–6D are complete and accepted. Step 6A established the four Hub categories and header actions, removed the nested Standard-navigation Templates entry, and preserved direct routes. Step 6B established image-first saved and Draft Garden cards with distinct fallback illustrations and separate Draft resume/discard actions. Step 6C delivered the Draft filmstrip and dedicated `/gardens/drafts` page. Step 6D confirmed draft editor preference persistence (the initially suspected regression was caused by modified-date reordering, not lost preferences), responsive/browser behavior, and manual acceptance. The Chromium laptop viewport clipping issue was resolved and retested. Final reported verification: 470 passing Vitest tests, 59 passing Playwright end-to-end tests, and a successful production build. The accepted standalone saved-Garden card arrangement remains functional; collection-level presentation refinement is separately planned in Step 6.6.
 
@@ -434,7 +446,9 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 **Acceptance:** Users can distinguish saved Gardens from drafts, find each Garden category, and resume every draft in its correct editor; existing Garden lifecycle and draft persistence tests pass.
 
-### Step 6.5 — Garden visual identity (new scoped checkpoint; planned November 16, 2026)
+### Step 6.5 — Garden visual identity (accepted November 19, 2026)
+
+**Status:** Complete and manually accepted. Optional saved-Garden icon/color choices persist in the existing fields; shared identity badges render on Garden cards and details with neutral fallbacks. Garden Identity Playwright tests passed 13/13 after a test-only dialog synchronization correction. Separate visual refinements remain parked in Step 10.
 
 **Purpose:** Give each saved Garden a compact, recognizable identity without expanding the Step 6 Hub redesign or waiting for Gallery media support.
 
@@ -447,15 +461,15 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 **Acceptance:** Persist chosen icon/color across reload and edits; distinguish identically named Gardens; check null/default rendering, accessibility and contrast, compact lists and card layouts, both interface modes, and existing Garden lifecycle tests before Step 7.
 
-### Step 6.6 — Expandable Garden collections (approved V1 direction; not yet integrated)
+### Step 6.6 — Expandable Garden collections (accepted November 20, 2026)
 
-**Status (November 19, 2026):** The development-only `/dev/hubtest` prototype, commit [`a2f8972`](https://github.com/solacenetwork/solace-garden/commit/a2f897234087f9524aec160386c02834acad475c), was manually tested on desktop and mobile and accepted as the direction for V1 collection presentation. Production integration has **not** started. Preserve the prototype as a reference until integration is accepted.
+**Status:** Complete and manually accepted. The `/dev/hubtest` prototype ([`a2f8972`](https://github.com/solacenetwork/solace-garden/commit/a2f897234087f9524aec160386c02834acad475c)) informed production integration ([`f3992f1`](https://github.com/solacenetwork/solace-garden/commit/f3992f196a420b04f3a7c48f7e6eec855fb8a037)); overflow-aware View All was refined in [`3ffb7ca`](https://github.com/solacenetwork/solace-garden/commit/3ffb7ca79c9c9f069cf04da0ac31b2a8790ef6f2). Final refinement verification: 496 Vitest tests passed, successful production build and clean diff check. The full Playwright suite passed 28/28 at a 60-second timeout before the final refinement; Playwright was not rerun for that change.
 
 **Purpose:** Give gardeners a compact, quick-scroll view of saved Gardens and an in-place way to browse the complete collection, without changing individual Garden cards.
 
 - For **Current, Planned, and Previous Gardens**, default to the existing horizontally scrollable `CardCarousel` filmstrip.
-- Provide a **View All** control on each collection that swaps the filmstrip for a responsive multi-column grid of the **same cards**, in place on the Gardens Hub. Hide/unmount the filmstrip while expanded.
-- Provide **Collapse** to replace the grid with the filmstrip again; restore the ordinary compact view rather than navigating to a separate page.
+- Provide **View All** only when the filmstrip actually overflows its available width, using the existing carousel ResizeObserver/overflow measurement rather than a fixed number of Gardens. It swaps the filmstrip for a responsive multi-column grid of the **same cards**, in place on the Gardens Hub. Hide/unmount the filmstrip while expanded.
+- Keep **Collapse** visible while expanded, even when the carousel is unmounted; collapsing restores the ordinary compact filmstrip in place. Each collection has independent overflow/expansion state.
 - Keep expansion state **temporary and component-local** for V1; no IndexedDB, localStorage, account preference, or saved expansion state.
 - Reuse a single Garden card renderer and existing production data/actions across both presentations. Preserve links, lifecycle behavior, empty states, and card identity; do not duplicate card markup or build a generalized widget framework.
 - Preserve keyboard focus and accessible View All/Collapse controls, touch scrolling, responsive layouts, and both Simple and Standard interface modes.
@@ -465,20 +479,33 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 **Acceptance:** With real Garden records, View All expands the relevant saved-Garden section in place, Collapse restores a functioning filmstrip, Garden actions and lifecycle remain intact, and responsive/touch/keyboard behavior works on desktop and mobile in both interface modes. Existing unit, end-to-end, and production-build checks remain green.
 
-### Step 7 — Welcome and Garden creation presentation
+### Step 7 — Welcome and first-run introduction (design approved November 20, 2026; implementation pending)
 
-**Purpose:** Complete the first-run introduction and make Garden creation choices understandable.
+**Purpose:** Introduce SOLACE Garden and provide optional entry links. **Welcome is not a Garden creation form** and must not collect Garden fields, autosave drafts, or create Garden records. Actual creation redesign belongs to Step 8A.
 
-- Design and implement the approved Welcome startup preference and short, skippable Bootstrap 6 feature/Gardens carousel.
-- Preserve direct/deep links, Help access to Welcome, and the existing startup preference behavior.
-- Prototype Quick Start as the first Wizard step: **Save & Finish** (quick-create on first step only), **Add More Details** (guided steps), **Finish Later** (preserved draft); keep Advanced separate. Reuse the Step 6.5 icon/color controls in optional detailed editing without making them Quick Start requirements.
-- Finalize Wizard steps, explicit final creation, validation visibility, resume behavior, and narrow-screen presentation.
-- **Approved initial lifecycle selection (November 19, 2026):** Let the user choose the Garden's lifecycle status **before creation**. Wizard: add a guided step using approachable Planned vs Active options (for example, “I'm planning this Garden” / “I've already started this Garden”), defaulting to Planned. Advanced: use the existing lifecycle status select control and expose **all currently supported lifecycle/status choices and applicable Closed state**, not just Planned and Active. This enables direct entry of completed/closed/archived historical Gardens from notebooks. Persist the chosen state in the initial Garden creation operation; do not require creating as Planned and editing afterward. Keep Draft distinct from every official Garden status. Both methods create the same underlying Garden records.
-- Preserve existing draft recovery and editor workflows; do not create a second onboarding wizard or add steps for features that do not exist.
+- Build the full-page `/welcome` using a **four-slide photographic Bootstrap 6 carousel**, visually inspired by the [Bootstrap 5.3 carousel example](https://getbootstrap.com/docs/5.3/examples/carousel/): readable gradient-backed text overlays, manually operated Previous/Next buttons, visible indicators, no autoplay. Use existing `public/assets/temp/stock-images/` photography initially.
+- Define ordered slide content in a separate **JSON file** (e.g. `public/assets/data/welcome-slides.json`) so images, copy, slide order, and slide count can change without JSX edits. Render with a reusable component; avoid an unnecessary content-management framework. Follow the approved four-slide story in Section 7A.
+- On the last slide, link **Create Your First Garden** directly to `/gardens/new/wizard`. Provide **Skip Introduction / Go to Gardens** access throughout; ordinary navigation remains available.
+- Implement/preserve the **Show Welcome at startup** checkbox beneath the carousel, default enabled on new installations and stored with existing local UI preferences. Normal launches honor it, while direct/deep links are preserved; Help can reopen Welcome without changing the preference.
+- Validate mobile/tablet/desktop layout, both interface modes, keyboard and touch use, readable contrast, reduced motion, accessibility, and offline PWA loading.
+- **Exclude:** beta/storage/backup notice or FAQ development, mandatory onboarding, PWA install prompt, Wizard/Advanced changes, Garden/draft data writes, and new persistence/migration mechanisms. Beta safety messaging is tracked separately from Welcome.
 
-**Acceptance:** First-run and returning-user behavior is correct; Welcome can be revisited; users understand the creation choices; Wizard/Advanced drafts survive reload and mode changes; create/discard safeguards remain intact.
+**Acceptance:** The JSON-driven four-slide carousel works without autoplay, including controls and CTA; changing slides requires only JSON/content changes; first and returning launches respect the preference; direct links bypass Welcome; Skip/Go to Gardens and Help revisit work; Welcome creates no Garden or draft; current creation flows remain intact.
 
-### Step 8 — Contextual and secondary page refinements
+### Step 8A — Garden creation: Quick Start, Wizard, and Advanced
+
+**Purpose:** Implement the actual Garden creation presentation and workflow changes after Step 7; do not make Welcome a second creation system.
+
+- Prototype **Quick Start as the first Wizard step**, rather than one of three parallel creation choices. On that step offer **Save & Finish** (explicit quick creation after minimal valid details), **Add More Details** (continue the Wizard without creating), and **Finish Later** (preserve the draft). Save & Finish is exclusive to the first step.
+- Define named subsequent Wizard steps, final explicit creation, validation focus/visibility, draft resume behavior, and mobile layouts; do not add steps for unavailable features.
+- Keep **Advanced** as a separate consolidated editor. Reuse Step 6.5 icon/color controls in optional detailed editing without making identity selection a Quick Start requirement.
+- **Approved initial lifecycle selection (November 19, 2026):** Choose the Garden lifecycle **before creating** the saved record. Wizard offers Planned versus Active, defaulting to Planned. Advanced exposes all currently supported lifecycle/status choices and applicable Closed state so users can enter historical completed/closed/archived Gardens directly. Persist the selected state during initial Garden creation. A Draft is never a saved-Garden lifecycle status.
+- Preserve existing draft IDs, autosave/recovery, editor mode switching, dirty-form safeguards, Template behavior, and atomic creation/discard. Do not add migration or compatibility machinery solely for disposable obsolete alpha records.
+- Do not edit the Welcome flow in this step except for genuinely necessary entry-route compatibility.
+
+**Acceptance:** Quick Start, Wizard, and Advanced behave as distinct, comprehensible workflows; draft recovery and mode switching work; validation and explicit save are clear; the chosen initial lifecycle is saved correctly; mobile/desktop and both modes work.
+
+### Step 8B — Contextual and secondary page refinements
 
 **Purpose:** Finish the remaining page-level navigation and presentation work without expanding feature scope.
 
@@ -526,7 +553,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ---
 
-**Codex workflow:** Before each step, prepare one narrowly scoped prompt listing exact files to inspect/change, intended behavior, explicit exclusions, tests, and manual acceptance criteria. Codex should inspect the current implementation before proposing edits. Keep each step independently reviewable and committed. Do not issue the next step's implementation prompt until the current step passes acceptance.
+**Codex workflow:** Before each step, prepare one narrowly scoped prompt listing exact files to inspect/change, intended behavior, explicit exclusions, Vitest/build checks, and manual acceptance criteria. Codex should inspect the current implementation before proposing edits. Keep each step independently reviewable and committed. Do not assign Playwright creation, maintenance, or execution to Codex; use Copilot for necessary Playwright test changes and the developer's terminal for manual execution. Do not issue the next step's implementation prompt until the current step passes acceptance.
 
 ## 10. Acceptance criteria to expand when design is approved
 
@@ -553,7 +580,8 @@ This log summarizes the approved decisions. Sections 6–8 are the detailed sour
 | 2026-11-14 | **Approved** | Home is a real-data dashboard: Current Gardens, Tasks, Wish List, Gallery, Previous Gardens. Garden and Gallery rails; five-item read-only Tasks/Wish List previews; per-section empty states; no drafts on Home. |
 | 2026-11-14 | **Approved** | Garden cards show Title, Subtitle, Start Date; thumbnail support may be added later. Previous Gardens includes Closed, Completed, Archived. Gallery shows most recently added images. |
 | 2026-11-14 | **Approved** | On `/gardens`, show all unfinished drafts in a compact horizontal rail with Continue/Resume actions. Other Garden group layout/order remains open. |
-| 2026-11-14 | **Approved** | Welcome startup preference defaults on for new installations; full-page Welcome, direct links preserved, Help revisit, and a short skippable feature/Gardens carousel leading to the existing Wizard. Carousel slide details remain open. |
+| 2026-11-14 | **Approved** | Welcome startup preference defaults on for new installations; full-page Welcome, direct links preserved, Help revisit, and a short skippable feature/Gardens carousel leading to the existing Wizard. |
+| 2026-11-20 | **Approved** | Step 7 Welcome uses four photo-overlay Bootstrap 6 slides inspired by the Bootstrap 5.3 carousel example, content authored in JSON, manual navigation/no autoplay, visible Skip/Go to Gardens, and a direct Wizard CTA. Beta/backup messaging and first-run beta notice remain separate Help/FAQ and release work, not part of Welcome. |
 | 2026-11-14 | **Agreed direction** | Retain Preact + `preact-iso` and separate route existence from navigation placement; avoid a new routing framework or a mandatory “workspace” taxonomy. Implementation/refactor scope remains to be validated. |
 
 **Next design session:** Finalize the application shell and responsive layouts first. Then complete the Home/Gardens, Welcome, and creation wireframes. Do not issue broad Codex implementation prompts until the relevant page/state layout and acceptance criteria are approved.
