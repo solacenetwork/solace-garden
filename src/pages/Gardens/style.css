@@ -762,6 +762,14 @@
 	color: var(--sg-color-text-muted);
 }
 
+/* Bootstrap 6 alpha reserves a 15px root scrollbar gutter while dialogs are open.
+   Release it only for this fullscreen dialog so 100% spans the whole viewport. */
+@media (max-width: 47.999rem) {
+	:root.dialog-open:has(.garden-identity-dialog[open]) {
+		scrollbar-gutter: auto;
+	}
+}
+
 .garden-identity-dialog {
 	--dialog-width: min(52rem, calc(100vw - 2rem));
 }
