@@ -2,7 +2,7 @@
 
 **Status:** Authoritative UI decision record — approved direction consolidated; detailed layouts and responsive states remain open.  
 **Started:** November 14, 2026  
-**Development position (November 20, 2026):** Steps 1–5 (including 4.5A/B and testing checkpoint 5.5), **6A–6D, 6.5, 6.6, and 7 are complete and accepted**. The Garden Hub, saved-Garden identity, expandable collections, and Welcome passed implementation and manual acceptance, including offline installed-PWA tests. Next: Step 8A (actual Garden creation Wizard/Advanced) and Step 8B (contextual/secondary pages), followed by Steps 9–10. Playwright changes are assigned to Copilot when necessary, not Codex.
+**Development position (November 20, 2026):** Steps 1–5 (including 4.5A/B and testing checkpoint 5.5), **6A–6D, 6.5, 6.6, and 7 are complete and accepted**. The Garden Hub, saved-Garden identity, expandable collections, and Welcome passed implementation and manual acceptance, including offline installed-PWA tests. Step 8A1 (reusable Wizard Stepper and isolated preview) is also complete and manually accepted; next is Step 8A2 (four-card creation chooser/dispatcher), followed by remaining Step 8A slices, Step 8B, and Steps 9–10. Playwright changes are assigned to Copilot when necessary, not Codex.
 
 ## 1. Purpose and scope
 
@@ -502,11 +502,11 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ### Step 8A — Garden creation redesign (nine focused slices; details in Section 7C)
 
-**Status (November 20, 2026):** High-level V1 behavior agreed; implement incrementally, with focused tests/manual review of each slice. Do not begin a monolithic Wizard overhaul.
+**Status (November 20, 2026):** High-level V1 behavior agreed. **8A1 is complete and manually accepted**; implement the remaining slices incrementally, with focused tests/manual review of each. Do not begin a monolithic Wizard overhaul.
 
 | Slice | Scope |
 | --- | --- |
-| **8A1** | Reusable horizontal overflow Wizard Stepper; development-only `/dev/wizard` preview using alternate JSON, no storage |
+| **8A1 — Accepted** | Reusable horizontal overflow Wizard Stepper; development-only `/dev/wizard` preview using alternate JSON, no storage |
 | **8A2** | Four-card `/gardens/new` chooser and `?type=` dispatcher |
 | **8A3** | Separate Quick Start form, native required name, optional identity, disabled thumbnail, Planned/Active |
 | **8A4** | Five-step JSON Wizard structure, stable ID URL/history navigation, resumable viewed step and recoverable invalid-step error |
@@ -515,6 +515,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 | **8A7** | Advanced Form organization and V1 hide-mode-switching cleanup; preserve historical statuses |
 | **8A8** | Integrated automated/regression tests and corrections |
 | **8A9** | Final real-device/manual acceptance and documentation |
+
+**8A1 acceptance (November 20, 2026):** Implemented in [`91b36f8`](https://github.com/solacenetwork/solace-garden/commit/91b36f8420de4e7a668c3290614c0dfe380d4717). The reusable `WizardStepper` and isolated `/dev/wizard` preview were reviewed against the focused scope. Codex reported **524 passing Vitest tests across 55 files**, a successful production build, a clean worktree, and no preview page/components/fixtures included in the production bundle; Playwright was not changed or run. The gardener confirmed **all manual acceptance tests passed**, explicitly including appropriate automatic scrolling while navigating both forward and backward; desktop, phone, configuration variations, reduced motion, keyboard and screen-reader checks were included in the reported manual acceptance. The production Garden Wizard was not modified in this slice. **Proceed to 8A2.**
 
 **V1 boundaries:** No Review step; **Finish & Create Garden** on Additional Options navigates straight to new Garden details. Stepper is progress-only, not clickable. V1 failures need clear user-facing messages and basic meaningful console diagnostics; full logging architecture and full Wizard Engine/testing database are deferred. Do not change accepted Welcome except for compatible entry links. No alpha legacy-data migrations.
 
