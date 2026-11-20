@@ -2,7 +2,7 @@
 
 **Status:** Authoritative UI decision record — approved direction consolidated; detailed layouts and responsive states remain open.  
 **Started:** November 14, 2026  
-**Development position (November 20, 2026):** Steps 1–5 (including 4.5A/B and testing checkpoint 5.5), **6A–6D, 6.5, and 6.6 are complete and accepted**. The Garden Hub, saved-Garden identity, and overflow-aware expandable collections passed implementation review and manual acceptance. The next work is Step 7 (Welcome entry page only), Step 8A (actual Garden creation Wizard/Advanced), and Step 8B (contextual/secondary pages), followed by Steps 9–10. Playwright changes are assigned to Copilot when necessary, not Codex.
+**Development position (November 20, 2026):** Steps 1–5 (including 4.5A/B and testing checkpoint 5.5), **6A–6D, 6.5, 6.6, and 7 are complete and accepted**. The Garden Hub, saved-Garden identity, expandable collections, and Welcome passed implementation and manual acceptance, including offline installed-PWA tests. Next: Step 8A (actual Garden creation Wizard/Advanced) and Step 8B (contextual/secondary pages), followed by Steps 9–10. Playwright changes are assigned to Copilot when necessary, not Codex.
 
 ## 1. Purpose and scope
 
@@ -207,7 +207,7 @@ The Welcome requirements are separate from the Home dashboard and from the actua
 
 **Separate beta notice and support:** Do **not** put beta-status, local-storage risk, or backup warnings into the Welcome slideshow or make them part of the Welcome workflow. Keep substantive backup instructions in Help/FAQ or documentation. A **separate** first-time dismissible beta alert linking to that guidance is a candidate for beta-release work; its trigger, persistence, accessible dialog behavior, and retirement after beta require separate approval. This supersedes the earlier proposal to place beta/backup messaging directly on Welcome. Optional PWA installation guidance/action remains a Help/About responsibility, potentially linked separately later; it is not a Step 7 slideshow requirement.
 
-**Still to validate in implementation:** exact final copy and mapping of the existing placeholder photographs; overlay/contrast across each photo; Bootstrap 6 API and focus behavior; aspect ratios/cropping and image loading on phones/tablets/desktops; static JSON loading/offline behavior; first-launch and deep-link preferences.
+**Implementation/acceptance update (November 20, 2026):** The Welcome carousel and photos were visually accepted on desktop and mobile; mobile swipe, CTA navigation, direct-link preservation, startup preference in both states, and offline installed-PWA launch/restart all passed manual checks. Future copy/photo refinements can be addressed in Step 10; Help-link discoverability/presentation remains Step 8B.
 
 ### Home dashboard — approved structure, visual design to finalize (November 14, 2026)
 
@@ -479,7 +479,9 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 **Acceptance:** With real Garden records, View All expands the relevant saved-Garden section in place, Collapse restores a functioning filmstrip, Garden actions and lifecycle remain intact, and responsive/touch/keyboard behavior works on desktop and mobile in both interface modes. Existing unit, end-to-end, and production-build checks remain green.
 
-### Step 7 — Welcome and first-run introduction (design approved November 20, 2026; implementation pending)
+### Step 7 — Welcome and first-run introduction (accepted November 20, 2026)
+
+**Status:** Complete and manually accepted November 20, 2026. The JSON-driven four-slide photo carousel, desktop/mobile visuals, touch swipe, manual controls, startup preference, direct links, and Wizard CTA were tested successfully. On the installed PWA with internet disconnected, all slides and images worked; disabling the startup preference, closing and reopening offline correctly skipped Welcome; enabling it and restarting offline correctly displayed Welcome. Help already contains a Welcome link; its visibility/presentation refinement is deferred to Step 8B. Wording/photo polish can remain Step 10. No additional Step 7 implementation is required.
 
 **Purpose:** Introduce SOLACE Garden and provide optional entry links. **Welcome is not a Garden creation form** and must not collect Garden fields, autosave drafts, or create Garden records. Actual creation redesign belongs to Step 8A.
 
