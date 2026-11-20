@@ -17,7 +17,10 @@ function nodes(node) {
 	if (Array.isArray(node)) return node.flatMap(nodes);
 	if (typeof node !== 'object') return [node];
 	if (node.type === GardenSection) {
-		return nodes(GardenSectionView({ ...node.props, expanded: false, onToggle: vi.fn() }));
+		return nodes(GardenSectionView({
+			...node.props, expanded: false, hasOverflow: false,
+			onToggle: vi.fn(), onOverflowChange: vi.fn(),
+		}));
 	}
 	if (typeof node.type === 'function' && node.type !== CardCarousel) return nodes(node.type(node.props));
 	return [node, ...nodes(node.props.children)];
@@ -46,7 +49,7 @@ describe('Garden read-only views', () => {
 		expect(nodes(tree).filter((node) => node.type === CardCarousel).flatMap(({ props }) => props.children).map(({ key }) => key)).toEqual([garden.id, second.id]);
 	});
 
-	it('renders every nonempty saved collection as an independently controlled filmstrip by default', () => {
+	it('renders every nonempty saved collection as an independent filmstrip without premature View All controls', () => {
 		const tree = GardensOverviewView({
 			state: { status: 'ready', drafts: [], current: [garden], planned: [garden], previous: [garden] },
 		});
@@ -54,12 +57,33 @@ describe('Garden read-only views', () => {
 		expect(carousels.map(({ props }) => props.id)).toEqual([
 			'current-gardens-carousel', 'planned-gardens-carousel', 'previous-gardens-carousel',
 		]);
-		const controls = nodes(tree).filter((node) => node.type === 'button');
-		expect(controls.map((node) => text(node))).toEqual(['View All', 'View All', 'View All']);
-		expect(controls.map(({ props }) => props['aria-expanded'])).toEqual([false, false, false]);
-		expect(controls.map(({ props }) => props['aria-controls'])).toEqual([
-			'current-gardens-collection', 'planned-gardens-collection', 'previous-gardens-collection',
-		]);
+		expect(nodes(tree).filter((node) => node.type === 'button')).toHaveLength(0);
+		expect(carousels.every(({ props }) => typeof props.onOverflowChange === 'function')).toBe(true);
+	});
+
+	it('shows View All only for an overflowing collection and keeps sections independent', () => {
+		const sectionProps = (title, id, hasOverflow) => ({
+			title, id, items: [garden], hasOverflow, expanded: false,
+			emptyMessage: 'Empty', placeholder: '/placeholder.svg',
+			onToggle: vi.fn(), onOverflowChange: vi.fn(),
+		});
+		const currentProps = sectionProps('Current Gardens', 'current-gardens', true);
+		const plannedProps = sectionProps('Planned Gardens', 'planned-gardens', false);
+		const previousProps = sectionProps('Previous Gardens', 'previous-gardens', true);
+		const current = GardenSectionView(currentProps);
+		const planned = GardenSectionView(plannedProps);
+		const previous = GardenSectionView(previousProps);
+
+		const currentButton = nodes(current).find((node) => node.type === 'button');
+		expect(text(currentButton)).toBe('View All');
+		expect(nodes(planned).some((node) => node.type === 'button')).toBe(false);
+		expect(text(nodes(previous).find((node) => node.type === 'button'))).toBe('View All');
+		expect(nodes(current).find((node) => node.type === CardCarousel).props.onOverflowChange)
+			.toBe(currentProps.onOverflowChange);
+		currentButton.props.onClick();
+		expect(currentProps.onToggle).toHaveBeenCalledOnce();
+		expect(plannedProps.onToggle).not.toHaveBeenCalled();
+		expect(previousProps.onToggle).not.toHaveBeenCalled();
 	});
 
 	it('uses the same saved-Garden cards and identity content in expanded and collapsed layouts', () => {
@@ -67,10 +91,11 @@ describe('Garden read-only views', () => {
 		const onToggle = vi.fn();
 		const props = {
 			title: 'Current Gardens', id: 'current-gardens', items: [identified],
-			emptyMessage: 'No active Gardens.', placeholder: '/placeholder.svg', onToggle,
+			emptyMessage: 'No active Gardens.', placeholder: '/placeholder.svg', hasOverflow: true,
+			onToggle, onOverflowChange: vi.fn(),
 		};
 		const collapsed = GardenSectionView({ ...props, expanded: false });
-		const expanded = GardenSectionView({ ...props, expanded: true });
+		const expanded = GardenSectionView({ ...props, expanded: true, hasOverflow: false });
 
 		expect(nodes(collapsed).some((node) => node.type === CardCarousel)).toBe(true);
 		expect(nodes(expanded).some((node) => node.type === CardCarousel)).toBe(false);

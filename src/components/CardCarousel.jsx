@@ -45,17 +45,22 @@ export function initializeCardCarousel(element, viewport, onOverflowChange) {
 	};
 }
 
-export function CardCarousel({ children, label, id, className = '' }) {
+export function CardCarousel({ children, label, id, className = '', onOverflowChange }) {
 	const generatedId = useId();
 	const carouselId = id ?? `card-carousel-${generatedId}`;
 	const root = useRef(null);
 	const viewport = useRef(null);
+	const overflowCallback = useRef(onOverflowChange);
 	const [hasOverflow, setHasOverflow] = useState(false);
 	const items = toChildArray(children);
+	overflowCallback.current = onOverflowChange;
 
 	useEffect(() => {
 		if (!root.current || !viewport.current) return undefined;
-		return initializeCardCarousel(root.current, viewport.current, setHasOverflow);
+		return initializeCardCarousel(root.current, viewport.current, (overflow) => {
+			setHasOverflow(overflow);
+			overflowCallback.current?.(overflow);
+		});
 	}, []);
 
 	return (

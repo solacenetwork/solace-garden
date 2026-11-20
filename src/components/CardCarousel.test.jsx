@@ -4,6 +4,7 @@ const harness = vi.hoisted(() => ({
 	constructors: [],
 	effects: [],
 	id: 0,
+	setters: [],
 }));
 
 vi.mock('bootstrap/js/dist/carousel.js', () => ({
@@ -20,7 +21,11 @@ vi.mock('bootstrap/js/dist/carousel.js', () => ({
 vi.mock('preact/hooks', () => ({
 	useId: () => `P${++harness.id}`,
 	useRef: (initial) => ({ current: initial }),
-	useState: (initial) => [typeof initial === 'function' ? initial() : initial, vi.fn()],
+	useState: (initial) => {
+		const setter = vi.fn();
+		harness.setters.push(setter);
+		return [typeof initial === 'function' ? initial() : initial, setter];
+	},
 	useEffect: (effect, dependencies) => harness.effects.push({ effect, dependencies }),
 }));
 
@@ -44,6 +49,7 @@ beforeEach(() => {
 	harness.constructors = [];
 	harness.effects = [];
 	harness.id = 0;
+	harness.setters = [];
 	vi.stubGlobal('addEventListener', vi.fn());
 	vi.stubGlobal('removeEventListener', vi.fn());
 });
@@ -195,6 +201,32 @@ describe('CardCarousel lifecycle', () => {
 		secondCleanup();
 		expect(harness.constructors).toHaveLength(2);
 		for (const instance of harness.constructors) expect(instance.dispose).toHaveBeenCalledOnce();
+	});
+
+	it('reports measured overflow through the optional callback without replacing internal state', () => {
+		const resizeObservers = [];
+		vi.stubGlobal('ResizeObserver', class ResizeObserver {
+			constructor(callback) { this.callback = callback; this.observe = vi.fn(); this.disconnect = vi.fn(); resizeObservers.push(this); }
+		});
+		vi.stubGlobal('MutationObserver', undefined);
+		const onOverflowChange = vi.fn();
+		const tree = CardCarousel({
+			id: 'responsive', label: 'Responsive cards', onOverflowChange,
+			children: <span>Card</span>,
+		});
+		const viewportNode = nodes(tree).find(({ props }) => props.class === 'carousel-inner card-carousel__viewport');
+		tree.ref.current = {};
+		viewportNode.ref.current = { scrollWidth: 500, clientWidth: 300 };
+
+		const cleanup = harness.effects.at(-1).effect();
+		expect(harness.setters[0]).toHaveBeenLastCalledWith(true);
+		expect(onOverflowChange).toHaveBeenLastCalledWith(true);
+
+		viewportNode.ref.current.scrollWidth = 300;
+		resizeObservers[0].callback();
+		expect(harness.setters[0]).toHaveBeenLastCalledWith(false);
+		expect(onOverflowChange).toHaveBeenLastCalledWith(false);
+		cleanup();
 	});
 
 	it('does not access IndexedDB or require any record shape', () => {

@@ -107,7 +107,8 @@ export function GardenDraftCard({ draft, onDiscard, discardingId = null }) {
 }
 
 export function GardenSectionView({
-	title, id, items = [], emptyMessage, placeholder, expanded, onToggle,
+	title, id, items = [], emptyMessage, placeholder, expanded, hasOverflow = false,
+	onToggle, onOverflowChange,
 }) {
 	const collectionId = `${id}-collection`;
 	const renderCard = (garden) => (
@@ -118,7 +119,7 @@ export function GardenSectionView({
 		<section class="gardens-section" aria-labelledby={id}>
 			<div class="gardens-section__heading">
 				<h2 id={id}>{title}</h2>
-				{items.length > 0 && (
+				{items.length > 0 && (expanded || hasOverflow) && (
 					<button
 						class="btn-outline theme-primary"
 						type="button"
@@ -137,7 +138,12 @@ export function GardenSectionView({
 							{items.map((garden) => <li key={garden.id}>{renderCard(garden)}</li>)}
 						</ul>
 					) : (
-						<CardCarousel id={`${id}-carousel`} label={title} className="gardens-collection__carousel">
+						<CardCarousel
+							id={`${id}-carousel`}
+							label={title}
+							className="gardens-collection__carousel"
+							onOverflowChange={onOverflowChange}
+						>
 							{items.map(renderCard)}
 						</CardCarousel>
 					)}
@@ -149,11 +155,14 @@ export function GardenSectionView({
 
 export function GardenSection(props) {
 	const [expanded, setExpanded] = useState(false);
+	const [hasOverflow, setHasOverflow] = useState(false);
 	return (
 		<GardenSectionView
 			{...props}
 			expanded={expanded}
+			hasOverflow={hasOverflow}
 			onToggle={() => setExpanded((value) => !value)}
+			onOverflowChange={setHasOverflow}
 		/>
 	);
 }
