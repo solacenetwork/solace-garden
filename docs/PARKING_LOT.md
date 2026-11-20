@@ -11,6 +11,15 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## V2 candidate: Combined Lists overview for Tasks and Wish List
+
+**Status (November 19, 2026):** Deferred from the V1 UI redesign Step 8. This is a possibility to evaluate for V2, not a committed V2 feature.
+
+- Revisit whether a common **Lists** entry point or a combined Lists overview improves navigation for people using both Tasks and Wish List.
+- A possible dashboard could show both lists and offer separate Add actions; investigate the actual benefit after observing how people use the existing pages.
+- Preserve dedicated /tasks and /wishlist destinations and independent editing workflows and item semantics. No new data model or shared Lists page is required for V1.
+- Do not conflate this proposal with the already approved Home dashboard's separate Tasks and Wish List previews.
+
 ## Future idea: Preferred Garden creation method
 
 **Status (November 19, 2026):** Deferred user preference, not an implementation requirement for Step 7. Initial default remains the guided Wizard.
