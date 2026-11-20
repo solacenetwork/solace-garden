@@ -41,7 +41,7 @@ This document is the **single consolidated design specification** for the UI red
 | Navigation reflects implementation rather than gardener expectations | Templates as top-level vs Gardens; Locations top-level vs Settings; placeholder Home wording | Organize by user task and relationship, preserving existing direct URLs |
 | Garden creation methods appear sequential but are independent | Laptop `/gardens/new`; earlier lost Quick Start name on Wizard/Advanced | Make the three creation choices genuinely distinct, or explicitly define safe carry-forward behavior |
 | Garden overview conflates unfinished work and saved Garden lifecycle | Drafts appearing above new Gardens; duplicate names | Clear Draft versus Planned/Active/Previous grouping and discovery |
-| Everyday shortcuts require extra navigation | Search page before query; Tasks and Wish List dispersed | Consider header Search and shared Lists overview without inventing new data models |
+| Everyday shortcuts require extra navigation | Search page before query; Tasks and Wish List dispersed | Consider header Search; defer a shared Lists overview to V2 |
 | Secondary identifiers/feedback distract or hide outcomes | Template UUID cards; long Garden names; validation below fold | Improve information hierarchy and immediate, accessible feedback |
 | Tablet and desktop presentation need purposeful adaptation | Inset header, too many sidebar buttons, legacy fixed styling | Design breakpoint-specific layout within both selectable modes |
 
@@ -268,7 +268,7 @@ After the first step, the Wizard must proceed through named steps and create onl
 
 ### E. Lists and Search
 
-**Lists:** consider a combined `/lists` dashboard for Tasks and Wish List with separate Add controls; keep current `/tasks` and `/wishlist` access and underlying shared data.
+**Lists (V1):** Keep Tasks and Wish List as separate accessible destinations at `/tasks` and `/wishlist`, with their existing full-page editing workflows and underlying data. A combined `/lists` overview is **deferred to V2 consideration**; see [PARKING_LOT.md](PARKING_LOT.md).
 
 **Search:** approved responsive navbar input (wide) or icon-triggered panel (narrow) with a shared submit action targeting `/search?q=...`; defer actual cross-feature search behavior to its scheduled milestone unless scope is explicitly changed. Query parameters should be treated as input, not authority to perform writes.
 
@@ -314,7 +314,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 - [ ] Garden card long-title clamp and whether to enforce a generous name-length limit.
 - [ ] Welcome slide count, copy, artwork, CTA placement, and accessible responsive controls.
 - [ ] Quick Start/Wizard/Advanced choice screen, safe carry-forward behavior, actual Wizard steps, validation visibility, and resume-step behavior.
-- [ ] Templates and Notes contextual UI; grouped Notes/search/linked-Garden indicators; whether a combined Lists overview is worthwhile.
+- [ ] Templates and Notes contextual UI; grouped Notes/search/linked-Garden indicators. A combined Lists overview is deferred to V2 consideration.
 - [ ] Help/About content and contextual navigation treatment; Harvest placement; Search's harmless interim state until the search feature exists.
 - [ ] Define the boundary between this pre-8G UI redesign and UI work deferred until the relevant V1 feature exists.
 - [ ] Prepare and approve annotated layouts for the shell, Home, Gardens, Welcome, and Garden creation before implementation prompts are written.
@@ -484,7 +484,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 - Refine Templates entry points and management presentation.
 - Refine Notes navigation, grouped browsing/search, and linked-Garden context where supported by current functionality.
-- Confirm Tasks/Wish List full-page editing boundaries and any Lists overview entry point.
+- Confirm Tasks and Wish List retain separate, accessible full-page editing destinations. Do not add a combined Lists overview in V1.
 - Design Help/About, Settings access through More, Locations under Settings, and contextual Harvest access.
 - Keep unfinished Search behavior harmless until the Search feature is implemented.
 - Defer feature functionality that is not part of the approved V1 redesign.
