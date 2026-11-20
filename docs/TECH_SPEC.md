@@ -47,6 +47,24 @@
 
 The temporary `items` store in `src/db.js` is a proof of concept, **not the intended production schema**. The test demonstrated data persistence across a complete browser and Vite restart. Offline loading, large media, and restoration remain untested.
 
+### 2.1 Browser compatibility and startup failure policy (V1 decision; implementation pending)
+
+**Compatibility baseline:** Support modern, maintained browsers that provide Garden's required Web APIs and can execute the shipped application. Prefer *capability and successful-operation checks*, not browser-name/version sniffing or arbitrary minimum RAM/CPU specifications. Older but usable hardware is welcome when its browser meets the contract; obsolete browsers and operating systems (e.g. Internet Explorer 8 or Android 3-era browsers) are **not** supported. Do not add legacy polyfills, compatibility branches, or architectural compromises solely for obsolete platforms. A device can be compatible with Garden yet lack capacity for particularly large Garden/media datasets.
+
+**Startup sequence and graceful failure:**
+
+1. Provide a simple, accessible `<noscript>` message in `index.html` explaining that JavaScript is required. Keep essential styling independent of the app bundle.
+2. Provide an initial HTML loading/fallback message inside the application mount point so a missing bundle does not produce an empty screen. Replace it when the application successfully renders; ensure *catchable* initialization failures show an actionable error instead of leaving the loading state indefinitely.
+3. Before normal app bootstrapping, perform a small, explicitly maintained capability check for Web APIs the *current* app actually requires (audit dependencies before selecting checks). Distinguish hard requirements from optional conveniences such as notifications, install prompts, or preference persistence; missing optional APIs should not block the app.
+4. Verify IndexedDB through real operations, not merely `'indexedDB' in window` or browser user-agent checks. **Current implementation already performs this in practice:** `src/index.jsx` calls `initializeStorage()`, and `src/storage/dexie/initializeDexieStorage.js` opens/validates the control and Garden databases, reads configuration, and performs required initialization writes. Reuse this startup pathway rather than adding a redundant or destructive test transaction. On failure, display the existing `StorageRecoveryScreen` (or a distinct compatibility error when appropriate) without silently clearing or replacing data.
+5. Keep direct/deep links and the Welcome startup preference independent of compatibility decisions. Start the normal application only after required checks succeed.
+
+**Limits of detection:** A JavaScript-based capability probe cannot reliably display its own error in a browser too old to parse the shipped bundle. The `<noscript>` message also does not handle all bundle-loading, parsing, API, or IndexedDB failures. Do not promise universal error coverage or build a separate legacy application just to handle unsupported browsers.
+
+**Operational integrity and low-resource testing:** Failure to write, storage quota exhaustion (`QuotaExceededError`), interrupted startup, and device memory pressure must not silently destroy currently valid Garden records. Browser storage estimates are advisory and do not replace handling actual write failures; removable SD-card free space may not be available to browser-managed IndexedDB. Test on low-storage/low-memory hardware, including errors during large media ZIP import and interrupted restore. V1 ZIP restore remains replace-only and should validate before activation, preserving the active dataset on failed restoration. Alpha test data remains disposable: no backward-compatibility migrations or recovery paths solely for obsolete alpha formats, while normal operational data integrity still applies.
+
+**Implementation/acceptance checkpoint:** Audit concrete required APIs; add the HTML fallbacks and a minimal pre-bootstrap compatibility/failure path; keep existing Dexie storage initialization and error diagnostics; test JavaScript-disabled mode, missing mandatory APIs, blocked/unwritable IndexedDB, storage quota failures, interrupted startup, offline PWA launch, and low-resource devices. Do this before public beta; no unrelated UI refactor or legacy-browser support.
+
 ## 3. Data model overview (decided behavior; field/index details provisional)
 
 Use stable UUIDs for user-created records; use stable seeded identifiers for system location/type presets. UTC ISO timestamps are for audit fields; user-entered gardening dates are local `YYYY-MM-DD` date-only strings. Dexie/IndexedDB has no built-in foreign keys; application services enforce integrity.
