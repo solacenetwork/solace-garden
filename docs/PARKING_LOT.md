@@ -11,6 +11,14 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future Wizard UX and diagnostics refinements (post-V1 candidates)
+
+**Status (November 20, 2026):** Deferred, not requirements for V1 Step 8A.
+
+- **Clickable progress indicator:** V1's horizontal Wizard Stepper displays progress only; Back/Continue and browser history handle navigation. Later evaluate clicking completed/reachable step indicators, including validation/accessibility rules, after real-user testing.
+- **Richer diagnostics and error handling:** V1 distinguishes recoverable user input/navigation errors from application/configuration/storage failures; use native/browser validation, concise on-screen messages, and basic meaningful `console.error` details without logging private Garden data. Later consider standardized diagnostic codes, richer developer logging, centralized error handling, and optional user-reviewed diagnostic exports if real support requirements justify them. Avoid building a logging framework prematurely.
+- **Wizard configuration integrity:** V1's production JSON includes every active step, with stable IDs and explicit ordering; no `showInWizard` or production test-configuration URL override. Future engine/test-harness work can expand development-only step/form testing without exposing incomplete steps to users.
+
 ## Future development tooling: Configurable Wizard Engine and isolated full-Wizard test harness
 
 **Status (November 20, 2026):** Deferred idea, not part of the initial Step 8A Stepper prototype or a committed release milestone. **Revisit after the ZIP export/import feature is available**, since portable fixture ZIPs could simplify seeding and cloning test data.
