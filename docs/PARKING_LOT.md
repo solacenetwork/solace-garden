@@ -11,6 +11,29 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## V2/V3 candidate: Bookmarklet, list-item deep links, and sharing
+
+**Status (November 19, 2026):** Future exploration; **not part of V1** and not a committed V2 or V3 release requirement. Related to, but independent of, the proposed combined Lists overview below.
+
+**Initial local-first proof of concept**
+
+- Explore a desktop browser **“Save to SOLACE Garden” bookmarklet** that captures the current shopping page's title and product URL, then opens Garden with a prefilled **Wish List** Add form. Task-item links could use the same pattern.
+- An illustrative URL might be `/lists?add=true&list=wishlist&title=Tomato+Seeds&quantity=2&url=https%3A%2F%2Fexample.com%2Fseeds`. This **does not establish /lists as the chosen route**; dedicated `/tasks`, `/wishlist`, or another import entry point may be better. The combined Lists dashboard must not be a prerequisite.
+- Parse and validate URL parameters, reject unsupported types/fields, show a review/edit/confirmation step, and **never write to IndexedDB merely because a link was opened**. Preserve the offline-first model and existing Tasks/Wish List semantics.
+- A local bookmarklet can work without a PHP API when the installed or otherwise available Garden app and its cached assets are accessible. Test browser/PWA handling and offline behavior rather than assuming custom protocol support.
+
+**Person-to-person sharing**
+
+- Consider an in-app **Share Item** action that produces a self-contained link containing only selected transferable fields. A recipient running Garden could open it, review the proposed Task/Wish List item, and choose whether to add a **copy** to their own list. Sharing an item must **not** grant access to the sender's list, household data, internal IDs or other private records.
+- When offline, offer **Copy formatted text** (item name, quantity, optionally product URL and notes) so the user can paste it into email or messaging when a communications channel is available. Generating that text must not require a server.
+- Clarify URL length, escaping, validation, privacy of URL query strings (history/logging/referrers), size limits, and which fields are safe to include before defining a permanent format.
+
+**Server-backed evolution and SOLACE interoperability**
+
+- As Garden eventually introduces authenticated PHP APIs, server-side persistence and mirroring/synchronization, investigate authorized import and sharing endpoints. Server writes should be authenticated, authorized, rate-limited and treated separately from simple prefilled-link navigation.
+- Organization-wide concepts such as a shared SOLACE short-link resolver (candidate `snlink.org`) and a future native `sn://` protocol belong in [the organization-level Parking Lot](https://github.com/solacenetwork/.github/blob/main/docs/PARKING_LOT.md). Garden could eventually consume or generate such links but should not depend on the central link service for local/offline operation.
+- Keep payload/schema validation and user confirmation common across local URLs, server APIs, and eventual cross-app imports. Versioning and cross-device conflict/sync rules belong to the later backend design rather than the bookmarklet proof of concept.
+
 ## V2 candidate: Combined Lists overview for Tasks and Wish List
 
 **Status (November 19, 2026):** Deferred from the V1 UI redesign Step 8. This is a possibility to evaluate for V2, not a committed V2 feature.
