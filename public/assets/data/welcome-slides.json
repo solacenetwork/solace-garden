@@ -1,0 +1,34 @@
+[
+	{
+		"id": "welcome",
+		"heading": "Welcome to SOLACE Garden!",
+		"subtitle": "Your garden, organized.",
+		"description": "Plan your growing season, manage each Garden, and keep the details that matter close at hand.",
+		"image": "/assets/temp/stock-images/placeholder-active.jpg"
+	},
+	{
+		"id": "organize",
+		"heading": "Stay Organized",
+		"subtitle": "Keep track of what needs to get done.",
+		"description": "Bring Tasks, Calendar plans, and Wish List ideas together so the next garden job is easy to find.",
+		"image": "/assets/temp/stock-images/placeholder-planned.jpg"
+	},
+	{
+		"id": "story",
+		"heading": "Capture Your Garden's Story",
+		"subtitle": "Remember what worked (and what didn't).",
+		"description": "SOLACE Garden is designed to connect Journal entries, Notes, photographs, and PlantDB references as these tools grow.",
+		"image": "/assets/temp/stock-images/placeholder-archived.jpg"
+	},
+	{
+		"id": "create",
+		"heading": "Let's Get Growing!",
+		"subtitle": "Ready to create your first Garden?",
+		"description": "Start with the guided Wizard and turn your plan into a Garden you can revisit throughout the season.",
+		"image": "/assets/temp/stock-images/placeholder-draft.jpg",
+		"cta": {
+			"label": "Create Your First Garden",
+			"href": "/gardens/new/wizard"
+		}
+	}
+]

@@ -126,6 +126,7 @@ describe('destination registry and route contracts', () => {
 		['templates', '/templates', 'templates'],
 		['locations', '/locations', 'locations'],
 		['settings', '/settings', 'settings'],
+		['welcome', '/welcome', 'welcome'],
 		['help', '/help', 'help'],
 		['about', '/about', 'about'],
 	];
@@ -152,7 +153,7 @@ describe('destination registry and route contracts', () => {
 		expect(new Set(routeCatalog.map(({ id }) => id)).size).toBe(routeCatalog.length);
 	});
 
-	it.each(['/unknown', '/welcome', '/lists', '/notes/one/extra', '/gardens/one/edit/extra'])(
+	it.each(['/unknown', '/lists', '/notes/one/extra', '/gardens/one/edit/extra'])(
 		'leaves %s unmatched for the existing default 404 route', (path) => {
 			expect(resolveRoute(path)).toBeNull();
 		},

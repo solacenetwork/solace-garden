@@ -40,10 +40,14 @@ export const pwaOptions = {
       'assets/branding/solace-logo.svg',
       'assets/icons/android-chrome-192x192.png',
       'assets/icons/android-chrome-512x512.png',
+      'assets/data/welcome-slides.json',
+      'assets/temp/stock-images/placeholder-active.jpg',
+      'assets/temp/stock-images/placeholder-planned.jpg',
+      'assets/temp/stock-images/placeholder-archived.jpg',
+      'assets/temp/stock-images/placeholder-draft.jpg',
     ],
     globIgnores: [
       'assets/plantdb/**/*',
-      'assets/temp/**/*',
     ],
     navigateFallback: 'index.html',
     navigateFallbackDenylist: [

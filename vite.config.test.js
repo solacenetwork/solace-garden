@@ -12,6 +12,13 @@ describe('PWA build configuration', () => {
 
 	it('precaches the offline shell without runtime or PlantDB caching', () => {
 		expect(pwaOptions.workbox.globPatterns).toContain('**/*.{js,css,html,woff,woff2}');
+		expect(pwaOptions.workbox.globPatterns).toEqual(expect.arrayContaining([
+			'assets/data/welcome-slides.json',
+			'assets/temp/stock-images/placeholder-active.jpg',
+			'assets/temp/stock-images/placeholder-planned.jpg',
+			'assets/temp/stock-images/placeholder-archived.jpg',
+			'assets/temp/stock-images/placeholder-draft.jpg',
+		]));
 		expect(pwaOptions.workbox.globIgnores).toContain('assets/plantdb/**/*');
 		expect(pwaOptions.workbox.runtimeCaching).toEqual([]);
 		expect(pwaOptions.workbox.navigateFallback).toBe('index.html');

@@ -1,0 +1,207 @@
+.welcome-page {
+	display: grid;
+	width: min(100%, 78rem);
+	gap: 1.25rem;
+}
+
+.welcome-page__header {
+	display: flex;
+	align-items: end;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.welcome-page__header h1,
+.welcome-page__header p {
+	margin: 0;
+}
+
+.welcome-page__eyebrow {
+	color: var(--sg-color-primary);
+	font-size: 0.8rem;
+	font-weight: 800;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+.welcome-page__skip {
+	min-height: 3rem;
+	flex: 0 0 auto;
+}
+
+.welcome-carousel {
+	--bs-carousel-indicator-bg: #fff;
+	--bs-carousel-control-icon-width: 1.35rem;
+
+	min-width: 0;
+	overflow: hidden;
+	color: #fff;
+	background: #1c2a1e;
+	border-radius: var(--sg-radius-card);
+	box-shadow: var(--sg-shadow-raised);
+}
+
+.welcome-carousel__viewport,
+.welcome-carousel__slide {
+	height: clamp(29rem, 67vh, 43rem);
+}
+
+.welcome-carousel__slide {
+	position: relative;
+	overflow: hidden;
+}
+
+.welcome-carousel__image,
+.welcome-carousel__shade {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.welcome-carousel__image {
+	object-fit: cover;
+}
+
+.welcome-carousel__shade {
+	background:
+		linear-gradient(90deg, rgb(12 21 14 / 0.86) 0%, rgb(12 21 14 / 0.6) 50%, transparent 82%),
+		linear-gradient(0deg, rgb(12 21 14 / 0.75) 0%, transparent 55%);
+}
+
+.welcome-carousel__content {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	width: min(100%, 42rem);
+	height: 100%;
+	padding: clamp(2rem, 7vw, 5.5rem) clamp(1.5rem, 8vw, 6rem) 6rem;
+	justify-content: center;
+	flex-direction: column;
+	text-shadow: 0 0.15rem 1rem rgb(0 0 0 / 0.65);
+}
+
+.welcome-carousel__step {
+	margin-block-end: 0.5rem;
+	font-size: 0.8rem;
+	font-weight: 800;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.welcome-carousel__content h2 {
+	margin: 0;
+	font-size: clamp(2rem, 6vw, 4.25rem);
+	line-height: 1.02;
+}
+
+.welcome-carousel__subtitle {
+	margin-block: 0.8rem 0;
+	font-size: clamp(1.15rem, 2.8vw, 1.65rem);
+	font-weight: 750;
+}
+
+.welcome-carousel__description {
+	margin-block: 1rem 0;
+	font-size: clamp(1rem, 2vw, 1.2rem);
+	line-height: 1.6;
+}
+
+.welcome-carousel__cta {
+	align-self: flex-start;
+	min-height: 3rem;
+	margin-block-start: 1.5rem;
+	text-shadow: none;
+}
+
+.welcome-carousel__controls {
+	inset-block-end: 1.25rem;
+	inset-inline: clamp(1rem, 4vw, 2rem);
+}
+
+.welcome-carousel__control {
+	display: inline-grid;
+	width: 3rem;
+	height: 3rem;
+	padding: 0;
+	color: #fff;
+	background: rgb(12 21 14 / 0.72);
+	border: 1px solid rgb(255 255 255 / 0.7);
+	border-radius: 50%;
+	place-items: center;
+}
+
+.welcome-carousel__control:hover {
+	background: rgb(12 21 14 / 0.92);
+}
+
+.welcome-carousel__control:focus-visible,
+.welcome-carousel__indicators button:focus-visible,
+.welcome-carousel__cta:focus-visible {
+	outline: 3px solid #fff;
+	outline-offset: 3px;
+}
+
+.welcome-page__skip:focus-visible {
+	outline: 3px solid var(--sg-color-focus);
+	outline-offset: 3px;
+}
+
+.welcome-carousel__indicators {
+	margin: 0;
+}
+
+.welcome-page__preference {
+	padding: 1rem 1.25rem;
+	background: var(--sg-color-surface);
+	border: 1px solid var(--sg-color-border);
+	border-radius: 0.8rem;
+}
+
+.welcome-page__preference .form-field {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.welcome-page__preference label {
+	font-weight: 700;
+}
+
+.welcome-page__storage-warning,
+.welcome-page__state {
+	margin-block: 0.75rem 0;
+}
+
+@media (max-width: 35.999rem) {
+	.welcome-page__header {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.welcome-page__skip {
+		align-self: flex-start;
+	}
+
+	.welcome-carousel__viewport,
+	.welcome-carousel__slide {
+		height: min(39rem, 72vh);
+		min-height: 32rem;
+	}
+
+	.welcome-carousel__shade {
+		background: linear-gradient(0deg, rgb(12 21 14 / 0.9) 0%, rgb(12 21 14 / 0.5) 68%, rgb(12 21 14 / 0.18) 100%);
+	}
+
+	.welcome-carousel__content {
+		width: 100%;
+		padding: 2rem 1.35rem 6rem;
+		justify-content: end;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.welcome-carousel .carousel-inner {
+		scroll-behavior: auto;
+	}
+}

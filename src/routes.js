@@ -115,6 +115,14 @@ export const routeCatalog = [
 		view: 'settings',
 	},
 	{
+		id: 'welcome',
+		path: '/welcome',
+		label: 'Welcome',
+		icon: 'stars',
+		description: 'Learn how SOLACE Garden can help organize your growing season.',
+		view: 'welcome',
+	},
+	{
 		id: 'help',
 		path: '/help',
 		label: 'Help',
