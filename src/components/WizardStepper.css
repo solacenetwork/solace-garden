@@ -1,0 +1,55 @@
+.wizard-stepper {
+	width: 100%;
+	padding-block: 0.25rem 0.75rem;
+	scrollbar-gutter: stable;
+}
+
+.wizard-stepper > .stepper {
+	margin-block-end: 0;
+}
+
+.wizard-stepper__item {
+	min-inline-size: 7.5rem;
+}
+
+.wizard-stepper__text {
+	display: grid;
+	gap: 0.125rem;
+	justify-items: center;
+}
+
+.wizard-stepper__label {
+	font-weight: 650;
+	white-space: nowrap;
+}
+
+.wizard-stepper__state {
+	font-size: 0.75rem;
+	font-weight: 500;
+	color: var(--sg-color-text-muted, var(--fg-muted));
+}
+
+.wizard-stepper__item--active .wizard-stepper__state {
+	font-weight: 750;
+	color: currentcolor;
+}
+
+.wizard-stepper__item--completed .wizard-stepper__state::before {
+	margin-inline-end: 0.25rem;
+	content: "\2713";
+}
+
+.wizard-stepper__empty {
+	padding: 0.75rem;
+	margin: 0;
+	color: var(--sg-color-text-muted, var(--fg-muted));
+	background: var(--sg-color-background);
+	border: 1px solid var(--sg-color-border, var(--border-color));
+	border-radius: var(--sg-radius-card, var(--radius-5));
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.wizard-stepper {
+		scroll-behavior: auto;
+	}
+}

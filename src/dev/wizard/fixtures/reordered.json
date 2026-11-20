@@ -1,0 +1,11 @@
+{
+	"id": "reordered",
+	"name": "Reordered source data",
+	"steps": [
+		{ "id": "dates", "order": 40, "title": "Garden Dates", "stepperLabel": "Dates" },
+		{ "id": "identity", "order": 10, "title": "Garden Identity", "stepperLabel": "Identity" },
+		{ "id": "options", "order": 50, "title": "Additional Options", "stepperLabel": "Options" },
+		{ "id": "types", "order": 30, "title": "Garden Type", "stepperLabel": "Garden Type" },
+		{ "id": "details", "order": 20, "title": "Garden Details", "stepperLabel": "Details" }
+	]
+}

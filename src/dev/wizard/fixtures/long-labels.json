@@ -1,0 +1,11 @@
+{
+	"id": "long-labels",
+	"name": "Intentionally long labels",
+	"steps": [
+		{ "id": "identity", "order": 10, "title": "Choose a Memorable Garden Identity", "stepperLabel": "Garden Identity and Appearance" },
+		{ "id": "details", "order": 20, "title": "Describe the Garden and Choose Its Location", "stepperLabel": "Description and Growing Location" },
+		{ "id": "types", "order": 30, "title": "Select Every Applicable Garden Type", "stepperLabel": "Garden Type Classification" },
+		{ "id": "dates", "order": 40, "title": "Plan the Garden Start and End Dates", "stepperLabel": "Growing Season Dates" },
+		{ "id": "options", "order": 50, "title": "Choose Status and Additional Garden Options", "stepperLabel": "Status and Additional Options" }
+	]
+}

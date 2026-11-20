@@ -27,6 +27,7 @@ import { NotFound } from './pages/_404.jsx';
 import { applyWelcomeStartupPreference } from './services/welcomePreference.js';
 import { CAROUSEL_POC_PATH } from './dev/carousel/route.js';
 import { HUBTEST_PATH } from './dev/hubtest/route.js';
+import { WIZARD_PREVIEW_PATH } from './dev/wizard/route.js';
 import './style.css';
 
 const pageComponents = {
@@ -115,6 +116,15 @@ async function startApplication() {
 	) {
 		const { HubTest } = await import('./dev/hubtest/HubTest.jsx');
 		render(<HubTest />, root);
+		return;
+	}
+
+	if (
+		import.meta.env.DEV
+		&& globalThis.location?.pathname === WIZARD_PREVIEW_PATH
+	) {
+		const { WizardPreview } = await import('./dev/wizard/WizardPreview.jsx');
+		render(<WizardPreview />, root);
 		return;
 	}
 
