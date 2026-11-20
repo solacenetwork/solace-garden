@@ -23,6 +23,7 @@ vi.mock('preact/hooks', () => {
 });
 
 import { GardenDraftEditor } from './FullGardenCreation.jsx';
+import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
 import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
 import { GardenFields } from '../../components/GardenFields.jsx';
 import { loadGardenDrafts } from './viewModel.js';
@@ -78,6 +79,11 @@ function selector(tree) {
 	return GardenTemplateSelection(node.props);
 }
 
+function creationBreadcrumb(tree) {
+	const node = nodes(tree).find(({ type }) => type === GardenCreationBreadcrumb);
+	return { node, tree: GardenCreationBreadcrumb(node.props) };
+}
+
 beforeEach(() => {
 	hooks.slots = [];
 	hooks.effects = [];
@@ -85,6 +91,27 @@ beforeEach(() => {
 });
 
 describe('Wizard applied Template progression', () => {
+	it.each([
+		['wizard', 'Guided Wizard'],
+		['advanced', 'Advanced Form'],
+	])('preserves the %s draft before breadcrumb navigation', async (mode, current) => {
+		const view = editor({ mode });
+		await view.mount();
+		const breadcrumb = creationBreadcrumb(view.render());
+		expect(breadcrumb.node.props.current).toBe(current);
+		const createGardenLink = nodes(breadcrumb.tree).find(
+			({ type, props }) => type === 'a' && props.href === '/gardens/new',
+		);
+		const event = { button: 0, preventDefault: vi.fn() };
+		await createGardenLink.props.onClick(event);
+
+		expect(event.preventDefault).toHaveBeenCalledOnce();
+		expect(view.workspace.drafts.save).toHaveBeenCalledWith(expect.objectContaining({
+			id: 'draft', fields, sourceTemplateId: 'source', preferredEditor: mode,
+		}));
+		expect(hooks.route).toHaveBeenCalledWith('/gardens/new');
+	});
+
 	it.each([false, true])('continues with edited fields without reapplying (deleted source: %s)', async (deleted) => {
 		const view = editor({ templates: deleted ? [] : [template] });
 		await view.mount();

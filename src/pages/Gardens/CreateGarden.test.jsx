@@ -53,6 +53,7 @@ describe('Create Garden method landing page', () => {
 		]);
 		expect(tree.props.class).toContain('garden-create');
 		expect(grid).toBeTruthy();
+		expect(nodes(tree).some(({ props }) => props.class === 'gardens-back')).toBe(false);
 	});
 
 	it('uses dispatcher links for direct methods and keeps the Hub return link', () => {

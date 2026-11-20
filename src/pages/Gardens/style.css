@@ -282,6 +282,20 @@
 	margin-block-end: 1.5rem;
 }
 
+.garden-creation-breadcrumb {
+	margin-block-end: 1rem;
+	font-size: 0.9rem;
+}
+
+.garden-creation-breadcrumb .breadcrumb-link {
+	overflow-wrap: anywhere;
+}
+
+.garden-creation-breadcrumb .breadcrumb-link[aria-disabled="true"] {
+	pointer-events: none;
+	opacity: 0.65;
+}
+
 .garden-facts {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));

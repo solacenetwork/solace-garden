@@ -1,6 +1,7 @@
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { GardenFields } from '../../components/GardenFields.jsx';
+import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createDraftAutosave } from '../../services/draftAutosave.js';
 import {
@@ -459,6 +460,11 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 	const title = mode === 'wizard' ? 'Create Garden Wizard' : 'Advanced Garden Creation';
 	return (
 		<section class="container gardens-page garden-full-create" aria-labelledby="full-create-title">
+			<GardenCreationBreadcrumb
+				current={mode === 'wizard' ? 'Guided Wizard' : 'Advanced Form'}
+				disabled={busy}
+				onNavigate={(path) => navigatePreservingDraft(path)}
+			/>
 			<header class="gardens-header garden-full-create__header">
 				<div><p class="garden-create__eyebrow">Recoverable draft</p><h1 id="full-create-title">{title}</h1><p>Your progress is saved locally until you create or discard this Garden.</p></div>
 				<p class={`garden-draft-status garden-draft-status--${status}`} role="status">{STATUS_TEXT[status]}</p>

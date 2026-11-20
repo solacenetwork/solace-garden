@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
+import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';
 import { createGardensService } from '../../services/gardens.js';
@@ -181,9 +182,7 @@ export function TemplateMethodContents({ state, selectedId, onSelect, onRetry })
 export function CreateGardenLandingView({ templateState, selectedTemplateId, onSelectTemplate, onRetryTemplates }) {
 	return (
 		<section class="container gardens-page garden-create" aria-labelledby="create-garden-title">
-			<a class="btn-outline gardens-back" href="/gardens">
-				<i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Gardens
-			</a>
+			<GardenCreationBreadcrumb current="Create Garden" />
 			<header class="gardens-header">
 				<p class="garden-create__eyebrow">Create a Garden</p>
 				<h1 id="create-garden-title">Choose how to begin</h1>
@@ -254,6 +253,7 @@ export function CreateGarden() {
 	}
 	return (
 		<section class="container gardens-page garden-create" aria-labelledby="create-garden-error-title">
+			<GardenCreationBreadcrumb current="Create Garden" />
 			<div class="gardens-state" role="alert">
 				<h1 id="create-garden-error-title">Garden creation link not recognized</h1>
 				<p>{dispatch.message}</p>
@@ -299,15 +299,7 @@ export function QuickStartGarden() {
 
 	return (
 		<section class="container gardens-page garden-quick-start" aria-labelledby="quick-start-garden-title">
-			<a
-				class="btn-outline gardens-back"
-				href="/gardens"
-				aria-disabled={saving ? 'true' : undefined}
-				tabIndex={saving ? -1 : undefined}
-				onClick={blockNavigationWhileSaving}
-			>
-				<i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Gardens
-			</a>
+			<GardenCreationBreadcrumb current="Quick Start" disabled={saving} />
 			<header class="gardens-header">
 				<p class="garden-create__eyebrow">Quick Start</p>
 				<h1 id="quick-start-garden-title">Create Garden</h1>
