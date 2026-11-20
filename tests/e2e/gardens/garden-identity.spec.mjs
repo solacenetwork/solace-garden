@@ -63,7 +63,11 @@ async function openGardenEditor(page, targetGarden = garden, viewport = null) {
 
 async function openIdentityDialog(page, control = 'Choose Color') {
   const dialog = page.getByRole('dialog', { name: 'Garden Identity' });
+  const shown = dialog.evaluate(element => new Promise(resolve => {
+    element.addEventListener('shown.bs.dialog', resolve, { once: true });
+  }));
   await page.getByRole('button', { name: control }).click();
+  await shown;
   await expect(dialog).toBeVisible();
   const tab = control === 'Choose Icon' ? 'icon' : 'color';
   await expect(dialog.locator(`#garden-identity-${tab}-tab`)).toHaveClass(/\bactive\b/);
