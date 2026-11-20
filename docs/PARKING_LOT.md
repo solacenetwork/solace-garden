@@ -11,6 +11,18 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future development tooling: Configurable Wizard Engine and isolated full-Wizard test harness
+
+**Status (November 20, 2026):** Deferred idea, not part of the initial Step 8A Stepper prototype or a committed release milestone. **Revisit after the ZIP export/import feature is available**, since portable fixture ZIPs could simplify seeding and cloning test data.
+
+- **Immediate scope stays small:** Extract a reusable, presentation-only horizontal `WizardStepper` component and test it on development-only `/dev/wizard` with alternative step JSON configurations, sample labels, counts, ordering, and scroll/navigation simulation. No draft persistence or IndexedDB dependency in the initial harness.
+- **Future Wizard Engine:** Separate the reusable stepper *display* from orchestration of ordered step definitions, step-form component registration/rendering, Back/Continue navigation, URL history, validation, draft autosave/resume, and final creation. Reuse the same engine in production and in a development testing host; avoid special production URLs, `showInWizard` switches, or test-only branches in the production Wizard.
+- **Full step-form testing:** Eventually extend `/dev/wizard` beyond visual stepper previews to test newly implemented or experimental form steps and their validation before adding them to the production Wizard configuration. Development-only components/configurations must not accidentally enter the production bundle.
+- **Storage isolation:** The future test host injects a **separate storage session** pointing to an isolated, disposable IndexedDB database, never the active production Garden database. Keep Dexie selection and database naming outside the Wizard Engine; use existing storage-neutral services, not global production singletons. Testing may create/delete draft and Garden records **only in this test database**.
+- **Fixture setup:** Start from empty/seeded test data; consider one-way snapshots of selected real data or import of portable sample ZIP fixtures after ZIP export/import exists. No live synchronization or writes back to production. Provide an explicit **Reset Test Database** control.
+- **Integrity boundary:** Test operations must not affect the active Garden database. Alpha test data in the isolated database is expendable; no legacy alpha-format migrations are needed, while ordinary operational write/transaction integrity remains necessary.
+- **Delivery sequence:** First finish Step 8A's stepper-only prototype, then the actual V1 creation flow; revisit the full engine/test harness as a separate, scoped development-tooling effort, potentially following ZIP export/import. Do not expand the present Step 8A implementation to build it prematurely.
+
 ## V2 candidate: Re-enable switching between Garden Wizard and Advanced during creation
 
 **Status (November 20, 2026):** Explicitly **deferred from V1 Step 8A** for simplicity; possible V2 improvement, not a release commitment. The technical capability already exists in the current shared-draft creation infrastructure.
