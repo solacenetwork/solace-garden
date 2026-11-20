@@ -5,8 +5,8 @@ test.use({ storageState: 'tests/fixtures/sample-garden.json' });
 const pages = [
   {
     route: '/gardens',
-    ready: '.gardens-grid .garden-card',
-    bottomTarget: '.gardens-grid .garden-card:last-child',
+    ready: '.gardens-section .garden-card--saved',
+    bottomTarget: 'section[aria-labelledby="previous-gardens"] .gardens-section__heading button',
   },
   {
     route: '/tasks',

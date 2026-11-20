@@ -82,6 +82,15 @@ function GardenCardContent({ title, subtitle = null, startDate = null, actionLab
 	);
 }
 
+export function SavedGardenCard({ garden, placeholder }) {
+	return (
+		<a class="garden-card garden-card--saved" href={garden.href}>
+			<GardenCardVisual src={placeholder} garden={garden} />
+			<GardenCardContent title={garden.name} subtitle={garden.subtitle} startDate={garden.startDate} />
+		</a>
+	);
+}
+
 export function GardenDraftCard({ draft, onDiscard, discardingId = null }) {
 	return (
 		<article class="garden-card garden-card--draft">
@@ -97,23 +106,55 @@ export function GardenDraftCard({ draft, onDiscard, discardingId = null }) {
 	);
 }
 
-function GardenSection({ title, id, items = [], emptyMessage, placeholder }) {
+export function GardenSectionView({
+	title, id, items = [], emptyMessage, placeholder, expanded, onToggle,
+}) {
+	const collectionId = `${id}-collection`;
+	const renderCard = (garden) => (
+		<SavedGardenCard garden={garden} placeholder={placeholder} key={garden.id} />
+	);
+
 	return (
 		<section class="gardens-section" aria-labelledby={id}>
-			<h2 id={id}>{title}</h2>
+			<div class="gardens-section__heading">
+				<h2 id={id}>{title}</h2>
+				{items.length > 0 && (
+					<button
+						class="btn-outline theme-primary"
+						type="button"
+						aria-expanded={expanded}
+						aria-controls={collectionId}
+						onClick={onToggle}
+					>
+						{expanded ? 'Collapse' : 'View All'}
+					</button>
+				)}
+			</div>
 			{items.length === 0 ? <p class="gardens-state">{emptyMessage}</p> : (
-				<ul class="gardens-grid">
-					{items.map((garden) => (
-						<li key={garden.id}>
-							<a class="garden-card garden-card--saved" href={garden.href}>
-								<GardenCardVisual src={placeholder} garden={garden} />
-								<GardenCardContent title={garden.name} subtitle={garden.subtitle} startDate={garden.startDate} />
-							</a>
-						</li>
-					))}
-				</ul>
+				<div id={collectionId} data-presentation={expanded ? 'grid' : 'filmstrip'}>
+					{expanded ? (
+						<ul class="gardens-grid gardens-collection__grid" aria-label={`All ${title}`}>
+							{items.map((garden) => <li key={garden.id}>{renderCard(garden)}</li>)}
+						</ul>
+					) : (
+						<CardCarousel id={`${id}-carousel`} label={title} className="gardens-collection__carousel">
+							{items.map(renderCard)}
+						</CardCarousel>
+					)}
+				</div>
 			)}
 		</section>
+	);
+}
+
+export function GardenSection(props) {
+	const [expanded, setExpanded] = useState(false);
+	return (
+		<GardenSectionView
+			{...props}
+			expanded={expanded}
+			onToggle={() => setExpanded((value) => !value)}
+		/>
 	);
 }
 

@@ -20,6 +20,8 @@ const gardens = [
     name: 'Synthetic Open Active Garden',
     status: 'active',
     isClosed: false,
+    icon: 'tree-fill',
+    color: '#287D46',
     section: 'Current Gardens',
   },
   {
@@ -64,7 +66,7 @@ const draft = {
 };
 const timestamp = '2026-01-02T03:04:05.000Z';
 
-gardensStore.records = gardens.map(({ id, name, status, isClosed }) => ({
+gardensStore.records = gardens.map(({ id, name, status, isClosed, icon = null, color = null }) => ({
   value: {
     id,
     name,
@@ -77,8 +79,8 @@ gardensStore.records = gardens.map(({ id, name, status, isClosed }) => ({
     notes: null,
     status,
     isClosed,
-    icon: null,
-    color: null,
+    icon,
+    color,
     thumbnailMediaId: null,
     layoutMediaId: null,
     createdAt: timestamp,
@@ -110,6 +112,7 @@ draftsStore.records = [{
 test.use({ storageState });
 
 test('classifies Gardens and keeps Drafts in their own ordered section', async ({ page }) => {
+  test.setTimeout(60_000);
   await page.goto('/gardens');
 
   await expect(page.getByRole('heading', { level: 2 })).toHaveText([
@@ -120,12 +123,18 @@ test('classifies Gardens and keeps Drafts in their own ordered section', async (
   ]);
 
   const sections = {
-    drafts: page.getByRole('region', { name: 'Draft Gardens' }),
-    current: page.getByRole('region', { name: 'Current Gardens' }),
-    planned: page.getByRole('region', { name: 'Planned Gardens' }),
-    previous: page.getByRole('region', { name: 'Previous Gardens' }),
+    drafts: page.locator('section[aria-labelledby="garden-drafts-title"]'),
+    current: page.locator('section[aria-labelledby="current-gardens"]'),
+    planned: page.locator('section[aria-labelledby="planned-gardens"]'),
+    previous: page.locator('section[aria-labelledby="previous-gardens"]'),
   };
   const savedSections = [sections.current, sections.planned, sections.previous];
+
+  for (const section of savedSections) {
+    await expect(section.locator('[data-presentation="filmstrip"]')).toHaveCount(1);
+    await expect(section.locator('.card-carousel')).toHaveCount(1);
+    await expect(section.getByRole('button', { name: 'View All' })).toHaveAttribute('aria-expanded', 'false');
+  }
 
   for (const garden of gardens) {
     const targetSection = sections[
@@ -139,7 +148,7 @@ test('classifies Gardens and keeps Drafts in their own ordered section', async (
 
     for (const section of savedSections) {
       if (section !== targetSection) {
-        await expect(section.getByRole('link', { name: garden.name })).toHaveCount(0);
+        expect(await section.getByRole('link', { name: garden.name }).count()).toBe(0);
       }
     }
   }
@@ -151,7 +160,63 @@ test('classifies Gardens and keeps Drafts in their own ordered section', async (
     `/gardens/new/advanced/${draft.id}`,
   );
   for (const section of savedSections) {
-    await expect(section.getByRole('link', { name: draft.name })).toHaveCount(0);
+    expect(await section.getByRole('link', { name: draft.name }).count()).toBe(0);
+  }
+
+  await expect(sections.drafts.locator('.card-carousel')).toHaveCount(1);
+  await expect(sections.drafts.getByRole('link', { name: 'View All' })).toHaveAttribute('href', '/gardens/drafts');
+  await expect(sections.drafts.getByRole('button', { name: 'Discard Draft' })).toHaveCount(1);
+
+  const currentLink = sections.current.getByRole('link', { name: gardens[0].name });
+  const originalHref = await currentLink.getAttribute('href');
+  await expect(currentLink.locator('.garden-card__identity .bi-tree-fill')).toHaveCount(1);
+
+  await sections.current.getByRole('button', { name: 'View All' }).click();
+  await expect(sections.current.locator('[data-presentation="grid"]')).toHaveCount(1);
+  await expect(sections.current.locator('.card-carousel')).toHaveCount(0);
+  await expect(sections.current.getByRole('button', { name: 'Collapse' })).toHaveAttribute('aria-expanded', 'true');
+  await expect(sections.planned.locator('[data-presentation="filmstrip"]')).toHaveCount(1);
+  await expect(sections.previous.locator('[data-presentation="filmstrip"]')).toHaveCount(1);
+  await expect(sections.current.locator('.gardens-collection__grid .garden-card--saved')).toHaveCount(
+    gardens.filter(garden => garden.section === 'Current Gardens').length,
+  );
+  await expect(sections.current.getByRole('link', { name: gardens[0].name })).toHaveAttribute('href', originalHref);
+  await expect(sections.current.locator('.garden-card__identity .bi-tree-fill')).toHaveCount(1);
+
+  await sections.current.getByRole('button', { name: 'Collapse' }).click();
+  await expect(sections.current.locator('[data-presentation="filmstrip"] .card-carousel')).toHaveCount(1);
+});
+
+test('saved collection controls retain focus and restored carousels scroll in both interface modes', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/gardens');
+
+  for (const mode of ['simple', 'standard']) {
+    await page.evaluate((selectedMode) => {
+      localStorage.setItem('solace-garden.interface-mode', selectedMode);
+    }, mode);
+    await page.reload();
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-interface-mode', mode);
+
+    const previous = page.locator('section[aria-labelledby="previous-gardens"]');
+    const toggle = previous.getByRole('button', { name: 'View All' });
+    await toggle.focus();
+    await page.keyboard.press('Enter');
+    const collapse = previous.getByRole('button', { name: 'Collapse' });
+    await expect(collapse).toBeFocused();
+    await expect(previous.locator('.gardens-collection__grid .garden-card--saved')).toHaveCount(4);
+
+    await page.keyboard.press('Space');
+    const restoredToggle = previous.getByRole('button', { name: 'View All' });
+    await expect(restoredToggle).toBeFocused();
+    const viewport = previous.locator('.card-carousel__viewport');
+    await expect.poll(() => viewport.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
+
+    const next = previous.getByRole('button', { name: 'Next cards in Previous Gardens' });
+    await expect(next).toBeVisible();
+    const initialScroll = await viewport.evaluate(element => element.scrollLeft);
+    await next.click();
+    await expect.poll(() => viewport.evaluate(element => element.scrollLeft)).toBeGreaterThan(initialScroll);
   }
 });
 

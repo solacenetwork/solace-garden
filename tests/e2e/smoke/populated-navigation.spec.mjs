@@ -7,7 +7,7 @@ test('Gardens page renders populated Garden records', async ({ page }) => {
   await page.goto('/gardens');
 
   await expect(page.getByRole('heading', { name: 'Gardens', exact: true })).toBeVisible();
-  await expect(page.locator('.gardens-grid .garden-card').first()).toBeVisible();
+  await expect(page.locator('.gardens-section .garden-card--saved').first()).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Draft Gardens' })).toBeVisible();
 });
 

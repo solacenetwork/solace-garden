@@ -105,12 +105,45 @@
 }
 
 .gardens-section {
+	min-width: 0;
 	margin-block-start: 2rem;
+	container-type: inline-size;
 }
 
-.gardens-section > h2,
+.gardens-section__heading {
+	display: flex;
+	margin-block-end: 1rem;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.gardens-section__heading h2 {
+	margin: 0;
+}
+
+.gardens-section__heading button {
+	min-height: 2.75rem;
+	flex: 0 0 auto;
+}
+
+.gardens-section__heading button:focus-visible {
+	outline: 3px solid var(--sg-color-focus);
+	outline-offset: 2px;
+}
+
+.gardens-section__heading h2,
 .garden-text h2 {
 	font-size: 1.35rem;
+}
+
+.gardens-collection__carousel {
+	margin: 0;
+}
+
+.gardens-grid.gardens-collection__grid {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+	margin: 0;
 }
 
 .gardens-grid {
@@ -316,6 +349,10 @@
 }
 
 @media (max-width: 36rem) {
+	.gardens-section__heading {
+		align-items: flex-start;
+	}
+
 	.garden-detail__header,
 	.garden-detail__actions {
 		flex-direction: column;

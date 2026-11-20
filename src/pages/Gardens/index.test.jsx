@@ -7,6 +7,7 @@ vi.mock('bootstrap/js/dist/tab.js', () => ({ default: class Tab {} }));
 import { CardCarousel } from '../../components/CardCarousel.jsx';
 import {
 	discardGardenDraft, GardenDraftsView, GardensOverviewView, GardenDetailView,
+	GardenSection, GardenSectionView,
 } from './index.jsx';
 import { GardenDeletionDialog } from './GardenDeletion.jsx';
 
@@ -15,6 +16,9 @@ function nodes(node) {
 	if (node === null || node === undefined || typeof node === 'boolean') return [];
 	if (Array.isArray(node)) return node.flatMap(nodes);
 	if (typeof node !== 'object') return [node];
+	if (node.type === GardenSection) {
+		return nodes(GardenSectionView({ ...node.props, expanded: false, onToggle: vi.fn() }));
+	}
 	if (typeof node.type === 'function' && node.type !== CardCarousel) return nodes(node.type(node.props));
 	return [node, ...nodes(node.props.children)];
 }
@@ -39,7 +43,61 @@ describe('Garden read-only views', () => {
 		expect(text(tree)).not.toContain('Home Farm');
 		expect(text(tree)).not.toContain('Active');
 		expect(nodes(tree).filter((node) => node.props?.class === 'garden-card garden-card--saved').map(({ props }) => props.href)).toEqual([garden.href, second.href]);
-		expect(nodes(tree).filter((node) => node.type === 'li').map(({ key }) => key)).toEqual([garden.id, second.id]);
+		expect(nodes(tree).filter((node) => node.type === CardCarousel).flatMap(({ props }) => props.children).map(({ key }) => key)).toEqual([garden.id, second.id]);
+	});
+
+	it('renders every nonempty saved collection as an independently controlled filmstrip by default', () => {
+		const tree = GardensOverviewView({
+			state: { status: 'ready', drafts: [], current: [garden], planned: [garden], previous: [garden] },
+		});
+		const carousels = nodes(tree).filter((node) => node.type === CardCarousel);
+		expect(carousels.map(({ props }) => props.id)).toEqual([
+			'current-gardens-carousel', 'planned-gardens-carousel', 'previous-gardens-carousel',
+		]);
+		const controls = nodes(tree).filter((node) => node.type === 'button');
+		expect(controls.map((node) => text(node))).toEqual(['View All', 'View All', 'View All']);
+		expect(controls.map(({ props }) => props['aria-expanded'])).toEqual([false, false, false]);
+		expect(controls.map(({ props }) => props['aria-controls'])).toEqual([
+			'current-gardens-collection', 'planned-gardens-collection', 'previous-gardens-collection',
+		]);
+	});
+
+	it('uses the same saved-Garden cards and identity content in expanded and collapsed layouts', () => {
+		const identified = { ...garden, icon: 'tree-fill', color: '#287D46' };
+		const onToggle = vi.fn();
+		const props = {
+			title: 'Current Gardens', id: 'current-gardens', items: [identified],
+			emptyMessage: 'No active Gardens.', placeholder: '/placeholder.svg', onToggle,
+		};
+		const collapsed = GardenSectionView({ ...props, expanded: false });
+		const expanded = GardenSectionView({ ...props, expanded: true });
+
+		expect(nodes(collapsed).some((node) => node.type === CardCarousel)).toBe(true);
+		expect(nodes(expanded).some((node) => node.type === CardCarousel)).toBe(false);
+		expect(nodes(expanded).find((node) => node.props?.class === 'gardens-grid gardens-collection__grid').props['aria-label']).toBe('All Current Gardens');
+		for (const tree of [collapsed, expanded]) {
+			const link = nodes(tree).find((node) => node.props?.class === 'garden-card garden-card--saved');
+			expect(link.props.href).toBe(identified.href);
+			expect(text(link)).toContain(identified.name);
+			const badge = nodes(link).find((node) => node.props?.class?.includes('garden-card__identity'));
+			expect(badge.props.style['--garden-identity-color']).toBe('#287D46');
+		}
+		const collapse = nodes(expanded).find((node) => node.type === 'button');
+		expect(text(collapse)).toBe('Collapse');
+		expect(collapse.props['aria-expanded']).toBe(true);
+		collapse.props.onClick();
+		expect(onToggle).toHaveBeenCalledOnce();
+	});
+
+	it('preserves saved collection empty states without adding expansion controls', () => {
+		const tree = GardenSectionView({
+			title: 'Current Gardens', id: 'current-gardens', items: [],
+			emptyMessage: 'No active Gardens.', placeholder: '/placeholder.svg',
+			expanded: false, onToggle: vi.fn(),
+		});
+		expect(text(tree)).toContain('No active Gardens.');
+		expect(nodes(tree).some((node) => node.type === 'button')).toBe(false);
+		expect(nodes(tree).some((node) => node.type === CardCarousel)).toBe(false);
 	});
 
 	it('uses the category-specific SVG placeholder for every saved and Draft card', () => {
