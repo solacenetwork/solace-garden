@@ -11,6 +11,15 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## V2 candidate: Re-enable switching between Garden Wizard and Advanced during creation
+
+**Status (November 20, 2026):** Explicitly **deferred from V1 Step 8A** for simplicity; possible V2 improvement, not a release commitment. The technical capability already exists in the current shared-draft creation infrastructure.
+
+- V1 gardeners choose **Guided Wizard** or **Advanced Form** from the four-card `/gardens/new` chooser and stay with that presentation for the current draft. Template-based creation selects the intended editor at the entry point too.
+- Revisit exposing **Switch to Advanced** / **Switch to Wizard** controls only after the distinct V1 creation paths have been tested with real users and the interaction is demonstrably clearer.
+- If reintroduced, preserve the same draft identity, validated field state, autosaved content, selected Template's copied values, and last Wizard step across transitions. Do not silently reset fields or start new drafts when changing editor.
+- Avoid a second implementation of creation or a V1-only migration/compatibility layer. This idea concerns **visible workflow switching**, not the existing application-wide Simple/Standard interface-mode preference.
+
 ## V2/V3 candidate: Bookmarklet, list-item deep links, and sharing
 
 **Status (November 19, 2026):** Future exploration; **not part of V1** and not a committed V2 or V3 release requirement. Related to, but independent of, the proposed combined Lists overview below.
