@@ -41,3 +41,11 @@ SOLACE projects follow a strict distinction between disposable alpha development
 **Important:** Do not confuse protecting currently valid data during normal operations (autosave, draft recovery, atomic transactions) with supporting obsolete alpha data formats. Operational data integrity remains required, even during alpha.
 
 When discussing or writing Codex prompts, apply this policy automatically unless the developer explicitly overrides it.
+
+### Documentation scope
+
+Treat `docs/` as the authoritative source for current project documentation.
+
+Ignore `docs/historical/` during normal development, research, and implementation. It contains obsolete research and archived material that must not be treated as current requirements.
+
+Consult historical files only when explicitly requested.
