@@ -242,7 +242,7 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 
 | Candidate | Workstream / dependency |
 |---|---|
-| **8G** | **Running application version:** display the **currently running application version** (e.g. `1.0.0-beta`) in About, sourced from the packaged app version. No generated Git/build timestamp, `build-info.json`, database/cache diagnostics, console API, or full diagnostic report in V1; defer those to V1.5. Do not introduce new PWA update or Contact/Feedback workflows here; those are scheduled for 8P. |
+| **8G** | **Running application version:** show the **currently running application version** (e.g. `1.0.0-beta`) in a simple read-only text area on the About page, sourced from the packaged app version. No generated Git/build timestamp, `build-info.json`, database/cache diagnostics, console API, or full diagnostic report in V1; defer those to V1.5. Do not introduce new PWA update or Contact/Feedback workflows here; those are scheduled for 8P. |
 | **8H** | **Media and Gallery:** media records, references and relationships, image optimization, Gallery input/viewing, and storage integration; must precede Journal photo integration. |
 | **8I** | **Journal:** Tiptap entries and references to 8H Gallery media. |
 | **8J** | **Calendar and Reminders:** events, recurrence and reminders linked to existing Garden activities and records. |
