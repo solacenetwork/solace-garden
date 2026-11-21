@@ -11,6 +11,14 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## V1 release-candidate tooling review
+
+**Status:** Deferred until the V1 release-candidate preparation and repository-wide cleanup; not part of current feature development.
+
+Review development-only utilities and test harnesses, including `/dev/wizard` (Wizard Stepper tester) and other `/dev/` tooling. For each, decide whether to **keep it beside the application component**, **extract it into a possible `solace-garden-tooling` repository** (following the FreeTV tooling approach), or **retire it** if no longer useful. Standalone fixture generators, validators, and test-data utilities may be better extraction candidates than tightly coupled UI harnesses.
+
+Keep development tooling out of the distributed production PWA, regardless of its source repository. Verify existing development-only build exclusions before relocating anything. Coordinate this review with the final repository sweep for unused files and assets, without disrupting active V1 development or regression coverage.
+
 ## Future UI consistency and appearance work (Step 10 and later)
 
 **Status (November 20, 2026):** Ideas to assess after current Garden creation functionality. The detailed accepted requirements and findings remain in [UI_REDESIGN.md](UI_REDESIGN.md), Step 10, and [UI_CONVENTIONS.md](UI_CONVENTIONS.md). These are reminders, not a separate design specification.
