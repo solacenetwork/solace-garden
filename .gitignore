@@ -33,3 +33,6 @@ tests/.chrome-fixture-profile/
 # Generated Playwright results and HTML reports
 /playwright-report/
 /test-results/
+
+
+/docs/historical/

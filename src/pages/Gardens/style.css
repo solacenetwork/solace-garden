@@ -504,20 +504,39 @@
 	font-size: 0.9rem;
 }
 
-.garden-create__full-options {
-	padding-block-start: 1rem;
-	border-block-start: 1px solid var(--sg-color-border);
+.garden-create__optional {
+	color: var(--sg-color-text-muted);
+	font-weight: 400;
 }
 
-.garden-create__full-options p {
-	margin-block: 0 0.75rem;
+.garden-create__identity-field,
+.garden-create__status {
+	display: grid;
+	padding: 0;
+	border: 0;
+	gap: 0.75rem;
+}
+
+.garden-create__identity-field legend,
+.garden-create__status legend {
+	font-size: 1rem;
 	font-weight: 650;
 }
 
-.garden-create__full-options > div {
+.garden-create__clear-identity {
+	justify-self: start;
+}
+
+.garden-create__status label {
 	display: flex;
-	flex-wrap: wrap;
-	gap: 0.75rem;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.garden-create__field-error {
+	margin: 0;
+	color: var(--sg-color-danger, #b42318);
+	font-size: 0.875rem;
 }
 
 .garden-create__error {

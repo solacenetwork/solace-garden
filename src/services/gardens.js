@@ -1,16 +1,21 @@
 import {
-	GARDEN_EDITABLE_FIELDS, normalizeGardenFields, validateGardenDateOrder, validateGardenFields,
+	GARDEN_EDITABLE_FIELDS, gardenError, normalizeGardenFields, validateGardenDateOrder, validateGardenFields,
 } from '../storage/gardenValidation.js';
 
-const GARDEN_CREATION_FIELDS = GARDEN_EDITABLE_FIELDS.filter((field) => !['icon', 'color'].includes(field));
+const GARDEN_CREATION_FIELDS = [...GARDEN_EDITABLE_FIELDS, 'status'];
+const GARDEN_CREATION_STATUSES = ['planned', 'active'];
 
 function newGardenRecord(input, timestamp) {
 	validateGardenFields(input, GARDEN_CREATION_FIELDS);
+	const status = input.status ?? 'planned';
+	if (!GARDEN_CREATION_STATUSES.includes(status)) {
+		throw gardenError('INVALID_GARDEN_STATUS', 'New Garden status must be Planned or Active.', 'status');
+	}
 	const record = {
 		subtitle: null, description: null, typeIds: [], startDate: null, endDate: null, notes: null,
 		icon: null, color: null,
-		...normalizeGardenFields({ name: input.name, locationId: input.locationId, ...input }),
-		status: 'planned', isClosed: false,
+		...normalizeGardenFields(input),
+		status, isClosed: false,
 		thumbnailMediaId: null, layoutMediaId: null,
 		createdAt: timestamp, updatedAt: timestamp,
 	};

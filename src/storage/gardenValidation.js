@@ -8,8 +8,8 @@ export const GARDEN_EDITABLE_FIELDS = Object.freeze([
 	'name', 'subtitle', 'description', 'locationId', 'typeIds', 'startDate', 'endDate', 'notes',
 	'icon', 'color',
 ]);
-const VISUAL_FIELDS = ['icon', 'color', 'thumbnailMediaId', 'layoutMediaId'];
-const RECORD_FIELDS = [...GARDEN_EDITABLE_FIELDS, ...VISUAL_FIELDS,
+const MEDIA_FIELDS = ['thumbnailMediaId', 'layoutMediaId'];
+const RECORD_FIELDS = [...GARDEN_EDITABLE_FIELDS, ...MEDIA_FIELDS,
 	'id', 'status', 'isClosed', 'createdAt', 'updatedAt'];
 export const GARDEN_STATUSES = Object.freeze(['planned', 'active', 'completed', 'archived']);
 
@@ -128,11 +128,10 @@ export function validateGardenRecord(record, {
 	}
 	validateGardenDateOrder(record);
 	validateGardenLifecycle({ status: record.status, isClosed: record.isClosed });
-	if (
-		(creating && (record.status !== 'planned' || record.isClosed))) {
-		throw gardenError('INVALID_GARDEN_LIFECYCLE', 'New Gardens must be Planned and open.');
+	if (creating && (!['planned', 'active'].includes(record.status) || record.isClosed)) {
+		throw gardenError('INVALID_GARDEN_LIFECYCLE', 'New Gardens must be Planned or Active and open.');
 	}
-	for (const field of VISUAL_FIELDS) {
+	for (const field of MEDIA_FIELDS) {
 		if (creating && record[field] !== null) {
 			throw gardenError('UNSUPPORTED_GARDEN_FIELD', `${field} must initially be null.`, field);
 		}

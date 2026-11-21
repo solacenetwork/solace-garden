@@ -10,6 +10,7 @@ import {
 	validateBootstrapIconName,
 	validateGardenColor,
 } from '../gardenIdentity.js';
+import { GardenColorChoices, GardenIconChoices } from './GardenIdentityChoices.jsx';
 
 const ALL_CURATED_ICONS = new Set([...CURATED_GARDEN_ICONS, ...GARDEN_NUMBER_ICONS]);
 const PALETTE_COLORS = new Set(GARDEN_COLOR_PALETTE.map(({ value }) => value));
@@ -58,28 +59,6 @@ export function validateGardenIdentityDraft(draft) {
 		isValid: icon.isValid && color.isValid,
 		identity: { icon: icon.name, color: color.color },
 	};
-}
-
-function IconChoices({ values, selected, onSelect }) {
-	return (
-		<div class="garden-identity-options garden-identity-options--icons">
-			{values.map((name) => {
-				const active = selected === name;
-				return (
-					<button
-						class={`garden-identity-option garden-identity-option--icon${active ? ' garden-identity-option--selected' : ''}`}
-						type="button"
-						aria-pressed={active}
-						aria-label={`Use ${name} icon`}
-						onClick={() => onSelect(name)}
-					>
-						<i class={`bi bi-${name}`} aria-hidden="true"></i>
-						{active && <i class="bi bi-check-circle-fill garden-identity-option__check" aria-hidden="true"></i>}
-					</button>
-				);
-			})}
-		</div>
-	);
 }
 
 export function GardenIdentityDialogView({
@@ -139,25 +118,7 @@ export function GardenIdentityDialogView({
 						<div class="tab-pane fade show active" id="garden-identity-color-panel">
 							<fieldset class="garden-identity-fieldset">
 								<legend>Choose a color</legend>
-								<div class="garden-identity-options garden-identity-options--colors">
-									{GARDEN_COLOR_PALETTE.map(({ name, value }) => {
-										const active = selectedColor === value;
-										return (
-											<button
-												class={`garden-identity-option garden-identity-option--color${active ? ' garden-identity-option--selected' : ''}`}
-												type="button"
-												style={{ '--garden-swatch-color': value }}
-												aria-pressed={active}
-												aria-label={`${name}, ${value}`}
-												onClick={() => onSelectColor(value)}
-											>
-												<span class="garden-identity-option__swatch" aria-hidden="true"></span>
-												<span>{name}</span>
-												{active && <i class="bi bi-check-circle-fill garden-identity-option__check" aria-hidden="true"></i>}
-											</button>
-										);
-									})}
-								</div>
+								<GardenColorChoices selected={selectedColor} onSelect={onSelectColor} />
 								<button class={`garden-identity-custom${isCustomColor ? ' garden-identity-custom--selected' : ''}`} type="button" aria-pressed={isCustomColor} onClick={onSelectCustomColor}>
 									<i class="bi bi-palette-fill" aria-hidden="true"></i> Custom
 								</button>
@@ -183,9 +144,9 @@ export function GardenIdentityDialogView({
 						<div class="tab-pane fade" id="garden-identity-icon-panel">
 							<fieldset class="garden-identity-fieldset">
 								<legend>Garden symbols</legend>
-								<IconChoices values={CURATED_GARDEN_ICONS} selected={selectedIcon} onSelect={onSelectIcon} />
+								<GardenIconChoices values={CURATED_GARDEN_ICONS} selected={selectedIcon} onSelect={onSelectIcon} />
 								<h3>Number Markers</h3>
-								<IconChoices values={GARDEN_NUMBER_ICONS} selected={selectedIcon} onSelect={onSelectIcon} />
+								<GardenIconChoices values={GARDEN_NUMBER_ICONS} selected={selectedIcon} onSelect={onSelectIcon} />
 								<button class={`garden-identity-custom${isCustomIcon ? ' garden-identity-custom--selected' : ''}`} type="button" aria-pressed={isCustomIcon} onClick={onSelectCustomIcon}>
 									<i class="bi bi-keyboard-fill" aria-hidden="true"></i> Custom
 								</button>

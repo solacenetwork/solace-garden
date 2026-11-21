@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
+import { GardenColorChoices, GardenIconChoices } from '../../components/GardenIdentityChoices.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
+import { CURATED_GARDEN_ICONS, GARDEN_NUMBER_ICONS } from '../../gardenIdentity.js';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';
 import { createGardensService } from '../../services/gardens.js';
 import { DEFAULT_LOCATION_ID } from '../../services/locations.js';
@@ -16,15 +18,15 @@ export function createQuickStartSubmitter({
 	createGarden,
 	navigate,
 	onSaving = () => {},
-	onNameError = () => {},
+	onFieldError = () => {},
 	onSaveError = () => {},
 }) {
 	let submitting = false;
 
-	return async function submit(name) {
+	return async function submit(input) {
 		if (submitting) return null;
 
-		onNameError('');
+		onFieldError('', '');
 		onSaveError('');
 
 		submitting = true;
@@ -32,15 +34,22 @@ export function createQuickStartSubmitter({
 		let garden;
 		try {
 			garden = await createGarden({
-				name,
+				...input,
 				locationId: DEFAULT_LOCATION_ID,
 				typeIds: [...QUICK_START_TYPE_IDS],
 			});
 		} catch (error) {
-			if (error?.field === 'name') {
-				onNameError('Enter a Garden name.');
+			if (['name', 'subtitle', 'icon', 'color', 'status'].includes(error?.field)) {
+				const messages = {
+					name: 'Enter a Garden name.',
+					subtitle: 'Enter a valid subtitle.',
+					icon: 'Choose a valid Garden icon.',
+					color: 'Choose a valid Garden color.',
+					status: 'Choose Planned or Active.',
+				};
+				onFieldError(error.field, messages[error.field]);
 			} else {
-				onSaveError('Your Garden could not be created. Your name is still here, so you can try again.');
+				onSaveError('Your Garden could not be created. Your entries are still here, so you can try again.');
 			}
 			return null;
 		} finally {
@@ -52,6 +61,10 @@ export function createQuickStartSubmitter({
 		return garden;
 	};
 }
+
+const QUICK_START_INITIAL_VALUES = Object.freeze({
+	name: '', subtitle: '', icon: null, color: null, status: 'planned',
+});
 
 export async function loadCreateGardenTemplates(templates) {
 	try {
@@ -263,76 +276,93 @@ export function CreateGarden() {
 	);
 }
 
-export function QuickStartGarden() {
-	const { repositories } = useStorage();
-	const { route } = useLocation();
-	const [name, setName] = useState('');
-	const [nameError, setNameError] = useState('');
-	const [saveError, setSaveError] = useState('');
-	const [saving, setSaving] = useState(false);
-	const gardens = useMemo(
-		() => createGardensService(repositories.gardens),
-		[repositories],
-	);
-	const submit = useMemo(() => createQuickStartSubmitter({
-		createGarden: (input) => gardens.create(input),
-		navigate: route,
-		onSaving: setSaving,
-		onNameError: setNameError,
-		onSaveError: setSaveError,
-	}), [gardens, route]);
-
-	function updateName(event) {
-		setName(event.currentTarget.value);
-		if (nameError) setNameError('');
-		if (saveError) setSaveError('');
-	}
-
-	function handleSubmit(event) {
-		event.preventDefault();
-		void submit(name);
-	}
-
-	function blockNavigationWhileSaving(event) {
-		if (saving) event.preventDefault();
-	}
-
+export function QuickStartGardenView({
+	values,
+	errors = {},
+	saveError = '',
+	saving = false,
+	onChange,
+	onSubmit,
+}) {
 	return (
 		<section class="container gardens-page garden-quick-start" aria-labelledby="quick-start-garden-title">
 			<GardenCreationBreadcrumb current="Quick Start" disabled={saving} />
 			<header class="gardens-header">
 				<p class="garden-create__eyebrow">Quick Start</p>
 				<h1 id="quick-start-garden-title">Create Garden</h1>
-				<p>Name your Garden now, then add details and plants later.</p>
+				<p>Set up the essentials now, then add growing details and plants later.</p>
 			</header>
 
-			<form class="garden-create__form" noValidate onSubmit={handleSubmit}>
+			<form class="garden-create__form" noValidate onSubmit={onSubmit}>
 				<div class="form-field">
-					<label class="form-label" for="garden-name">Garden name</label>
+					<label class="form-label" for="garden-name">Garden Name</label>
 					<input
 						id="garden-name"
-						class={`form-control${nameError ? ' is-invalid' : ''}`}
+						class={`form-control${errors.name ? ' is-invalid' : ''}`}
 						type="text"
 						autoComplete="off"
 						autoFocus
 						required
-						value={name}
+						value={values.name}
 						disabled={saving}
-						aria-invalid={nameError ? 'true' : undefined}
-						aria-describedby={nameError ? 'garden-name-error' : 'garden-quick-start-defaults'}
-						onInput={updateName}
+						aria-invalid={errors.name ? 'true' : undefined}
+						aria-describedby={errors.name ? 'garden-name-error' : undefined}
+						onInput={(event) => onChange('name', event.currentTarget.value)}
 					/>
-					{nameError && <div id="garden-name-error" class="invalid-feedback">{nameError}</div>}
+					{errors.name && <div id="garden-name-error" class="invalid-feedback">{errors.name}</div>}
 				</div>
 
-				<p id="garden-quick-start-defaults" class="garden-create__defaults">
-					Quick Start uses your protected default Location, the In-Ground Garden Type,
-					and Planned status.
-				</p>
-				<div class="garden-create__full-options">
-					<p>Want to choose more details before creating?</p>
-					<div><a class="btn-outline" href="/gardens/new/wizard">Guided Wizard</a><a class="btn-text" href="/gardens/new/advanced">Advanced Form</a></div>
+				<div class="form-field">
+					<label class="form-label" for="garden-subtitle">Subtitle <span class="garden-create__optional">(optional)</span></label>
+					<input
+						id="garden-subtitle"
+						class={`form-control${errors.subtitle ? ' is-invalid' : ''}`}
+						type="text"
+						autoComplete="off"
+						value={values.subtitle}
+						disabled={saving}
+						aria-invalid={errors.subtitle ? 'true' : undefined}
+						aria-describedby={errors.subtitle ? 'garden-subtitle-error' : undefined}
+						onInput={(event) => onChange('subtitle', event.currentTarget.value)}
+					/>
+					{errors.subtitle && <div id="garden-subtitle-error" class="invalid-feedback">{errors.subtitle}</div>}
 				</div>
+
+				<fieldset class="garden-create__identity-field">
+					<legend>Icon <span class="garden-create__optional">(optional)</span></legend>
+					<GardenIconChoices
+						values={[...CURATED_GARDEN_ICONS, ...GARDEN_NUMBER_ICONS]}
+						selected={values.icon}
+						disabled={saving}
+						onSelect={(value) => onChange('icon', value)}
+					/>
+					<button class="btn-text garden-create__clear-identity" type="button" disabled={saving || values.icon === null} onClick={() => onChange('icon', null)}>No icon</button>
+					{errors.icon && <p class="garden-create__field-error" role="alert">{errors.icon}</p>}
+				</fieldset>
+
+				<fieldset class="garden-create__identity-field">
+					<legend>Color <span class="garden-create__optional">(optional)</span></legend>
+					<GardenColorChoices selected={values.color} disabled={saving} onSelect={(value) => onChange('color', value)} />
+					<button class="btn-text garden-create__clear-identity" type="button" disabled={saving || values.color === null} onClick={() => onChange('color', null)}>No color</button>
+					{errors.color && <p class="garden-create__field-error" role="alert">{errors.color}</p>}
+				</fieldset>
+
+				<div class="form-field">
+					<label class="form-label" for="garden-thumbnail">Thumbnail <span class="garden-create__optional">(optional)</span></label>
+					<input id="garden-thumbnail" class="form-control" type="file" accept="image/*" disabled aria-describedby="garden-thumbnail-help" />
+					<p id="garden-thumbnail-help" class="form-text">Image uploads will be available later.</p>
+				</div>
+
+				<fieldset class="garden-create__status">
+					<legend>Status</legend>
+					<label><input class="radio" type="radio" name="garden-status" value="planned" checked={values.status === 'planned'} disabled={saving} onChange={() => onChange('status', 'planned')} /> Planned</label>
+					<label><input class="radio" type="radio" name="garden-status" value="active" checked={values.status === 'active'} disabled={saving} onChange={() => onChange('status', 'active')} /> Active</label>
+					{errors.status && <p class="garden-create__field-error" role="alert">{errors.status}</p>}
+				</fieldset>
+
+				<p id="garden-quick-start-defaults" class="garden-create__defaults">
+					Quick Start uses your protected Default Location and the In-Ground Garden Type.
+				</p>
 
 				{saveError && (
 					<div class="garden-create__error" role="alert">
@@ -344,10 +374,10 @@ export function QuickStartGarden() {
 				<div class="garden-create__actions">
 					<a
 						class="btn-outline"
-						href="/gardens"
+						href="/gardens/new"
 						aria-disabled={saving ? 'true' : undefined}
 						tabIndex={saving ? -1 : undefined}
-						onClick={blockNavigationWhileSaving}
+						onClick={(event) => { if (saving) event.preventDefault(); }}
 					>
 						Cancel
 					</a>
@@ -359,4 +389,37 @@ export function QuickStartGarden() {
 			</form>
 		</section>
 	);
+}
+
+export function QuickStartGarden() {
+	const { repositories } = useStorage();
+	const { route } = useLocation();
+	const [values, setValues] = useState(QUICK_START_INITIAL_VALUES);
+	const [errors, setErrors] = useState({});
+	const [saveError, setSaveError] = useState('');
+	const [saving, setSaving] = useState(false);
+	const gardens = useMemo(
+		() => createGardensService(repositories.gardens),
+		[repositories],
+	);
+	const submit = useMemo(() => createQuickStartSubmitter({
+		createGarden: (input) => gardens.create(input),
+		navigate: route,
+		onSaving: setSaving,
+		onFieldError: (field, message) => setErrors(field ? { [field]: message } : {}),
+		onSaveError: setSaveError,
+	}), [gardens, route]);
+
+	function updateField(field, value) {
+		setValues((current) => ({ ...current, [field]: value }));
+		setErrors((current) => ({ ...current, [field]: undefined }));
+		setSaveError('');
+	}
+
+	function handleSubmit(event) {
+		event.preventDefault();
+		void submit(values);
+	}
+
+	return <QuickStartGardenView values={values} errors={errors} saveError={saveError} saving={saving} onChange={updateField} onSubmit={handleSubmit} />;
 }
