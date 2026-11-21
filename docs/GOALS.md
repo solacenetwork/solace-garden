@@ -75,18 +75,16 @@ Journal entries, harvest records, completed tasks, and other historical activity
 
 **Future, optional V3/V4 direction:** If gardeners voluntarily provide address/coordinates, separately permissioned online features might offer localized weather, frost alerts, maps or estimated sunlight. Storing geographic details locally does **not** authorize transmission or public sharing. Any such use requires informed, explicit consent, and advanced sunlight estimates may need garden-specific shade/exposure details.
 
-### 2.3 Plant Research (PlantDB)
+### 2.3 Plant Research (PlantDB) and Plant Picker
 
-PlantDB remains an independent project. Garden v1 will integrate a **simple plant selector** into garden creation and provide access to full reference records in PlantDB.
+Garden V1 consumes the bundled, read-only `public/assets/data/plants.json` reference artifact. The separate PlantDB administration/publishing backend is **not required for V1** and may be developed in V2/V3. Distinguish two purposes: the **master plant catalog** is for botanical research and exploring growing possibilities; the **PlantPicker** is a compact, fast way to choose plants for a specific Garden, not a miniature research browser.
 
-- Search or browse representative plant names (for example, “Potatoes”).
-- Provide a simple selection workflow for adding PlantDB plants to a garden (a one-click, one-pick approach is a v1 candidate); retain the corresponding PlantDB identifier when available. Gardeners must be able to add the same plant more than once as independent plant-group entries.
-- Keep detailed botanical and growing information in PlantDB, accessible through a link to the full record (potentially in a separate tab).
-- Do not duplicate the PlantDB research interface inside Garden.
-- **PlantDB's backend master database (for example MariaDB) publishes versioned JSON reference data** to `garden.solace.network/assets/data/`. The PWA ships/caches the current lightweight catalog for offline plant selection and checks for compatible published updates when online; Garden never directly queries the backend database. Keep reference data separate from gardener-owned records.
-- Published data has independent **schema compatibility** and **dataset publication** versions. An update must be fetched/validated fully before replacing the last working offline catalog; it must **never automatically overwrite a gardener's plant groups, observations, or historical records**.
-
-**Technical detail:** The exact add/remove interaction, repeated-selection presentation, published JSON manifest/record schema, cache/update validation, and any user-created/unavailable plant flow require implementation validation in `TECH_SPEC.md`. Drag-and-drop from a plant toolbar belongs to later interactive-map work.
+- Provide a reusable **PlantPicker** Preact component for **find → pick → add**. Search plant names quickly, optionally narrow by category, select one or more entries, and return to the invoking Garden workflow. No catalog photos or lengthy growing descriptions are needed in this compact picker; full research remains available in the catalog.
+- Opening the picker from a Garden supplies that Garden as context. Selecting an existing catalog plant leads to creation of a **new independent Plant Group**, rather than treating a plant reference as a saved planting. Multiple groups may use the same catalog ID.
+- A convenient route to the master catalog or an individual full reference record should remain available without forcing the user into research navigation when adding plants.
+- Remembering the last selected category on reopening is a usability candidate; the specific picker layout, whether multi-add commits immediately or on Done, and return/close behavior will be finalized in the plant-integration milestone.
+- Keep stable PlantDB identifiers where available and preserve the separation between bundled reference data and gardener-owned Plant Groups. Later reference updates must not silently overwrite gardener records.
+- The separate master-catalog browsing interface, future publisher/data update mechanisms, and local custom-plant selection details are not yet fully designed. Do not make the publishing backend a prerequisite for Garden V1.
 
 ### 2.4 Garden Maps
 
@@ -100,6 +98,9 @@ Garden v1 tracks **independent plant-group entries**, rather than requiring a se
 
 - A gardener can add the same plant (for example, “Roma Tomatoes”) more than once when creating or editing a garden. Each entry is a distinct group, even when the entries reference the same PlantDB plant record.
 - Each group maintains its own values, including **plant count**, optional planting date, and growing indicators, so staggered or succession plantings can be tracked separately. Quantity in v1 means number of plants, not rows, area, or seeds.
+- Use a **PlantGroupEditor** Preact component to edit an existing group's plant count, optional planting date, growing indicators and notes. These values, **including planting date, remain freely editable** as the gardener maintains or replants within the same group; replacing plants does not require creating a new group or individual-plant records.
+- The gardener decides whether new plants continue an existing group or warrant another independent group (for example, to track staggered crops separately). Garden-linked Notes and Journal entries can record replacement details and history without requiring an automatic event log or additional individual-plant tracking.
+- A separate **Harvest** Preact component/workflow records dated harvest events against an existing Plant Group, rather than individual plants. Its details are specified in the Harvest section and TECH_SPEC; these three UI responsibilities (PlantPicker, PlantGroupEditor, Harvest) should be designed as related but separate components.
 - Growing indicators are a **standard predefined list in v1**, shared across plant groups and controlled manually by the gardener using independent checkboxes.
 - Multiple indicators can be active at the same time; they are not exclusive stages of a required linear progression.
 - Each of the ten indicators supports **independent optional start and end dates**. Each date field has a **Today** shortcut, which fills only that field using the user's local date. A phase end date cannot be earlier than its start date; overlaps across different phases are allowed.
