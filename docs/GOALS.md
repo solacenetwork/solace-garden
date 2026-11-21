@@ -75,14 +75,25 @@ Journal entries, harvest records, completed tasks, and other historical activity
 
 **Future, optional V3/V4 direction:** If gardeners voluntarily provide address/coordinates, separately permissioned online features might offer localized weather, frost alerts, maps or estimated sunlight. Storing geographic details locally does **not** authorize transmission or public sharing. Any such use requires informed, explicit consent, and advanced sunlight estimates may need garden-specific shade/exposure details.
 
-### 2.3 Plant Research (PlantDB) and Plant Picker
+### 2.3 Plant Research (PlantDB), PlantPicker and PlantPusher
 
 Garden V1 consumes the bundled, read-only `public/assets/data/plants.json` reference artifact. The separate PlantDB administration/publishing backend is **not required for V1** and may be developed in V2/V3. Distinguish two purposes: the **master plant catalog** is for botanical research and exploring growing possibilities; the **PlantPicker** is a compact, fast way to choose plants for a specific Garden, not a miniature research browser.
 
 - Provide a reusable **PlantPicker** Preact component for **find → pick → add**. Search plant names quickly, optionally narrow by category, select one or more entries, and return to the invoking Garden workflow. No catalog photos or lengthy growing descriptions are needed in this compact picker; full research remains available in the catalog.
 - Opening the picker from a Garden supplies that Garden as context. Selecting an existing catalog plant leads to creation of a **new independent Plant Group**, rather than treating a plant reference as a saved planting. Multiple groups may use the same catalog ID.
+- Provide a complementary **PlantPusher** Preact component for a **catalog-first** workflow. From a full plant reference record, **Add to Garden** opens a compact list of eligible Gardens, allowing the gardener to select a destination and create a new Plant Group for the already selected catalog plant. Remember the last successfully chosen destination Garden for subsequent pushes; if it is unavailable or no longer eligible, require another selection. After adding, keep the gardener in the master catalog to continue researching.
+- **PlantPicker and PlantPusher are two entry points into the same Plant Group creation behavior**, not separate data models or persistence implementations. Garden-first already knows the Garden and chooses a plant; catalog-first already knows the plant and chooses a Garden. Both use the shared Plant Group creation service and validation.
 - A convenient route to the master catalog or an individual full reference record should remain available without forcing the user into research navigation when adding plants.
 - Remembering the last selected category on reopening is a usability candidate; the specific picker layout, whether multi-add commits immediately or on Done, and return/close behavior will be finalized in the plant-integration milestone.
+**Four distinct Preact component responsibilities:**
+
+| Component | Purpose |
+| --- | --- |
+| **PlantPicker** | Knows the Garden; lets the gardener choose a plant. |
+| **PlantPusher** | Knows the plant; lets the gardener choose a Garden. |
+| **PlantGroupEditor** | Creates/edits the group's gardening details. |
+| **Harvest** | Records harvests for an existing group. |
+
 - Keep stable PlantDB identifiers where available and preserve the separation between bundled reference data and gardener-owned Plant Groups. Later reference updates must not silently overwrite gardener records.
 - The separate master-catalog browsing interface, future publisher/data update mechanisms, and local custom-plant selection details are not yet fully designed. Do not make the publishing backend a prerequisite for Garden V1.
 
