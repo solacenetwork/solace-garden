@@ -11,6 +11,14 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future UI consistency and appearance work (Step 10 and later)
+
+**Status (November 20, 2026):** Ideas to assess after current Garden creation functionality. The detailed accepted requirements and findings remain in [UI_REDESIGN.md](UI_REDESIGN.md), Step 10, and [UI_CONVENTIONS.md](UI_CONVENTIONS.md). These are reminders, not a separate design specification.
+
+- **Reusable PageHeader component (Step 10 candidate):** Consider `PageHeader.jsx` for common breadcrumb, eyebrow, page title, description, and optional header actions. Keep the global `Header.jsx` responsible for the application navbar. Ensure headers share a stable alignment anchor in the page layout even when the form and card-grid widths differ; simply extracting markup into a component is insufficient.
+- **Live palette/typography comparison (Step 10 development aid):** Consider a small, temporary preview/harness that applies the preserved Original Garden and Natural Earth palette candidates and font treatments to representative *real* Garden elements: buttons, links, breadcrumb states, navigation, cards, forms, headings, and labels. Inspect contrast, interactive states, responsive layouts, and outdoor readability before selecting the V1 default. This is a visual comparison tool, not a V1 user-facing theme picker.
+- **Future appearance preferences (V2+):** Explore a restrained built-in choice of approximately 2–3 color themes and seven fonts. Later, potentially support schema-validated drop-in third-party themes/fonts, initially for the hosted web deployment and eventually offline PWA use if feasible. Keep the full theme architecture, validation/fallback concept, and version boundaries in `UI_CONVENTIONS.md`, rather than duplicating them here.
+
 ## Future Wizard UX and diagnostics refinements (post-V1 candidates)
 
 **Status (November 20, 2026):** Deferred, not requirements for V1 Step 8A.
