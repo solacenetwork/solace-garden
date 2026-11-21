@@ -39,6 +39,21 @@ These are the **recorded candidate swatches**, not a complete mapping of semanti
 
 **Layout alignment to validate in Step 10:** Page-level breadcrumbs, eyebrow, title, and description should share a stable horizontal alignment anchor while forms and card grids may use different widths. A reusable page-header pattern can help, but must be placed in a shared page layout rather than inside differently centered content containers. See `docs/UI_REDESIGN.md` Step 10 for the observed Create Garden/Quick Start jump.
 
+## Typography (current baseline and future review)
+
+**Status:** No final application-wide typography design has been selected. Prioritize functional development; evaluate font treatment with the other Step 10 visual refinements rather than changing it now.
+
+**Current implementation:** `src/style.css` declares `font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`, with root `line-height: 1.5` and `font-weight: 400`. This is a font *preference stack*, not evidence that Inter is bundled or loaded; the visible face may fall back to the user's system sans-serif. The CSS remains authoritative for implemented typography. Bootstrap 6 typography conventions and utilities are the preferred baseline for semantic headings, text sizing, weights, and spacing: [Bootstrap 6 typography](https://getbootstrap.com/docs/6.0/content/typography/).
+
+**Branding reference:** The existing SOLACE Garden SVG wordmark has an organic, serif-like visual character. Its letterforms are embedded as SVG paths, so it does not establish an application font family or require a matching font to be installed. Consider whether a complementary serif for selected headings would create a warmer gardening/journal feel while leaving body text, controls, and dense forms in a highly legible sans-serif. This is an **option to test**, not an approved font pairing.
+
+**Options to compare during a later visual review:**
+- Bootstrap's native system font stack, avoiding extra font assets and improving platform familiarity.
+- A deliberately bundled, locally served font family (for example one sourced under suitable terms from Google Fonts), allowing more uniform appearance while considering file size, offline PWA caching, licensing, and fallback.
+- A restrained serif-heading/sans-serif-body pairing if it complements the wordmark without undermining readability.
+
+**Questions for approval:** Which typeface(s) suit the brand on actual pages? What should the consistent `h1`–`h6` hierarchy, body, secondary text, form labels, and buttons look like? How should font sizes, line heights, weights, text wrapping, and responsive scaling behave? Test on desktop and mobile, including readability outdoors and at increased browser text/zoom settings. Maintain semantic heading order independently of visual size. Make a final choice only after viewing representative app pages in-browser.
+
 ## Controls and focus
 
 - Use native links for navigation and native buttons for actions. Do not add `tabindex` to elements that are already interactive.
