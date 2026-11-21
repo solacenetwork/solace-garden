@@ -2,6 +2,16 @@
 
 These focused conventions capture patterns demonstrated by the current shell. They are not a comprehensive design system; feature-specific components should be added only when a real workflow needs them.
 
+## Visual palette and link/button states (design baseline; Step 10 review pending)
+
+The current implementation's baseline tokens are defined in `src/style.css`: warm background `--sg-color-background: #f7f5ee`, white surface `#ffffff`, botanical primary `--sg-color-primary: #486747`, stronger green `--sg-color-primary-strong: #365235`, soft green `#e5ede2`, dark text `#29342b`, muted text `#647066`, border `#d7ddd3`, and focus `#8eab78`. **The stylesheet is authoritative for implemented values**, not this list.
+
+**Earlier exploratory direction (November 2026; not a finalized theme contract):** Natural Earth and SOLACE Minimal influenced the current warm-neutral/green look. A combined light-theme candidate used background `#f7f5ee`, surface `#ffffff`, primary `#486747`, earth-neutral secondary `#e8e4d8`, text `#29342b`, and muted text `#596859`. A dark-theme proposal used `#1c211d`, `#2b332c`, `#88a77b`, `#414b40`, `#f1f2eb`, and `#b9c5b8`. These were **proposals**, not authorization to implement dark mode or replace current tokens.
+
+**Shared interaction convention to validate in Step 10:** Text links, breadcrumb links, navigation links, and button-like links should draw from a coherent, accessible set of semantic colors and states (default, hover, focus-visible, active/current, disabled). Breadcrumb parent links must have a clearly perceptible hover state; the current very pale gray hover is a usability issue. An inactive/current breadcrumb item is not an interactive link. Preserve meaningful distinction between navigation links and action buttons, and do not require every control to use identical styling. Audit contrast in ordinary and hover states, and use more than color alone for state. Prefer shared semantic tokens/global rules over page-specific hardcoded hover colors after visual approval.
+
+**Layout alignment to validate in Step 10:** Page-level breadcrumbs, eyebrow, title, and description should share a stable horizontal alignment anchor while forms and card grids may use different widths. A reusable page-header pattern can help, but must be placed in a shared page layout rather than inside differently centered content containers. See `docs/UI_REDESIGN.md` Step 10 for the observed Create Garden/Quick Start jump.
+
 ## Controls and focus
 
 - Use native links for navigation and native buttons for actions. Do not add `tabindex` to elements that are already interactive.
