@@ -40,6 +40,12 @@ SOLACE projects follow a strict distinction between disposable alpha development
 
 **Important:** Do not confuse protecting currently valid data during normal operations (autosave, draft recovery, atomic transactions) with supporting obsolete alpha data formats. Operational data integrity remains required, even during alpha.
 
+### UI design consistency
+
+- Before implementing or changing UI, consult relevant rules in `docs/UI_CONVENTIONS.md` and consider how the new workflow fits existing navigation, page layouts, and related feature journeys.
+- At the end of each UI-related implementation milestone, briefly review: **(1)** Did we establish a new reusable UI convention? **(2)** Did the work reveal inconsistencies with existing conventions? **(3)** Should any approved decisions be documented for future milestones?
+- Update `docs/UI_CONVENTIONS.md` only for approved, reusable conventions; keep feature-specific details in their owning docs and speculative ideas in `docs/PARKING_LOT.md`. Report unresolved inconsistencies or deferred polish without expanding the task or making unrelated changes. No document edit is needed when no new convention was established.
+
 ### Documentation scope
 
 Treat `docs/` as the authoritative source for current project documentation.
