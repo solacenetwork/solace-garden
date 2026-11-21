@@ -12,14 +12,14 @@
 - Consult the repository-local official Bootstrap skills in `.agents/skills/` whenever relevant. For this Preact/Vite application, start with `bootstrap-vite`, `bootstrap-component`, `bootstrap-component-js`, and `bootstrap-v5-v6-migration`; use the color-system and utility-API skills when those concerns are in scope.
 - Prefer the official versioned Bootstrap 6 documentation at <https://getbootstrap.com/docs/6.0/>. Treat third-party examples and training-memory patterns as secondary, especially while Bootstrap 6 is prerelease software.
 - Verify component APIs, exports, types, markup, and Sass/CSS behavior against the installed `bootstrap@6.0.0-alpha.1` package in `node_modules/bootstrap` before implementation. Recheck this guidance whenever the pinned Bootstrap version changes.
-- Bootstrap 6 replaces Offcanvas with Drawer. Use the `Drawer` export, `data-bs-toggle="drawer"`, `data-bs-dismiss="drawer"`, `.drawer*` classes, `*.bs.drawer` events, and a native `<dialog>` element. For a mobile bottom drawer, use `.drawer-bottom`; do not port the old Offcanvas API or render a renamed `<div>`.
 - Integrate Bootstrap JavaScript with Preact lifecycle deliberately: initialize only after the element mounts, remove event listeners and call `dispose()` on unmount, and avoid duplicating Bootstrap-managed state in Preact unless the application needs it.
 
-## Automated browser testing 
+## Testing responsibilities
 
-All headless browser processes and temporary development servers launched for testing must have explicit timeouts and reliable cleanup. Use try/finally or equivalent mechanisms to terminate browser instances and their child processes, including when tests fail or are interrupted. Never leave orphaned Chromium/Chrome processes running. Avoid concurrent browser instances unless necessary. Verify that test-owned processes have exited before reporting completion. Do not terminate unrelated user browser sessions.
-
-You should favor lightweight tests over launching Chromium when a browser isn't actually necessary.
+- Codex should run focused and full **Vitest** tests as appropriate to its implementation changes, plus the production build when relevant.
+- **Playwright end-to-end testing is handled by the developer** (or eventually GitHub automation), not by Codex. Do not create, modify, or run Playwright/browser E2E tests as part of normal Codex milestones.
+- **Exception:** If a specific defect cannot reasonably be diagnosed without browser-level testing, Codex may use a narrowly scoped browser test for troubleshooting. Explain why it is necessary and keep it limited to the defect. Apply explicit timeouts, clean up any test-owned browsers and servers, and leave unrelated browser sessions untouched.
+- Report which Vitest/build checks ran and their results. State explicitly when Playwright was not run; do not imply E2E acceptance from unit tests alone.
 
 ### Alpha Development Data Policy
 
