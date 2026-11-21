@@ -54,6 +54,24 @@ These are the **recorded candidate swatches**, not a complete mapping of semanti
 
 **Questions for approval:** Which typeface(s) suit the brand on actual pages? What should the consistent `h1`–`h6` hierarchy, body, secondary text, form labels, and buttons look like? How should font sizes, line heights, weights, text wrapping, and responsive scaling behave? Test on desktop and mobile, including readability outdoors and at increased browser text/zoom settings. Maintain semantic heading order independently of visual size. Make a final choice only after viewing representative app pages in-browser.
 
+## Theme Architecture and Future Customization
+
+**Status and intent:** V1 ships **one default visual theme**, selected after the Step 10 in-browser review. Make the CSS **theme-ready** without shipping a theme switcher, font picker, theme directory, user-provided assets, or extra theme management in V1. Future appearance options are independent of Simple/Standard interface modes, routes, functionality, and stored Garden data.
+
+**Separate structure from appearance:**
+- Core Garden/component CSS owns layout, responsive behavior, sizing, spacing, positioning, and interaction mechanics; theme definitions own colors and font choices through **semantic CSS custom properties**. The specific future filenames (for example `garden.css` plus `themes/default.css`) are illustrative, not a required file move or new architecture for V1.
+- Components should consume shared `--sg-*` tokens for text, surfaces, borders, links, actions, states, and typography rather than embed palette values or hardcoded font families. Prefer semantic roles such as link/default/hover, primary-action/default/hover, muted text, focus, danger, and background over color-name variables. Respect accessibility and legibility in each state.
+- Keep Bootstrap 6 controls aligned with Garden tokens through appropriate Bootstrap CSS variable overrides, without altering the structural component rules per theme. The default theme should preserve the chosen V1 appearance. The current `src/style.css` tokens are a starting point, not yet a fully audited separation of styles.
+- Distinguish **color theme** from **font preference** so changing one need not create a new combined theme variant. Use fallbacks for fonts, and keep semantic markup and layout usable if custom appearance assets fail to load.
+
+**Step 10 prerequisite review:** Audit existing application stylesheets and component styles for hardcoded color values, font families, hover/active/focus/disabled treatments, Bootstrap default colors leaking into Garden components, and styling that mixes theme values with layout. Identify reusable semantic tokens and the smallest sensible path to separating appearance from structure. Review actual pages in-browser before choosing the default palette or undertaking a broad CSS refactor; preserve accepted behaviors, accessibility, and responsive layouts. Document approved conventions here. This is **planned review work**, not an instruction to interrupt ongoing functional milestones.
+
+**Future version direction (provisional, not V1 requirements):**
+- **V2:** Consider a small, curated appearance menu: approximately **2–3 built-in color themes** and **around seven font options**. The user picks what is most comfortable; test these options on actual buttons, forms, headings, Garden records, and mobile/desktop screens. Keep selections local and compatible with offline-first operation. Exact options, defaults, implementation, and version scope remain to be decided.
+- **V3/V4 or later:** Explore **user-provided fonts and themes**, potentially via a fonts/themes directory and imported font files or stylesheets. Define the import/storage model, validation, CSS scope and isolation, accessibility, origin/security boundaries, offline packaging/caching, and backup/restore behavior before implementing. Do not promise arbitrary filesystem directory access in a browser-based PWA; the final mechanism depends on supported browser capabilities and the product's safety model.
+
+**V1 boundary:** Implement and validate the single default theme, while avoiding unnecessary styling dependencies that would force edits to core layout rules for future palette/font variants. Do not build a speculative theme engine.
+
 ## Controls and focus
 
 - Use native links for navigation and native buttons for actions. Do not add `tabindex` to elements that are already interactive.
