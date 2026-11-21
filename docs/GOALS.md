@@ -83,14 +83,17 @@ Garden V1 consumes the bundled, read-only `public/assets/data/plants.json` refer
 - Opening the picker from a Garden supplies that Garden as context. Selecting an existing catalog plant leads to creation of a **new independent Plant Group**, rather than treating a plant reference as a saved planting. Multiple groups may use the same catalog ID.
 - Provide a complementary **PlantPusher** Preact component for a **catalog-first** workflow. From a full plant reference record, **Add to Garden** opens a compact list of eligible Gardens, allowing the gardener to select a destination and create a new Plant Group for the already selected catalog plant. Remember the last successfully chosen destination Garden for subsequent pushes; if it is unavailable or no longer eligible, require another selection. After adding, keep the gardener in the master catalog to continue researching.
 - **PlantPicker and PlantPusher are two entry points into the same Plant Group creation behavior**, not separate data models or persistence implementations. Garden-first already knows the Garden and chooses a plant; catalog-first already knows the plant and chooses a Garden. Both use the shared Plant Group creation service and validation.
+- Provide a **PlantTray** as an optional V1 collection step: while browsing the compact picker or full master catalog, the gardener may add plant references to one temporary tray and continue exploring. They may alternatively add a plant directly without using the tray. The tray contains **pending selections only**, not saved Plant Groups or purchasing items.
+- In V1, review the tray, select **one destination Garden for the entire tray**, adjust relevant quantities/planting details through the shared group-editing flow, and explicitly confirm creation of **independent Plant Groups** through `PlantGroupService`. Preserve the tray if creation fails; clear committed selections only after successful saving. Exact review/confirmation presentation is to be prototyped in 8M–8N. No multiple saved/named trays, tray UUIDs or per-item Garden destinations in V1.
 - A convenient route to the master catalog or an individual full reference record should remain available without forcing the user into research navigation when adding plants.
 - Remembering the last selected category on reopening is a usability candidate; the specific picker layout, whether multi-add commits immediately or on Done, and return/close behavior will be finalized in the plant-integration milestone.
-**Four distinct Preact component responsibilities:**
+**Plant selection and growing components:**
 
 | Component | Purpose |
 | --- | --- |
 | **PlantPicker** | Knows the Garden; lets the gardener choose a plant. |
 | **PlantPusher** | Knows the plant; lets the gardener choose a Garden. |
+| **PlantTray** | Holds temporary plant selections until the gardener adds them to one Garden. |
 | **PlantGroupEditor** | Creates/edits the group's gardening details. |
 | **Harvest** | Records harvests for an existing group. |
 
@@ -111,7 +114,7 @@ Garden v1 tracks **independent plant-group entries**, rather than requiring a se
 - Each group maintains its own values, including **plant count**, optional planting date, and growing indicators, so staggered or succession plantings can be tracked separately. Quantity in v1 means number of plants, not rows, area, or seeds.
 - Use a **PlantGroupEditor** Preact component to edit an existing group's plant count, optional planting date, growing indicators and notes. These values, **including planting date, remain freely editable** as the gardener maintains or replants within the same group; replacing plants does not require creating a new group or individual-plant records.
 - The gardener decides whether new plants continue an existing group or warrant another independent group (for example, to track staggered crops separately). Garden-linked Notes and Journal entries can record replacement details and history without requiring an automatic event log or additional individual-plant tracking.
-- A separate **Harvest** Preact component/workflow records dated harvest events against an existing Plant Group, rather than individual plants. Its details are specified in the Harvest section and TECH_SPEC; these three UI responsibilities (PlantPicker, PlantGroupEditor, Harvest) should be designed as related but separate components.
+- A separate **Harvest** Preact component/workflow records dated harvest events against an existing Plant Group, rather than individual plants. Its details are specified in the Harvest section and TECH_SPEC; the PlantPicker, PlantPusher, PlantTray, PlantGroupEditor and Harvest responsibilities remain related but distinct.
 - Growing indicators are a **standard predefined list in v1**, shared across plant groups and controlled manually by the gardener using independent checkboxes.
 - Multiple indicators can be active at the same time; they are not exclusive stages of a required linear progression.
 - Each of the ten indicators supports **independent optional start and end dates**. Each date field has a **Today** shortcut, which fills only that field using the user's local date. A phase end date cannot be earlier than its start date; overlaps across different phases are allowed.
