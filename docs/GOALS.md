@@ -188,7 +188,7 @@ Garden v1 will use **one local media collection** with context-specific views:
 - Allow Journal entries to reuse photographs from the shared collection without unnecessary duplicate image storage.
 - Include associated photos in complete ZIP backup and restore.
 
-The initial Gallery does not require separate free-form albums or a full media-management suite. **FilePond** is the preferred import/resize candidate, **lightGallery** the viewing candidate, and **Dexie** the selected local database; library integrations still require proof-of-concept testing. Future versions may provide missing-image identification and re-upload-based restoration, potentially assisted by image fingerprints, with user confirmation. Network uploads and server archival are **not v1 requirements**.
+The initial Gallery does not require separate free-form albums or a full media-management suite. **FilePond** is the preferred file-selection/preview/validation interface (not necessarily the final image encoder), **lightGallery** the viewing candidate, and **Dexie** the selected local database. A sequential, offline image-processing proof of concept should compare native Canvas WebP with browser-compatible `@jsquash/webp` before selecting the encoding implementation; see `TECH_SPEC.md` for the research and mobile-testing limitations. Future versions may provide missing-image identification and re-upload-based restoration, potentially assisted by image fingerprints, with user confirmation. Network uploads and server archival are **not v1 requirements**.
 
 ### 2.9 Current and Previous Gardens
 
