@@ -386,14 +386,24 @@ A reusable physical-space definition is created initially and normally changes o
 
 **Design consequence:** Keep the lifetime of a growing space separate from the lifetime of plant groups and the dates/activity of particular plantings. A planting or harvest is not inherently a new physical space, nor is the calendar year necessarily a planting boundary. V1 need not implement a separate planting-cycle table; resolve representation and history rules when the later Maps/space-assignment workflow is designed.
 
+## V2 candidate: Multiple saved PlantTrays and Garden associations
+
+**Status:** Deferred V2 concept; not a V1 commitment. V1 uses one temporary `PlantTray` for collecting plant selections from PlantPicker or the full master catalog and adding them to **one chosen Garden**. The V1 tray is not a purchasing cart, Wish List or persistent planting record.
+
+- Explore **multiple persistent, named PlantTrays**, each optionally associated with a Garden by its stable `gardenId`, allowing gardeners to plan different Gardens before adding Plant Groups.
+- Default name pattern: **`[Garden Name] Tray [next sequence number]`**, with independent numbering per Garden (e.g. `Raised Bed 1 Tray 1`, `Raised Bed 1 Tray 2`, `Greenhouse Tray 1`). Names are editable, may repeat, and are not identity keys. Do not renumber surviving trays when one is deleted.
+- If saved Tray records are introduced, give each its own immutable **Tray UUID**. Garden associations use Garden UUIDs, not names; renaming either entity does not break identity or references. Sequence numbers are naming conveniences only.
+- Consider reopening, editing, renaming, moving and deleting saved trays; decide lifecycle, storage schema and how pending items are handled when destination Gardens are closed/deleted or changed at implementation time.
+- Keep this separate from Garden Templates (reusable Garden configurations) and actual Plant Groups (saved planting records). No V1 saved tray store, migration, multi-tray management or per-item destination picker.
+
 ### Possible V2/V3 concept and interaction
 
-- **Discover → collect → assign:** Browse/search the published PlantDB catalog, research plants, and add candidates to a temporary **Potential Plants** basket/palette. When ready, assign candidates to an actual Garden, creating independent Garden plant groups. A plant may be assigned more than once, including to separate groups within the same Garden or to multiple Gardens.
+- **Discover → collect → assign:** Reuse the V1 **PlantTray** selection concept as the starting point for possible later visual Maps planning. Explore assigning collected candidates to Garden plant groups and arranging their representations on a map; don't duplicate a separate “Potential Plants” basket model.
 - **Visual Garden area:** Display the selected Garden as a simple rectangular workspace with **colored rectangles/squares representing its plant groups**, inspired by Piet Mondrian-style CSS layouts. Labels identify the actual plant groups. Tiles may be moved, resized, recolored, and rearranged to create a readable, *representational* layout.
 - **Two areas on larger screens:** Potential Plants / unplaced plant groups on one side; the selected Garden's visual area on the other. Drag-and-drop is a candidate, with explicit **Add/Move to Garden** controls as a touch/keyboard-accessible alternative. On small screens, use sequential selection and placement instead of requiring precise dragging.
 - **Not required for basic gardening:** The ordinary Garden and plant-group lists remain fully functional without a map; the layout is an optional visualization, not the authoritative record of which plants are being grown.
 - **Identity:** Each tile references a persistent **plant-group ID**. Plant groups reference PlantDB records by stable plant ID. Assign to a **Garden ID**, not to a Garden Type (Raised Bed, Container, etc. are classifications, potentially multiple per Garden). Duplicated plant selections produce independent plant groups, not duplicate catalog records.
-- **Potential list lifecycle undecided:** Start by exploring an in-session selection basket; a gardener-wide shortlist that survives sessions is a distinct, future data-design decision, not something to assume or implement implicitly.
+- **Future saved selection lifecycle:** Multiple persistent trays and Garden associations are parked separately in the V2 PlantTrays entry above; map layout work does not require them.
 
 ### Implementation direction to evaluate for V2/V3
 
@@ -411,7 +421,7 @@ A reusable physical-space definition is created initially and normally changes o
 
 - Earlier Garden Archive Fabric.js prototype: canvas with separate drawing and plant-picker toolbars, example vegetable selector, shape controls, and a simple PNG export experiment. Keep as historical reference rather than code to port directly.
 - Mondrian-like rectangular CSS compositions: https://www.mondriangenerator.io/ and https://getmondrian.com/
-- **Scope boundary:** Garden V1 uses the gardener's uploaded JPG/PNG map as reference media and implements PlantDB lookup/selection and real plant-group creation in 8G/8H. It does not implement an interactive Maps editor. Avoid speculative diagram/geometry fields in V1 storage.
+- **Scope boundary:** Garden V1 uses the gardener's uploaded JPG/PNG map as reference media and implements PlantDB lookup/selection and real plant-group creation in 8M/8N. It does not implement an interactive Maps editor. Avoid speculative diagram/geometry fields in V1 storage.
 
 ## Future idea: Subscribe to Garden Tasks via iCalendar (VTODO)
 
