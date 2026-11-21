@@ -6,7 +6,34 @@ These focused conventions capture patterns demonstrated by the current shell. Th
 
 The current implementation's baseline tokens are defined in `src/style.css`: warm background `--sg-color-background: #f7f5ee`, white surface `#ffffff`, botanical primary `--sg-color-primary: #486747`, stronger green `--sg-color-primary-strong: #365235`, soft green `#e5ede2`, dark text `#29342b`, muted text `#647066`, border `#d7ddd3`, and focus `#8eab78`. **The stylesheet is authoritative for implemented values**, not this list.
 
-**Earlier exploratory direction (November 2026; not a finalized theme contract):** Natural Earth and SOLACE Minimal influenced the current warm-neutral/green look. A combined light-theme candidate used background `#f7f5ee`, surface `#ffffff`, primary `#486747`, earth-neutral secondary `#e8e4d8`, text `#29342b`, and muted text `#596859`. A dark-theme proposal used `#1c211d`, `#2b332c`, `#88a77b`, `#414b40`, `#f1f2eb`, and `#b9c5b8`. These were **proposals**, not authorization to implement dark mode or replace current tokens.
+### Preserved palette candidates (not yet selected for V1)
+
+Keep **both** of these Garden palette candidates available for side-by-side visual trials in Step 10. Color chips alone are insufficient to approve a theme: a palette can look attractive as swatches but be unpleasant or illegible on actual buttons, navigation, forms, cards, and interactive states. **Neither palette is approved as the final UI theme**, and these records do not authorize immediate CSS changes.
+
+**Original Garden palette — combined warm-neutral / botanical direction**
+
+| Role | Color |
+| --- | --- |
+| Background | `#F7F5EE` |
+| Surface | `#FFFFFF` |
+| Primary green | `#486747` |
+| Earth neutral | `#E8E4D8` |
+| Text | `#29342B` |
+| Muted text | `#596859` |
+
+**Natural Earth — warmer brown / olive direction (the earlier preferred choice)**
+
+| Role | Color |
+| --- | --- |
+| Background | `#FAF7EF` |
+| Secondary neutral | `#E4DDCA` |
+| Olive green | `#657547` |
+| Warm brown | `#A97849` |
+| Terracotta | `#BC7657` |
+
+These are the **recorded candidate swatches**, not a complete mapping of semantic roles. Do not invent missing token assignments or override the existing implemented theme merely to fill out either table. An earlier dark-theme proposal (`#1C211D`, `#2B332C`, `#88A77B`, `#414B40`, `#F1F2EB`, `#B9C5B8`) is also historical exploration, not committed implementation.
+
+**Step 10 selection process:** Show each candidate in representative live UI contexts, particularly primary/secondary/destructive buttons, links and breadcrumb hover, sidebar active/hover states, headings, cards, and forms. Test contrast, focus visibility, disabled states, and both mobile and desktop layouts. Compare those results with the currently implemented CSS palette. Make the final decision **after visual review in the browser**; then update semantic tokens and document the chosen convention.
 
 **Shared interaction convention to validate in Step 10:** Text links, breadcrumb links, navigation links, and button-like links should draw from a coherent, accessible set of semantic colors and states (default, hover, focus-visible, active/current, disabled). Breadcrumb parent links must have a clearly perceptible hover state; the current very pale gray hover is a usability issue. An inactive/current breadcrumb item is not an interactive link. Preserve meaningful distinction between navigation links and action buttons, and do not require every control to use identical styling. Audit contrast in ordinary and hover states, and use more than color alone for state. Prefer shared semantic tokens/global rules over page-specific hardcoded hover colors after visual approval.
 
