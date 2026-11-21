@@ -89,6 +89,7 @@ const creationMethods = [
 		description: 'Create a Garden with the essentials.',
 		icon: 'lightning-charge',
 		action: 'Open Quick Start',
+		href: '/gardens/new/quickstart',
 	},
 	{
 		id: 'wizard',
@@ -96,6 +97,7 @@ const creationMethods = [
 		description: 'Create a Garden step by step.',
 		icon: 'signpost-split',
 		action: 'Start Guided Wizard',
+		href: '/gardens/new/wizard',
 	},
 	{
 		id: 'template',
@@ -109,6 +111,7 @@ const creationMethods = [
 		description: 'Configure all Garden details on one page.',
 		icon: 'sliders',
 		action: 'Open Advanced Form',
+		href: '/gardens/new/advanced',
 	},
 ];
 
@@ -122,7 +125,7 @@ function MethodCard({ method, children = null }) {
 				<h2>{method.title}</h2>
 				<p>{method.description}</p>
 				{children ?? (
-					<a class="btn-outline theme-primary garden-create-method__action" href={`/gardens/new?type=${method.id}`}>
+					<a class="btn-outline theme-primary garden-create-method__action" href={method.href}>
 						{method.action}
 					</a>
 				)}
@@ -298,6 +301,7 @@ export function QuickStartGardenView({
 					<label class="form-label" for="garden-name">Garden Name</label>
 					<input
 						id="garden-name"
+						name="name"
 						class={`form-control${errors.name ? ' is-invalid' : ''}`}
 						type="text"
 						autoComplete="off"
@@ -307,7 +311,10 @@ export function QuickStartGardenView({
 						disabled={saving}
 						aria-invalid={errors.name ? 'true' : undefined}
 						aria-describedby={errors.name ? 'garden-name-error' : undefined}
-						onInput={(event) => onChange('name', event.currentTarget.value)}
+						onInput={(event) => {
+							event.currentTarget.setCustomValidity('');
+							onChange('name', event.currentTarget.value);
+						}}
 					/>
 					{errors.name && <div id="garden-name-error" class="invalid-feedback">{errors.name}</div>}
 				</div>
@@ -348,9 +355,9 @@ export function QuickStartGardenView({
 				</fieldset>
 
 				<div class="form-field">
-					<label class="form-label" for="garden-thumbnail">Thumbnail <span class="garden-create__optional">(optional)</span></label>
+					<label class="form-label" for="garden-thumbnail">Garden Image <span class="garden-create__optional">(optional)</span></label>
 					<input id="garden-thumbnail" class="form-control" type="file" accept="image/*" disabled aria-describedby="garden-thumbnail-help" />
-					<p id="garden-thumbnail-help" class="form-text">Image uploads will be available later.</p>
+					<p id="garden-thumbnail-help" class="form-text">Garden image selection will be available after Gallery and media support is implemented.</p>
 				</div>
 
 				<fieldset class="garden-create__status">
@@ -391,6 +398,36 @@ export function QuickStartGardenView({
 	);
 }
 
+export function revealInvalidField(field, {
+	documentObject = globalThis.document,
+	viewport = globalThis,
+} = {}) {
+	if (!field) return false;
+
+	const describedBy = field.getAttribute?.('aria-describedby')?.trim().split(/\s+/).filter(Boolean) ?? [];
+	const elements = [field, ...describedBy.map((id) => documentObject?.getElementById(id)).filter(Boolean)];
+	const rectangles = elements.map((element) => element.getBoundingClientRect?.()).filter(Boolean);
+	const headerBottom = Math.max(
+		0,
+		documentObject?.querySelector?.('.app-header')?.getBoundingClientRect?.().bottom ?? 0,
+	);
+	const viewportHeight = viewport.innerHeight ?? documentObject?.documentElement?.clientHeight ?? 0;
+	const top = Math.min(...rectangles.map((rectangle) => rectangle.top));
+	const bottom = Math.max(...rectangles.map((rectangle) => rectangle.bottom));
+	const isVisible = rectangles.length > 0 && top >= headerBottom && bottom <= viewportHeight;
+
+	if (!isVisible) {
+		const reduceMotion = viewport.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+		field.scrollIntoView?.({
+			behavior: reduceMotion ? 'auto' : 'smooth',
+			block: 'center',
+			inline: 'nearest',
+		});
+	}
+	field.focus?.({ preventScroll: true });
+	return true;
+}
+
 export function QuickStartGarden() {
 	const { repositories } = useStorage();
 	const { route } = useLocation();
@@ -410,6 +447,14 @@ export function QuickStartGarden() {
 		onSaveError: setSaveError,
 	}), [gardens, route]);
 
+	useEffect(() => {
+		if (!Object.values(errors).some(Boolean)) return;
+		const firstInvalidField = globalThis.document?.querySelector?.(
+			'.garden-create__form [aria-invalid="true"]',
+		);
+		revealInvalidField(firstInvalidField);
+	}, [errors]);
+
 	function updateField(field, value) {
 		setValues((current) => ({ ...current, [field]: value }));
 		setErrors((current) => ({ ...current, [field]: undefined }));
@@ -418,6 +463,12 @@ export function QuickStartGarden() {
 
 	function handleSubmit(event) {
 		event.preventDefault();
+		const nameField = event.currentTarget.elements.namedItem('name');
+		nameField.setCustomValidity(values.name.trim() ? '' : 'Enter a Garden name.');
+		if (!event.currentTarget.checkValidity()) {
+			setErrors({ name: nameField.validationMessage });
+			return;
+		}
 		void submit(values);
 	}
 

@@ -10,6 +10,7 @@ import {
 	loadCreateGardenTemplates,
 	QUICK_START_TYPE_IDS,
 	QuickStartGardenView,
+	revealInvalidField,
 	TemplateMethodContents,
 } from './CreateGarden.jsx';
 
@@ -57,7 +58,7 @@ describe('Create Garden method landing page', () => {
 		expect(nodes(tree).some(({ props }) => props.class === 'gardens-back')).toBe(false);
 	});
 
-	it('uses dispatcher links for direct methods and keeps the Hub return link', () => {
+	it('uses canonical links for direct methods and keeps the Hub return link', () => {
 		const tree = CreateGardenLandingView({
 			templateState: { status: 'ready', items: [] },
 			selectedTemplateId: '',
@@ -66,10 +67,10 @@ describe('Create Garden method landing page', () => {
 		const hrefs = nodes(tree).filter(({ type }) => type === 'a').map(({ props }) => props.href);
 		expect(hrefs).toEqual([
 			'/gardens',
-			'/gardens/new?type=quickstart',
-			'/gardens/new?type=wizard',
+			'/gardens/new/quickstart',
+			'/gardens/new/wizard',
 			'/templates',
-			'/gardens/new?type=advanced',
+			'/gardens/new/advanced',
 		]);
 	});
 
@@ -178,11 +179,11 @@ describe('Quick Start Garden creation', () => {
 		const sections = form.props.children.filter((child) => child && typeof child === 'object');
 		expect(sections.slice(0, 6).map((child) => visibleText(child).trim().split(/\s+/).slice(0, 2).join(' '))).toEqual([
 			'Garden Name', 'Subtitle (optional)', 'Icon (optional)', 'Color (optional)',
-			'Thumbnail (optional)', 'Status Planned',
+			'Garden Image', 'Status Planned',
 		]);
 		const thumbnail = nodes(form).find(({ props }) => props.id === 'garden-thumbnail');
 		expect(thumbnail.props).toMatchObject({ type: 'file', disabled: true });
-		expect(visibleText(form)).toContain('Image uploads will be available later.');
+		expect(visibleText(form)).toContain('Garden image selection will be available');
 		const radios = nodes(form).filter(({ props }) => props.name === 'garden-status');
 		expect(radios.map(({ props }) => [props.value, props.checked])).toEqual([
 			['planned', true], ['active', false],
@@ -276,5 +277,44 @@ describe('Quick Start Garden creation', () => {
 		expect(garden).toMatchObject(values);
 		expect(createGarden).toHaveBeenCalledTimes(2);
 		expect(navigate).toHaveBeenCalledWith(`/gardens/${garden.id}`);
+	});
+
+	it('focuses the first invalid field and scrolls its message clear of the sticky header', () => {
+		const scrollIntoView = vi.fn();
+		const focus = vi.fn();
+		const field = {
+			getAttribute: () => 'garden-name-error',
+			getBoundingClientRect: () => ({ top: 20, bottom: 60 }),
+			scrollIntoView,
+			focus,
+		};
+		const documentObject = {
+			getElementById: () => ({ getBoundingClientRect: () => ({ top: 62, bottom: 86 }) }),
+			querySelector: () => ({ getBoundingClientRect: () => ({ bottom: 72 }) }),
+		};
+		const viewport = { innerHeight: 800, matchMedia: () => ({ matches: true }) };
+
+		expect(revealInvalidField(field, { documentObject, viewport })).toBe(true);
+		expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'center', inline: 'nearest' });
+		expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+	});
+
+	it('does not scroll when the invalid field and message are already visible', () => {
+		const scrollIntoView = vi.fn();
+		const focus = vi.fn();
+		const field = {
+			getAttribute: () => 'garden-name-error',
+			getBoundingClientRect: () => ({ top: 120, bottom: 160 }),
+			scrollIntoView,
+			focus,
+		};
+		const documentObject = {
+			getElementById: () => ({ getBoundingClientRect: () => ({ top: 162, bottom: 186 }) }),
+			querySelector: () => ({ getBoundingClientRect: () => ({ bottom: 72 }) }),
+		};
+
+		revealInvalidField(field, { documentObject, viewport: { innerHeight: 800 } });
+		expect(scrollIntoView).not.toHaveBeenCalled();
+		expect(focus).toHaveBeenCalledWith({ preventScroll: true });
 	});
 });
