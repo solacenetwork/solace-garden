@@ -9,6 +9,7 @@ import {
 	createQuickStartSubmitter,
 	loadCreateGardenTemplates,
 	QUICK_START_TYPE_IDS,
+	QuickStartGardenView,
 	TemplateMethodContents,
 } from './CreateGarden.jsx';
 
@@ -163,24 +164,58 @@ describe('Quick Start Garden creation', () => {
 		});
 	}
 
+	function input(overrides = {}) {
+		return { name: 'Garden', subtitle: '', icon: null, color: null, status: 'planned', ...overrides };
+	}
+
+	it('renders the expanded fields in order with safe defaults and chooser cancellation', () => {
+		const tree = QuickStartGardenView({
+			values: input({ name: '' }),
+			onChange: vi.fn(),
+			onSubmit: vi.fn(),
+		});
+		const form = nodes(tree).find(({ type }) => type === 'form');
+		const sections = form.props.children.filter((child) => child && typeof child === 'object');
+		expect(sections.slice(0, 6).map((child) => visibleText(child).trim().split(/\s+/).slice(0, 2).join(' '))).toEqual([
+			'Garden Name', 'Subtitle (optional)', 'Icon (optional)', 'Color (optional)',
+			'Thumbnail (optional)', 'Status Planned',
+		]);
+		const thumbnail = nodes(form).find(({ props }) => props.id === 'garden-thumbnail');
+		expect(thumbnail.props).toMatchObject({ type: 'file', disabled: true });
+		expect(visibleText(form)).toContain('Image uploads will be available later.');
+		const radios = nodes(form).filter(({ props }) => props.name === 'garden-status');
+		expect(radios.map(({ props }) => [props.value, props.checked])).toEqual([
+			['planned', true], ['active', false],
+		]);
+		expect(nodes(form).find(({ type, props }) => type === 'a' && props.href === '/gardens/new')).toBeTruthy();
+		expect(visibleText(form)).not.toContain('Guided Wizard');
+		expect(visibleText(form)).not.toContain('Advanced Form');
+	});
+
 	it('creates, persists, and navigates to the exact Quick Start record', async () => {
 		await storage.repositories.locations.update(DEFAULT_LOCATION_ID, { name: 'Renamed Home' });
-		const garden = await submitter()('  Kitchen Garden  ');
+		const garden = await submitter()(input({
+			name: '  Kitchen Garden  ',
+			subtitle: '  South beds  ',
+			icon: 'flower1',
+			color: '#287d46',
+			status: 'active',
+		}));
 
 		expect(garden).toEqual({
 			id: expect.stringMatching(/^[\da-f-]{36}$/),
 			name: 'Kitchen Garden',
-			subtitle: null,
+			subtitle: 'South beds',
 			description: null,
 			locationId: DEFAULT_LOCATION_ID,
 			typeIds: ['in-ground'],
-			status: 'planned',
+			status: 'active',
 			isClosed: false,
 			startDate: null,
 			endDate: null,
 			notes: null,
-			icon: null,
-			color: null,
+			icon: 'flower1',
+			color: '#287D46',
 			thumbnailMediaId: null,
 			layoutMediaId: null,
 			createdAt: CREATED,
@@ -194,18 +229,18 @@ describe('Quick Start Garden creation', () => {
 	});
 
 	it.each(['', '   ', '\n\t'])('rejects a blank name before persistence: %j', async (name) => {
-		const onNameError = vi.fn();
-		const result = await submitter({ onNameError })(name);
+		const onFieldError = vi.fn();
+		const result = await submitter({ onFieldError })(input({ name }));
 		expect(result).toBeNull();
-		expect(onNameError).toHaveBeenLastCalledWith('Enter a Garden name.');
+		expect(onFieldError).toHaveBeenLastCalledWith('name', 'Enter a Garden name.');
 		expect(await gardens.list()).toEqual([]);
 		expect(navigate).not.toHaveBeenCalled();
 	});
 
 	it('allows intentional duplicate names while assigning independent UUIDs', async () => {
 		const submit = submitter();
-		const first = await submit('Same Name');
-		const second = await submit('Same Name');
+		const first = await submit(input({ name: 'Same Name' }));
+		const second = await submit(input({ name: 'Same Name' }));
 		expect(second.id).not.toBe(first.id);
 		expect((await gardens.list()).map(({ name }) => name)).toEqual(['Same Name', 'Same Name']);
 	});
@@ -217,8 +252,8 @@ describe('Quick Start Garden creation', () => {
 		const onSaving = vi.fn();
 		const submit = submitter({ createGarden, onSaving });
 
-		const first = submit('Garden');
-		const duplicate = submit('Garden');
+		const first = submit(input());
+		const duplicate = submit(input());
 		expect(createGarden).toHaveBeenCalledOnce();
 		expect(await duplicate).toBeNull();
 		finish({ id: '550e8400-e29b-41d4-a716-446655440001' });
@@ -226,18 +261,19 @@ describe('Quick Start Garden creation', () => {
 		expect(onSaving.mock.calls.map(([value]) => value)).toEqual([true, false]);
 	});
 
-	it('preserves the submitted name after failure and permits a retry', async () => {
+	it('preserves the submitted identity and status after failure and permits a retry', async () => {
 		const createGarden = vi.fn()
 			.mockRejectedValueOnce(new Error('simulated storage failure'))
 			.mockImplementation((input) => gardens.create(input));
 		const onSaveError = vi.fn();
 		const submit = submitter({ createGarden, onSaveError });
 
-		expect(await submit('Retry Garden')).toBeNull();
+		const values = input({ name: 'Retry Garden', subtitle: 'Keep me', icon: 'tree-fill', color: '#397CAD', status: 'active' });
+		expect(await submit(values)).toBeNull();
 		expect(onSaveError).toHaveBeenLastCalledWith(expect.stringContaining('try again'));
 		expect(navigate).not.toHaveBeenCalled();
-		const garden = await submit('Retry Garden');
-		expect(garden.name).toBe('Retry Garden');
+		const garden = await submit(values);
+		expect(garden).toMatchObject(values);
 		expect(createGarden).toHaveBeenCalledTimes(2);
 		expect(navigate).toHaveBeenCalledWith(`/gardens/${garden.id}`);
 	});

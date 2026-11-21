@@ -7,14 +7,14 @@ const GARDEN_CREATION_STATUSES = ['planned', 'active'];
 
 function newGardenRecord(input, timestamp) {
 	validateGardenFields(input, GARDEN_CREATION_FIELDS);
-	const status = input.status ?? 'planned';
+	const status = input.status === undefined ? 'planned' : input.status;
 	if (!GARDEN_CREATION_STATUSES.includes(status)) {
 		throw gardenError('INVALID_GARDEN_STATUS', 'New Garden status must be Planned or Active.', 'status');
 	}
 	const record = {
 		subtitle: null, description: null, typeIds: [], startDate: null, endDate: null, notes: null,
 		icon: null, color: null,
-		...normalizeGardenFields(input),
+		...normalizeGardenFields({ name: input.name, locationId: input.locationId, ...input }),
 		status, isClosed: false,
 		thumbnailMediaId: null, layoutMediaId: null,
 		createdAt: timestamp, updatedAt: timestamp,

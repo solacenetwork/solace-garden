@@ -81,7 +81,9 @@ describe('Garden data foundation', () => {
 		});
 	});
 
-	it('rejects malformed identity values atomically at service and repository boundaries', async () => {
+	it('creates normalized identity values and rejects malformed values atomically', async () => {
+		const identified = await gardens.create({ ...input, icon: ' BI-Flower1 ', color: '287d46', status: 'active' });
+		expect(identified).toMatchObject({ icon: 'flower1', color: '#287D46', status: 'active' });
 		const created = await gardens.create(input);
 		for (const [changes, code] of [
 			[{ icon: 'bi bi-flower1' }, 'INVALID_GARDEN_ICON'],
@@ -93,8 +95,8 @@ describe('Garden data foundation', () => {
 			await expect(storage.repositories.gardens.update(created.id, { ...changes, updatedAt: UPDATED })).rejects.toMatchObject({ code });
 			expect(await gardens.getById(created.id)).toEqual(created);
 		}
-		await expect(gardens.create({ ...input, icon: 'flower1' })).rejects.toMatchObject({ code: 'UNSUPPORTED_GARDEN_FIELD' });
-		await expect(gardens.create({ ...input, color: '#287D46' })).rejects.toMatchObject({ code: 'UNSUPPORTED_GARDEN_FIELD' });
+		await expect(gardens.create({ ...input, icon: 'not-installed' })).rejects.toMatchObject({ code: 'INVALID_GARDEN_ICON' });
+		await expect(gardens.create({ ...input, color: 'red' })).rejects.toMatchObject({ code: 'INVALID_GARDEN_COLOR' });
 	});
 
 	it('preserves obsolete stored identity values until that field is explicitly corrected or reset', async () => {
@@ -171,7 +173,7 @@ describe('Garden data foundation', () => {
 		await gardens.update(created.id, { endDate: null });
 	});
 
-	it.each(['id', 'createdAt', 'updatedAt', 'status', 'isClosed', 'thumbnailMediaId', 'layoutMediaId', 'unknown'])(
+	it.each(['id', 'createdAt', 'updatedAt', 'isClosed', 'thumbnailMediaId', 'layoutMediaId', 'unknown'])(
 		'rejects caller-managed field %s', async (field) => {
 			const created = await gardens.create(input);
 			await expect(gardens.create({ ...input, [field]: 'override' })).rejects.toBeInstanceOf(ValidationError);
@@ -182,6 +184,13 @@ describe('Garden data foundation', () => {
 			expect(await gardens.getById(created.id)).toEqual(created);
 		},
 	);
+
+	it.each(['completed', 'archived', '', null])('rejects unsupported creation status %j', async (status) => {
+		await expect(gardens.create({ ...input, status })).rejects.toMatchObject({
+			code: 'INVALID_GARDEN_STATUS', field: 'status',
+		});
+		expect(await gardens.list()).toEqual([]);
+	});
 
 	it.each([{ isClosed: true }, { status: 'archived', isClosed: false }])('enforces read-only rules in storage: %j', async (state) => {
 		const created = await gardens.create(input);
