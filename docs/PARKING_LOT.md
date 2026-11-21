@@ -27,6 +27,14 @@ Keep development tooling out of the distributed production PWA, regardless of it
 - **Live palette/typography comparison (Step 10 development aid):** Consider a small, temporary preview/harness that applies the preserved Original Garden and Natural Earth palette candidates and font treatments to representative *real* Garden elements: buttons, links, breadcrumb states, navigation, cards, forms, headings, and labels. Inspect contrast, interactive states, responsive layouts, and outdoor readability before selecting the V1 default. This is a visual comparison tool, not a V1 user-facing theme picker.
 - **Future appearance preferences (V2+):** Explore a restrained built-in choice of approximately 2–3 color themes and seven fonts. Later, potentially support schema-validated drop-in third-party themes/fonts, initially for the hosted web deployment and eventually offline PWA use if feasible. Keep the full theme architecture, validation/fallback concept, and version boundaries in `UI_CONVENTIONS.md`, rather than duplicating them here.
 
+## Media/Gallery encoder candidates and future benchmarks (8H research, November 21, 2026)
+
+**Status:** Research captured, not an approved dependency or new milestone. Keep the original development sample photographs for 8H testing; production asset cleanup belongs to later release preparation.
+
+- **Primary comparison:** Native browser Canvas WebP encoding versus `@jsquash/webp` (libwebp compiled to WASM, browser/Web Worker target, Apache-2.0). Compare file size/visual quality, encoding time, memory, alpha support, WASM delivery in Vite/PWA precache, and offline operation using identical JPEG/PNG samples.
+- **Not preferred for browser runtime:** `imagemin-webp` is a Node/native-`cwebp` build-time option. `@stacksjs/ts-webp` (pure TypeScript, MIT, early 0.x) is an interesting portable fallback, but its simplified lossy encoder is explicitly not as compression-efficient as `cwebp`, and the source's preferred system-binary pathway is not available in an installed browser PWA.
+- **Research outcome:** Keep FilePond for selection/validation/preview rather than relying on its concurrent variants or undocumented WebP behavior. Process each image sequentially and generate the thumbnail from the display derivative; see `TECH_SPEC.md` for the proposed pipeline, storage/EXIF concerns, and real-device acceptance questions. No library installed and no mobile compatibility experimentally verified.
+
 ## Future Wizard UX and diagnostics refinements (post-V1 candidates)
 
 **Status (November 20, 2026):** Deferred, not requirements for V1 Step 8A.
