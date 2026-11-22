@@ -104,6 +104,7 @@ draftsStore.records = [{
     },
     sourceTemplateId: null,
     preferredEditor: 'advanced',
+    currentStepId: null,
     createdAt: timestamp,
     updatedAt: timestamp,
   },

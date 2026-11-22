@@ -54,6 +54,7 @@
                     },
                     "sourceTemplateId": null,
                     "preferredEditor": "advanced",
+                    "currentStepId": null,
                     "createdAt": "2026-11-16T14:46:21.027Z",
                     "updatedAt": "2026-11-16T14:46:49.173Z"
                   }
@@ -100,6 +101,7 @@
                     },
                     "sourceTemplateId": null,
                     "preferredEditor": "advanced",
+                    "currentStepId": null,
                     "createdAt": "2026-11-16T15:40:57.204Z",
                     "updatedAt": "2026-11-16T15:41:53.367Z"
                   }
@@ -135,6 +137,7 @@
                     },
                     "sourceTemplateId": null,
                     "preferredEditor": "advanced",
+                    "currentStepId": null,
                     "createdAt": "2026-11-16T15:11:35.554Z",
                     "updatedAt": "2026-11-16T15:12:47.682Z"
                   }
