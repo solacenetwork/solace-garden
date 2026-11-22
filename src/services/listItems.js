@@ -38,23 +38,19 @@ export function createListItemsService(repository, {
 				);
 			}
 
-			const existing = await repository.list(kind);
 			const timestamp = now();
 			const record = {
 				kind,
 				text,
 				completed: false,
-				sortOrder: existing.reduce(
-					(maximum, item) => Math.max(maximum, item.sortOrder + 1),
-					0,
-				),
+				sortOrder: 0,
 				gardenId,
 				createdAt: timestamp,
 				updatedAt: timestamp,
 				...(kind === 'wishlist' ? { quantity, notes, url } : {}),
 			};
 
-			return repository.create(record);
+			return repository.createAtTop(record);
 		},
 
 		async update(id, kind, changes) {

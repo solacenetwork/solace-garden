@@ -54,6 +54,32 @@ export function createListItemsRepository(database, {
 		}
 	}
 
+	async function createListItem(record, { atTop = false } = {}) {
+		const listItem = {
+			...record,
+			id: record?.id ?? randomUUID(),
+		};
+		validateNewListItem(listItem);
+		try {
+			await database.transaction('rw', table, gardens, async () => {
+				await validateGardenReference(listItem.gardenId);
+				if (atTop) {
+					const existing = sortByOrder(
+						await table.where('kind').equals(listItem.kind).toArray(),
+					);
+					await table.bulkPut(existing.map((item, index) => ({
+						...item,
+						sortOrder: index + 1,
+					})));
+				}
+				await table.add(listItem);
+			});
+			return copyRecord(listItem);
+		} catch (error) {
+			throwStorageError('create list item', error);
+		}
+	}
+
 	return Object.freeze({
 		async getById(id) {
 			validateRecordId(id);
@@ -74,21 +100,12 @@ export function createListItemsRepository(database, {
 			}
 		},
 
-		async create(record) {
-			const listItem = {
-				...record,
-				id: record?.id ?? randomUUID(),
-			};
-			validateNewListItem(listItem);
-			try {
-				await database.transaction('rw', table, gardens, async () => {
-					await validateGardenReference(listItem.gardenId);
-					await table.add(listItem);
-				});
-				return copyRecord(listItem);
-			} catch (error) {
-				throwStorageError('create list item', error);
-			}
+		create(record) {
+			return createListItem(record);
+		},
+
+		createAtTop(record) {
+			return createListItem(record, { atTop: true });
 		},
 
 		async update(id, changes) {

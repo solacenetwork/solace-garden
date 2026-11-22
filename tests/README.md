@@ -13,7 +13,7 @@ workflow is required.
 | `npx playwright test tests/e2e/gardens/quick-start.spec.mjs` | Create from chooser through Quick Start; verify persistence across reload |
 | `npm run test:e2e:smoke` | Restored IndexedDB fixture and populated page rendering |
 | `npm run test:e2e:layout` | Scrolling and bottom-control reachability |
-| `npm run test:e2e:lists` | Tasks and Wish List interactions |
+| `npm run test:e2e:lists` | Tasks and Wish List create/edit/complete/order and deletion workflows |
 | `npm run test:e2e:notes` | Note create/edit/discard persistence and editor scroll/focus accessibility |
 | `npm run test:e2e:delete` | Deletion confirmation and persistence only |
 | `npm run test:e2e` | Entire suite |
@@ -26,6 +26,7 @@ npx playwright test tests/e2e/layout/ --grep "short desktop"
 npx playwright test tests/e2e/layout/ --grep "mobile-width"
 npx playwright test tests/e2e/layout/ --grep "standard"
 npx playwright test tests/e2e/lists/delete.spec.mjs --grep "/tasks"
+npx playwright test tests/e2e/lists/workflows.spec.mjs
 ```
 
 Playwright starts Vite at `http://localhost:5173` if needed. The config

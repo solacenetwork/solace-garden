@@ -3,7 +3,7 @@
 **Status:** Local Playwright testing foundation accepted, November 16, 2026.  
 **Historical baseline:** **57/57 Playwright tests passed in 49.6 seconds** on `oakisland` on November 16 (developer-run, LMDE 7).
 
-**Latest verified full run:** **32/32 Playwright tests passed** on November 21, 2026, after Garden Hub focus-restoration coverage and Notes persistence coverage were added.
+**Latest verified full run:** **36/36 Playwright tests passed** on November 21, 2026, after Garden Hub focus restoration, Notes persistence, and Tasks/Wish List workflow coverage were added.
 **Quick command reference:** [tests/README.md](../tests/README.md).  
 **Related docs:** [UI_REDESIGN.md](UI_REDESIGN.md), [UI_REVIEW_NOTES.md](UI_REVIEW_NOTES.md), [ROADMAP.md](ROADMAP.md).
 
@@ -38,7 +38,9 @@ The previously reported Garden Hub focus-restoration failure was reproduced and 
 
 The isolated `tests/e2e/notes/notes-persistence.spec.mjs` verifies Note creation and reload/reopen, edit and reload persistence, and cancellation/confirmation of recoverable-draft discard without overwriting the saved Note.
 
-**November 21 verification:** Notes persistence: **3 passed**; Notes group (including editor accessibility): **4 passed**; full Playwright suite: **32 passed**. The committed sample fixture was not modified.
+The isolated `tests/e2e/lists/workflows.spec.mjs` verifies Task create/complete/edit persistence, Wish List optional fields/purchase/edit persistence, and moving items with accessible ordering controls. Both list tests confirm a new item appears first without changing the order that was manually established before adding it. The initial browser run exposed that list creation appended items; the repository now prepends atomically while retaining existing order.
+
+**November 21 verification:** Lists group (including existing delete tests): **8 passed**; list service tests: **13 passed**; Notes persistence: **3 passed**; Notes group (including editor accessibility): **4 passed**; full Playwright suite: **36 passed**. The committed sample fixture was not modified.
 
 ## 3. Running focused test groups
 
@@ -51,6 +53,7 @@ The isolated `tests/e2e/notes/notes-persistence.spec.mjs` verifies Note creation
 | Scrolling/layout | `npm run test:e2e:layout` |
 | Note editor | `npm run test:e2e:notes` |
 | Tasks and Wish List | `npm run test:e2e:lists` |
+| Task/Wish List workflows | `npx playwright test tests/e2e/lists/workflows.spec.mjs` |
 | Delete regression | `npm run test:e2e:delete` |
 | Entire browser suite | `npm run test:e2e` |
 | HTML report | `npm run test:e2e:report` |
@@ -84,7 +87,8 @@ tests/
 │   │   ├── editor-accessibility.spec.mjs
 │   │   └── notes-persistence.spec.mjs
 │   └── lists/
-│       └── delete.spec.mjs
+│       ├── delete.spec.mjs
+│       └── workflows.spec.mjs
 ├── fixtures/
 │   └── sample-garden.json
 ├── scripts/
@@ -135,7 +139,7 @@ Also compare browser version, extensions/profile, window state and touchpad/mous
 - More comprehensive route/deep-link and actual navigation-click testing.
 - The focused Gardens Hub spec checks ordered sections, lifecycle classification, Draft isolation and resume links, Garden card destinations, and header/Standard navigation routes. Run it with `npx playwright test tests/e2e/gardens/gardens-hub.spec.mjs`.
 - Navbar menus, keyboard access and shell focus behavior.
-- Task/Wish List **create, edit, complete/purchase, manual reorder, reload persistence**, and the approved V1 behavior that a newly added item appears at the top **without disturbing existing manual order**.
+- Task/Wish List create, edit, complete/purchase, manual reorder, reload persistence, and top insertion without disturbing existing order are covered by `tests/e2e/lists/workflows.spec.mjs`; deletion confirmation/persistence is covered separately.
 - Note create/edit/reload persistence and recoverable-draft discard protection are covered by `tests/e2e/notes/notes-persistence.spec.mjs`; the editor accessibility test deliberately **does not click Save**. Note deletion confirmation and persistence remain uncovered.
 - **Quick Start create/reload is now covered** by the focused November 21 spec; remaining Garden creation coverage includes Wizard/Advanced, drafts, Templates, lifecycle, linked records and deletion safeguards. Add Wizard browser-history and step-resume cases **after** 8A4–8A6 implementation stabilizes.
 - Offline/PWA startup, caching and update flows; practical testing on real devices.

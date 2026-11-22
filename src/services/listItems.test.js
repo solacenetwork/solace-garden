@@ -11,6 +11,7 @@ const DATABASE_UUID = '550e8400-e29b-41d4-a716-446655440000';
 const TASK_ONE = 'ad4a4e9a-1db0-4e87-8fe1-f197a9d52c01';
 const TASK_TWO = '3d18c8af-06ea-4b7d-8bd8-c450f3e2bd4d';
 const TASK_THREE = '38c2bed1-0e03-4187-aefd-233ca7b037c2';
+const TASK_FOUR = 'b570c5bd-9eb3-43c7-8cb2-82e8e4ab994d';
 const WISH_ONE = 'fe1cbe08-4384-4dfa-9357-4ed87eea0398';
 const WISH_TWO = 'be9a73ba-0199-481d-9563-cfbc8279921d';
 const GARDEN_UUID = '210b8b0f-030c-4220-9374-8b78f461b474';
@@ -273,6 +274,7 @@ describe('Tasks and Wish List service', () => {
 			TASK_THREE,
 			WISH_ONE,
 			WISH_TWO,
+			TASK_FOUR,
 		]);
 		const lists = createService(storage, [
 			CREATED_AT,
@@ -289,14 +291,16 @@ describe('Tasks and Wish List service', () => {
 		await lists.create('wishlist', { text: 'Second wish' });
 
 		await lists.reorder('task', [TASK_THREE, TASK_ONE, TASK_TWO]);
+		const newest = await lists.create('task', { text: 'New task at top' });
 		expect((await lists.list('task')).map(({ id }) => id)).toEqual([
+			newest.id,
 			TASK_THREE,
 			TASK_ONE,
 			TASK_TWO,
 		]);
 		expect((await lists.list('wishlist')).map(({ id }) => id)).toEqual([
-			WISH_ONE,
 			WISH_TWO,
+			WISH_ONE,
 		]);
 
 		const databaseName = storage.databaseName;
@@ -305,6 +309,7 @@ describe('Tasks and Wish List service', () => {
 		expect(reopened.databaseName).toBe(databaseName);
 		const reopenedLists = createListItemsService(reopened.repositories.listItems);
 		expect((await reopenedLists.list('task')).map(({ id }) => id)).toEqual([
+			newest.id,
 			TASK_THREE,
 			TASK_ONE,
 			TASK_TWO,
@@ -338,7 +343,7 @@ describe('Tasks and Wish List service', () => {
 		await expect(
 			lists.reorder('task', [TASK_TWO, WISH_ONE]),
 		).rejects.toMatchObject({ code: 'INVALID_LIST_ITEM_ORDER' });
-		expect((await lists.list('task')).map(({ id }) => id)).toEqual([TASK_ONE, TASK_TWO]);
+		expect((await lists.list('task')).map(({ id }) => id)).toEqual([TASK_TWO, TASK_ONE]);
 		expect((await lists.list('wishlist')).map(({ id }) => id)).toEqual([WISH_ONE]);
 
 		storage.close();
