@@ -22,7 +22,7 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 #### GARDEN-V1-0.5
 
-## Step 0.5 — Equip Codex with Bootstrap 6 guidance
+##### Step 0.5 — Equip Codex with Bootstrap 6 guidance
 
 **Status:** Complete (2026-11-04). Bootstrap 6 remains an alpha dependency; verify against the exact installed package when implementing components.
 
@@ -39,7 +39,7 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 #### GARDEN-V1-2
 
-### Milestone 2 — UI mockup and application skeleton
+##### Milestone 2 — UI mockup and application skeleton
 
 **Status:** Complete (2026-11-04); provisional visual design accepted for continued development.
 
@@ -54,7 +54,7 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 #### GARDEN-V1-3
 
-### Milestone 3 — Library integration and smoke tests
+##### Milestone 3 — Library integration and smoke tests
 
 **Status:** Complete (2026-11-04); no scaffold-blocking incompatibilities identified.
 
@@ -76,7 +76,7 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 #### GARDEN-V1-4
 
-### Milestone 4 — Router, route catalog, and Home navigation
+##### Milestone 4 — Router, route catalog, and Home navigation
 
 **Status:** Complete (2026-11-04). The route infrastructure is shared; full Simple/Standard presentation behavior remains for Milestones 5–6.
 
@@ -91,7 +91,7 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 #### GARDEN-V1-5
 
-### Milestone 5 — Simple Mode layout first
+##### Milestone 5 — Simple Mode layout first
 
 **Status:** Complete (2026-11-05). Implementation: [1505cd6](https://github.com/solacenetwork/solace-garden/commit/1505cd6289992c0e200f42d5d0c96d6dc18eaac1). Browser acceptance testing passed.
 
@@ -109,7 +109,7 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 #### GARDEN-V1-6
 
-### Milestone 6 — Standard Mode layout
+##### Milestone 6 — Standard Mode layout
 
 **Status:** Complete (2026-11-05). Implementation: [80cf317](https://github.com/solacenetwork/solace-garden/commit/80cf317de091028f5370e462dc5821bee64ca5f4). User manual acceptance testing completed.
 
@@ -126,7 +126,7 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 #### GARDEN-V1-7
 
-### Milestone 7 — Reusable UI building blocks
+##### Milestone 7 — Reusable UI building blocks
 
 **Status:** Complete (2026-11-05). Implementation: [8ef556a](https://github.com/solacenetwork/solace-garden/commit/8ef556aff3ddca901d187551cc198aef75fc4412) (merge commit containing Milestone 7 changes). Manual acceptance completed on phone and desktop.
 
@@ -145,31 +145,25 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 ### 8A–8D foundations
 
+#### GARDEN-V1-8A
+
+**8A verification and completion (November 5, 2026):** Two implementation parts plus focused corrections established the offline control/data bootstrap, native non-creating existence checks, non-destructive missing-control recovery, six-store schema, active-database connection lifecycle, a minimal Notes repository, shared validation/error conventions and Notes-only atomic transactions. Codex reported **24 Vitest tests passing**, successful `npm run build` and `git diff --check` after the final correction in [commit `3e1d20d`](https://github.com/solacenetwork/solace-garden/commit/3e1d20ddab1fc2f7d9e90efcf68c8bdbacdd799f). The reviewer inspected committed code; these command results were not independently rerun. Manual browser checks confirmed fresh initialization, unchanged pointer on reload, six stores, normal navigation, orphaned-data protection after deletion of `solace-config`, and recreation of both databases after clearing the disposable IndexedDB state. A transient-error Retry-button round-trip and broader cross-browser/storage-restriction scenarios remain follow-up regression coverage rather than 8A acceptance blockers. **8A accepted.**
 
 #### GARDEN-V1-8B
 
 **8B / 8A2 acceptance (November 6, 2026):** The Notes implementation includes plain-text create/edit/delete, persistent recoverable drafts in a separate Dexie store, bookmarkable Note and new-draft URLs, explicit authoritative Save, draft restoration, Discard and normal browser Back/Forward navigation without a custom history guard. Draft recovery was implemented in [commit `ab3f3c2`](https://github.com/solacenetwork/solace-garden/commit/ab3f3c2756f5753b9698f6f21bca570468f9e108). Codex reported 46 passing automated tests plus successful build and diff checks. The user passed seven of eight draft-recovery browser acceptance scenarios on November 6 (including navigation, reload, Save, multiple drafts, Discard, immediate navigation and browser restart). The V1→V2 IndexedDB migration is covered by an automated test; manual migration verification is deferred. Garden association/link-unlink integration remains to be verified when Gardens are implemented in 8E; this does not reopen 8B. **8B accepted; proceed to 8C.**
 
-
 #### GARDEN-V1-8C
 
 **8C acceptance (November 6, 2026):** Tasks and Wish List were implemented with shared Preact list UI, independent persistent items, editing, completion/purchased status, deletion, ordering by drag-and-drop and keyboard-accessible Move Up/Down controls, and Wish List quantity/notes/URL validation. During manual testing, two bugs and one UX issue were corrected: controlled checkbox state on uncheck ([commit `58f66b4`](https://github.com/solacenetwork/solace-garden/commit/58f66b4e7f17a2d78fdc5f4e8bcddff0bfd01ab1)), browser form-history suggestions ([commit `1a22c13`](https://github.com/solacenetwork/solace-garden/commit/1a22c13a0b7874b8a85b88d2e3be863e07cfc859)), and incomplete public product URL acceptance ([commit `7743214`](https://github.com/solacenetwork/solace-garden/commit/7743214132c4e7cf6fb702b713578d6d1f698b70)). Codex reported **66 automated tests passing** and successful production build after the URL fix; GitHub diffs were reviewed. The gardener confirmed **all 11 manual acceptance tests passed**, including an installed PWA operating offline with Tasks, Wish List, Notes and recoverable drafts after reload. For deliberate reorder-failure testing, a temporary exception was injected into the Dexie repository; both Tasks and Wish List showed an error, restored the original display order, and retained that order after refresh. The temporary injection was removed and normal reordering retested; this is based on user manual verification, not an automated browser assertion. **8C accepted; proceed to 8D.**
-
 
 #### GARDEN-V1-8D1
 
 **8D1 acceptance (November 6, 2026):** Geographic Locations implemented in [commit `36cac84`](https://github.com/solacenetwork/solace-garden/commit/36cac849bf8006a990faf8a4bdff86269fa28a9c): stable protected Default Location seeded idempotently at startup, editable names and manual USDA hardiness zones, custom Location CRUD, transactional deletion protection for any Garden reference (including archived/closed Gardens), Settings navigation, and responsive Locations UI. No IndexedDB schema version or store changes. Codex reported **76 automated tests passing across nine files**, successful `npm run build`, and clean `git diff --check`; committed changes were inspected on GitHub. The gardener independently confirmed **all 10 manual browser acceptance checks passed**, including default persistence after reload, editing and zone normalization/clearing/validation, custom creation/deletion and confirmation, protected Default, responsive Simple/Standard navigation, and offline PWA persistence. Referenced-Location deletion is covered by automated tests using Garden records; its normal UI workflow is deferred to 8E when Garden CRUD exists. **8D1 accepted; 8D remains open pending 8D2 Garden Types.**
 
-
 #### GARDEN-V1-8D2
 
 **8D2 acceptance (November 7, 2026):** Garden Types implemented in [commit `d952bce`](https://github.com/solacenetwork/solace-garden/commit/d952bce609ec8740b5cb9a62093518b76976c8f1): eight fixed definitions with stable IDs, ordered and idempotent Dexie seeding, validation and non-destructive recovery, read-only repository/service interfaces, selection validation, and an accessible, controlled Preact checkbox-grid selector. A Vite-only development preview was provided; Codex reported verifying it is excluded from production. Codex reported **88 automated tests passing across 11 files**, successful `npm run build` and `git diff --check`; the committed changes were reviewed on GitHub. The gardener confirmed **all 10 manual acceptance tests passed**, covering eight definitions and order, zero/multiple selection and deselection, state labels, keyboard operation, disabled behavior, responsive layouts and reload/regression checks. Selection state in the preview is intentionally transient; actual Garden `typeIds` persistence is deferred to 8E. **8D2 accepted; with 8D1 already accepted, Milestone 8D is complete. Proceed to 8E Gardens.**
-
-
-#### GARDEN-V1-8A
-
-**8A verification and completion (November 5, 2026):** Two implementation parts plus focused corrections established the offline control/data bootstrap, native non-creating existence checks, non-destructive missing-control recovery, six-store schema, active-database connection lifecycle, a minimal Notes repository, shared validation/error conventions and Notes-only atomic transactions. Codex reported **24 Vitest tests passing**, successful `npm run build` and `git diff --check` after the final correction in [commit `3e1d20d`](https://github.com/solacenetwork/solace-garden/commit/3e1d20ddab1fc2f7d9e90efcf68c8bdbacdd799f). The reviewer inspected committed code; these command results were not independently rerun. Manual browser checks confirmed fresh initialization, unchanged pointer on reload, six stores, normal navigation, orphaned-data protection after deletion of `solace-config`, and recreation of both databases after clearing the disposable IndexedDB state. A transient-error Retry-button round-trip and broader cross-browser/storage-restriction scenarios remain follow-up regression coverage rather than 8A acceptance blockers. **8A accepted.**
-
 
 ### 8E Gardens
 
@@ -242,7 +236,7 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 #### GARDEN-UI-HISTORICAL-CHECKPOINT
 
-### Post-8F UI redesign checkpoint (historical November 15 report; current status above)
+##### Post-8F UI redesign checkpoint (historical November 15 report; current status above)
 
 **Historical acceptance:** Steps 1–5 and 4.5A/B were accepted by November 15. Step 5 Home dashboard was implemented in `881d125` (Codex reported 446 passing tests and successful build); the gardener reported desktop/device acceptance. **Subsequent progress supersedes this snapshot:** Steps 6A–6D, 6.5, 6.6, 7 and 8A1–8A3 have since been accepted, while 8A4 onward remains pending. Refer to [UI_REDESIGN.md](UI_REDESIGN.md) for the authoritative current step status.
 
