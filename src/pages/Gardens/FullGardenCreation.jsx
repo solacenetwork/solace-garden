@@ -2,6 +2,7 @@ import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { GardenFields } from '../../components/GardenFields.jsx';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
+import { WizardStepper } from '../../components/WizardStepper.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createDraftAutosave } from '../../services/draftAutosave.js';
 import {
@@ -17,6 +18,14 @@ import { createLocationsService, DEFAULT_LOCATION_ID } from '../../services/loca
 import { StorageError, ValidationError } from '../../storage/errors.js';
 import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
 import { templateSourceSearch } from './creationNavigation.js';
+import {
+	createGardenWizardUrl,
+	loadGardenWizardSteps,
+	navigateGardenWizardStep,
+	requestedGardenWizardStep,
+	resolveGardenWizardLocation,
+} from './gardenWizardNavigation.js';
+import { adjacentWizardStepId, findWizardStep } from '../../wizard/wizardNavigation.js';
 
 const STATUS_TEXT = {
 	'all-saved': 'All changes saved',
@@ -65,6 +74,7 @@ export async function applyTemplateToGardenDraft({
 		fields,
 		sourceTemplateId: templateId,
 		preferredEditor: draft.preferredEditor,
+		currentStepId: draft.currentStepId,
 		createdAt: draft.createdAt,
 	});
 	return {
@@ -72,6 +82,7 @@ export async function applyTemplateToGardenDraft({
 		fields: saved.fields,
 		sourceTemplateId: saved.sourceTemplateId,
 		preferredEditor: saved.preferredEditor,
+		currentStepId: saved.currentStepId,
 		createdAt: saved.createdAt,
 		locationResolution: resolution.locationResolution,
 	};
@@ -84,6 +95,7 @@ export async function clearTemplateFromGardenDraft({ draft, currentFields, autos
 		fields: currentFields,
 		sourceTemplateId: null,
 		preferredEditor: draft.preferredEditor,
+		currentStepId: draft.currentStepId,
 		createdAt: draft.createdAt,
 	});
 }
@@ -125,58 +137,21 @@ export function validateGardenDraftForReview(fields, references, gardens) {
 	return input;
 }
 
-export function GardenStepper({ stage }) {
-	const labels = ['Start', 'Details', 'Review'];
-	return (
-		<div class="stepper-overflow garden-wizard__stepper-wrap">
-			<ol class="stepper md:stepper-horizontal" aria-label="Garden creation progress">
-				{labels.map((label, index) => (
-					<li
-						class={`stepper-item${index <= stage ? ' active' : ''}${index < stage ? ' garden-step--complete' : ''}${index === stage ? ' garden-step--current' : ''}`}
-						aria-current={index === stage ? 'step' : undefined}
-						key={label}
-					>
-						<span>{label}<span class="visually-hidden">{index < stage ? ' completed' : index === stage ? ' current' : ' upcoming'}</span></span>
-					</li>
-				))}
-			</ol>
-		</div>
-	);
-}
-
-function GardenReview({ fields, locations, types }) {
-	const location = locations.find(({ id }) => id === fields.locationId)?.name ?? 'Unavailable Location';
-	const selectedTypes = fields.typeIds.map((id) => types.find((type) => type.id === id)?.name ?? 'Unavailable type');
-	return (
-		<div class="garden-review">
-			<h2>Review your Garden</h2>
-			<p>Confirm these details before creating the persistent Planned Garden.</p>
-			<dl class="garden-facts">
-				<div><dt>Name</dt><dd>{fields.name.trim() || 'Untitled Garden'}</dd></div>
-				<div><dt>Subtitle</dt><dd>{fields.subtitle.trim() || 'None'}</dd></div>
-				<div><dt>Location</dt><dd>{location}</dd></div>
-				<div><dt>Garden Types</dt><dd>{selectedTypes.length ? selectedTypes.join(', ') : 'No types selected'}</dd></div>
-				<div><dt>Start date</dt><dd>{fields.startDate || 'Not set'}</dd></div>
-				<div><dt>End date</dt><dd>{fields.endDate || 'Not set'}</dd></div>
-			</dl>
-			{fields.description.trim() && <div class="garden-review__description"><h3>Description</h3><p>{fields.description}</p></div>}
-		</div>
-	);
-}
-
-export function GardenDraftEditor({ draft, references, mode, workspace }) {
-	const { route } = useLocation();
+export function GardenDraftEditor({ draft, references, mode, workspace, wizardSteps }) {
+	const { path, query = {}, route } = useLocation();
+	const resolvedWizardSteps = wizardSteps ?? loadGardenWizardSteps();
 	const createdAt = useRef(draft.createdAt);
 	const submitting = useRef(false);
 	const fieldsRef = useRef(draft.fields);
 	const sourceTemplateIdRef = useRef(draft.sourceTemplateId);
+	const currentStepIdRef = useRef(draft.currentStepId);
+	const persistenceChain = useRef(Promise.resolve());
 	// The route is the authoritative editor selection. Async route state may still
 	// carry the previous draft snapshot during an editor-mode change.
 	const preferredEditorRef = useRef(mode);
 	const templateLocationOrigin = useRef(null);
 	const [fields, setFields] = useState(draft.fields);
 	const [currentReferences, setCurrentReferences] = useState(references);
-	const [stage, setStage] = useState(0);
 	const [status, setStatus] = useState('draft-saved');
 	const [errors, setErrors] = useState({});
 	const [message, setMessage] = useState('');
@@ -184,13 +159,33 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 	const [selectedTemplateId, setSelectedTemplateId] = useState(draft.sourceTemplateId);
 	const [templateState, setTemplateState] = useState({ status: 'loading' });
 	const [templateNotice, setTemplateNotice] = useState('');
+	const wizardPath = path ?? `/gardens/new/wizard/${draft.id}`;
+	const stepResolution = mode === 'wizard'
+		? resolveGardenWizardLocation({
+			steps: resolvedWizardSteps,
+			query,
+			persistedStepId: currentStepIdRef.current,
+		})
+		: null;
+	const activeStepId = stepResolution?.status === 'resolved' ? stepResolution.stepId : null;
+	const activeStep = activeStepId ? findWizardStep(resolvedWizardSteps, activeStepId) : null;
+
+	function saveDraft(record) {
+		const operation = persistenceChain.current
+			.catch(() => undefined)
+			.then(() => workspace.drafts.save(record));
+		persistenceChain.current = operation;
+		return operation;
+	}
+
 	const autosave = useMemo(() => createDraftAutosave({
 		write: async (value) => {
-			const saved = await workspace.drafts.save({
+			const saved = await saveDraft({
 				id: draft.id,
 				fields: value,
 				sourceTemplateId: sourceTemplateIdRef.current,
 				preferredEditor: preferredEditorRef.current,
+				currentStepId: preferredEditorRef.current === 'wizard' ? currentStepIdRef.current : null,
 				createdAt: createdAt.current,
 			});
 			createdAt.current = saved.createdAt;
@@ -202,6 +197,39 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 	}), [draft.id, workspace.drafts]);
 
 	useEffect(() => () => { void autosave.flush(); }, [autosave]);
+
+	const requestedStepId = mode === 'wizard' ? requestedGardenWizardStep(query) : undefined;
+	useEffect(() => {
+		if (mode === 'advanced') {
+			if (currentStepIdRef.current !== null) {
+				currentStepIdRef.current = null;
+				void persistCurrent({ currentStepId: null }).catch((error) => {
+					setStatus('error');
+					setMessage(creationError(error, 'saved'));
+				});
+			}
+			return;
+		}
+		if (stepResolution.status !== 'resolved') return;
+		if (requestedStepId === undefined) {
+			navigateGardenWizardStep({
+				route,
+				path: wizardPath,
+				query,
+				stepId: stepResolution.stepId,
+				replace: true,
+			});
+			return;
+		}
+		if (currentStepIdRef.current !== stepResolution.stepId) {
+			currentStepIdRef.current = stepResolution.stepId;
+			setStatus('saving');
+			void persistCurrent({ currentStepId: stepResolution.stepId }).catch((error) => {
+				setStatus('error');
+				setMessage(creationError(error, 'saved'));
+			});
+		}
+	}, [mode, requestedStepId, route, stepResolution?.status, stepResolution?.stepId, wizardPath]);
 
 	async function loadTemplates() {
 		setTemplateState({ status: 'loading' });
@@ -237,18 +265,6 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 		setMessage('');
 	}
 
-	function validate() {
-		try {
-			const input = validateGardenDraftForReview(fieldsRef.current, currentReferences, workspace.gardens);
-			setErrors({});
-			return input;
-		} catch (error) {
-			setErrors(error?.field ? { [error.field]: error.message } : {});
-			setMessage(creationError(error, 'validated'));
-			return null;
-		}
-	}
-
 	async function applySelectedTemplate() {
 		if (!selectedTemplateId || busy) return;
 		setBusy(true);
@@ -261,10 +277,11 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 					id: draft.id,
 					createdAt: createdAt.current,
 					preferredEditor: preferredEditorRef.current,
+					currentStepId: currentStepIdRef.current,
 				},
 				currentFields: fieldsRef.current,
 				autosave,
-				drafts: workspace.drafts,
+				drafts: { save: saveDraft },
 				templates: workspace.templates,
 			});
 			if (result.status === 'cancelled') return;
@@ -285,7 +302,6 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 			setTemplateNotice(result.locationResolution.fallbackOccurred
 				? 'Template applied. Its saved Location is no longer available, so Default Location was selected.'
 				: 'Template applied to this draft. The Garden remains independent of the Template.');
-			if (mode === 'wizard') setStage(1);
 		} catch (error) {
 			setStatus('error');
 			setMessage(creationError(error, 'saved'));
@@ -311,11 +327,12 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 				draft: {
 					id: draft.id,
 					preferredEditor: preferredEditorRef.current,
+					currentStepId: currentStepIdRef.current,
 					createdAt: createdAt.current,
 				},
 				currentFields: fieldsRef.current,
 				autosave,
-				drafts: workspace.drafts,
+				drafts: { save: saveDraft },
 			});
 			createdAt.current = saved.createdAt;
 			sourceTemplateIdRef.current = null;
@@ -335,27 +352,31 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 	async function persistCurrent({
 		sourceTemplateId = sourceTemplateIdRef.current,
 		preferredEditor = preferredEditorRef.current,
+		currentStepId = preferredEditor === 'wizard' ? currentStepIdRef.current : null,
 	} = {}) {
 		await autosave.stop();
-		const saved = await workspace.drafts.save({
+		const saved = await saveDraft({
 			id: draft.id,
 			fields: fieldsRef.current,
 			sourceTemplateId,
 			preferredEditor,
+			currentStepId,
 			createdAt: createdAt.current,
 		});
 		createdAt.current = saved.createdAt;
 		sourceTemplateIdRef.current = saved.sourceTemplateId;
 		preferredEditorRef.current = saved.preferredEditor;
+		currentStepIdRef.current = saved.currentStepId;
 		setStatus('draft-saved');
 	}
 
 	async function persistTemplateLocationFallback(locationResult) {
-		const saved = await workspace.drafts.save({
+		const saved = await saveDraft({
 			id: draft.id,
 			fields: locationResult.fields,
 			sourceTemplateId: sourceTemplateIdRef.current,
 			preferredEditor: preferredEditorRef.current,
+			currentStepId: preferredEditorRef.current === 'wizard' ? currentStepIdRef.current : null,
 			createdAt: createdAt.current,
 		});
 		createdAt.current = saved.createdAt;
@@ -372,11 +393,39 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 		setBusy(true);
 		setMessage('');
 		try {
-			await persistCurrent({ preferredEditor });
-			route(path);
+			const nextStepId = preferredEditor === 'wizard'
+				? (findWizardStep(resolvedWizardSteps, currentStepIdRef.current)?.id ?? resolvedWizardSteps[0].id)
+				: null;
+			await persistCurrent({ preferredEditor, currentStepId: nextStepId });
+			const destination = preferredEditor === 'wizard' && path.includes('/wizard/')
+				? createGardenWizardUrl(path, nextStepId, query)
+				: path;
+			route(destination);
 		} catch (error) {
 			setStatus('error');
 			setMessage(creationError(error, 'saved'));
+			setBusy(false);
+		}
+	}
+
+	async function navigateToWizardStep(stepId, { replace = false } = {}) {
+		if (busy || !findWizardStep(resolvedWizardSteps, stepId)) return;
+		setBusy(true);
+		setMessage('');
+		currentStepIdRef.current = stepId;
+		try {
+			await persistCurrent({ currentStepId: stepId });
+			navigateGardenWizardStep({
+				route,
+				path: wizardPath,
+				query,
+				stepId,
+				replace,
+			});
+		} catch (error) {
+			setStatus('error');
+			setMessage(creationError(error, 'saved'));
+		} finally {
 			setBusy(false);
 		}
 	}
@@ -452,12 +501,41 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 		}
 	}
 
-	function review() {
-		if (validate()) setStage(2);
-	}
-
 	const otherMode = mode === 'wizard' ? 'advanced' : 'wizard';
 	const title = mode === 'wizard' ? 'Create Garden Wizard' : 'Advanced Garden Creation';
+	if (mode === 'wizard' && stepResolution.status === 'invalid') {
+		const invalidSource = stepResolution.source === 'url'
+			? 'The requested Wizard step is not available.'
+			: 'The saved Wizard step is no longer available.';
+		return (
+			<section class="container gardens-page garden-full-create" aria-labelledby="wizard-step-error-title">
+				<GardenCreationBreadcrumb current="Guided Wizard" disabled={busy} />
+				<div class="gardens-state" role="alert">
+					<h1 id="wizard-step-error-title">Wizard step could not be opened</h1>
+					<p>{invalidSource} Your draft fields are still saved.</p>
+					<button
+						class="btn-solid theme-primary"
+						type="button"
+						disabled={busy}
+						onClick={() => navigateToWizardStep(resolvedWizardSteps[0].id, { replace: true })}
+					>
+						Return to First Step
+					</button>
+				</div>
+			</section>
+		);
+	}
+	const activeStepIndex = mode === 'wizard'
+		? resolvedWizardSteps.findIndex(({ id }) => id === activeStepId)
+		: -1;
+	const previousStepId = activeStepIndex > 0
+		? adjacentWizardStepId(resolvedWizardSteps, activeStepId, -1)
+		: null;
+	const nextStepId = activeStepIndex >= 0 && activeStepIndex < resolvedWizardSteps.length - 1
+		? adjacentWizardStepId(resolvedWizardSteps, activeStepId, 1)
+		: null;
+	const pendingTemplateSelection = selectedTemplateId !== null
+		&& selectedTemplateId !== sourceTemplateIdRef.current;
 	return (
 		<section class="container gardens-page garden-full-create" aria-labelledby="full-create-title">
 			<GardenCreationBreadcrumb
@@ -478,13 +556,17 @@ export function GardenDraftEditor({ draft, references, mode, workspace }) {
 
 			<form class="garden-full-create__form" noValidate onSubmit={createGarden}>
 				{mode === 'wizard' ? <>
-					<GardenStepper stage={stage} />
-					{stage === 0 && <GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} sourceTemplateId={sourceTemplateIdRef.current} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="wizard-garden" applyLabel="Apply Template and Continue" />}
-					{stage === 1 && <section class="garden-wizard__stage" aria-labelledby="details-stage-title"><h2 id="details-stage-title">Garden details</h2><GardenFields fields={fields} errors={errors} locations={currentReferences.locations} types={currentReferences.types} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>}
-					{stage === 2 && <section class="garden-wizard__stage"><GardenReview fields={fields} locations={currentReferences.locations} types={currentReferences.types} /></section>}
+					<GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} sourceTemplateId={sourceTemplateIdRef.current} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="wizard-garden" />
+					<WizardStepper steps={resolvedWizardSteps} activeStepId={activeStepId} label="Garden creation progress" />
+					<section class="garden-wizard__stage" aria-labelledby="wizard-stage-title">
+						<h2 id="wizard-stage-title">{activeStep.title}</h2>
+						<GardenFields fields={fields} errors={errors} locations={currentReferences.locations} types={currentReferences.types} onChange={changeField} disabled={busy} idPrefix="create-garden" />
+					</section>
 					<div class="garden-full-create__actions">
-						<button class="btn-outline" type="button" disabled={busy} onClick={() => stage === 0 ? navigatePreservingDraft('/gardens') : setStage((value) => value - 1)}>{stage === 0 ? 'Back to Gardens' : 'Back'}</button>
-						{stage < 2 ? <button class="btn-solid theme-primary" type="button" disabled={busy || (stage === 0 && selectedTemplateId !== null && selectedTemplateId !== sourceTemplateIdRef.current)} onClick={() => stage === 1 ? review() : setStage(1)}>Continue</button> : <button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button>}
+						<button class="btn-outline" type="button" disabled={busy} onClick={() => previousStepId ? navigateToWizardStep(previousStepId) : navigatePreservingDraft('/gardens')}>{previousStepId ? 'Back' : 'Back to Gardens'}</button>
+						{nextStepId
+							? <button class="btn-solid theme-primary" type="button" disabled={busy || pendingTemplateSelection} onClick={() => navigateToWizardStep(nextStepId)}>Continue</button>
+							: <button class="btn-solid theme-primary" type="submit" disabled={busy || pendingTemplateSelection}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button>}
 					</div>
 				</> : <>
 					<GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} sourceTemplateId={sourceTemplateIdRef.current} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="advanced-garden" />
@@ -501,9 +583,28 @@ function GardenDraftLoadState({ state }) {
 	return <div class="container gardens-page"><div class="gardens-state" role="alert"><h1>Garden draft could not be opened</h1><p>{state.message}</p><a class="btn-solid theme-primary" href="/gardens">Back to Gardens</a></div></div>;
 }
 
-export function GardenDraftRoute({ params, mode }) {
+export function GardenDraftRoute({ params, mode, wizardDefinition }) {
 	const workspace = useGardenCreationWorkspace();
 	const draftId = params?.draftId;
+	let wizardSteps;
+	try {
+		wizardSteps = loadGardenWizardSteps(wizardDefinition);
+	} catch (error) {
+			console.error('[Garden Wizard] Invalid production step configuration.', {
+				name: error?.name,
+				message: error?.message,
+				details: error?.details,
+			});
+		return (
+				<div class="container gardens-page">
+					<div class="gardens-state" role="alert">
+						<h1>Garden Wizard is unavailable</h1>
+						<p>The Wizard step configuration is invalid. No draft fields were changed.</p>
+						<a class="btn-solid theme-primary" href="/gardens">Back to Gardens</a>
+					</div>
+				</div>
+		);
+	}
 	const [state, setState] = useState({ status: 'loading' });
 	const loadKey = `${draftId}:${mode}`;
 	useEffect(() => {
@@ -521,7 +622,7 @@ export function GardenDraftRoute({ params, mode }) {
 	if (state.loadKey !== loadKey || state.status !== 'ready') {
 		return <GardenDraftLoadState state={state.loadKey === loadKey ? state : { status: 'loading' }} />;
 	}
-	return <GardenDraftEditor key={`${draftId}-${mode}`} draft={state.draft} references={state.references} mode={mode} workspace={workspace} />;
+	return <GardenDraftEditor key={`${draftId}-${mode}`} draft={state.draft} references={state.references} mode={mode} workspace={workspace} wizardSteps={wizardSteps} />;
 }
 
 export function NewGardenDraftRoute({ mode }) {
@@ -534,7 +635,17 @@ export function NewGardenDraftRoute({ mode }) {
 		started.current = true;
 		let active = true;
 		drafts.create({ preferredEditor: mode }).then((draft) => {
-			if (active) route(`/gardens/new/${mode}/${draft.id}${templateSourceSearch(query)}`, true);
+			if (!active) return;
+			const path = `/gardens/new/${mode}/${draft.id}`;
+			if (mode === 'wizard') {
+				const templateSearch = templateSourceSearch(query);
+				const preservedQuery = templateSearch
+					? Object.fromEntries(new URLSearchParams(templateSearch.slice(1)))
+					: {};
+				route(createGardenWizardUrl(path, draft.currentStepId, preservedQuery), true);
+			} else {
+				route(`${path}${templateSourceSearch(query)}`, true);
+			}
 		}, (creationFailure) => {
 			if (active) setError(creationError(creationFailure, 'started'));
 		});

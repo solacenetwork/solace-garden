@@ -79,12 +79,13 @@ describe('Recoverable Garden drafts', () => {
 
 	it('persists Garden-only editor context and preserves it through field-only saves and reopen', async () => {
 		const created = await drafts.create({ preferredEditor: 'advanced' });
-		expect(created).toMatchObject({ sourceTemplateId: null, preferredEditor: 'advanced' });
+		expect(created).toMatchObject({ sourceTemplateId: null, preferredEditor: 'advanced', currentStepId: null });
 		await drafts.save({
 			id: created.id,
 			fields: fields({ name: 'Template fields' }),
 			sourceTemplateId: SOURCE_TEMPLATE,
 			preferredEditor: 'advanced',
+			currentStepId: null,
 		});
 		await drafts.save({ id: created.id, fields: fields({ name: 'Gardener edit' }) });
 
@@ -95,6 +96,7 @@ describe('Recoverable Garden drafts', () => {
 			fields: { name: 'Gardener edit' },
 			sourceTemplateId: SOURCE_TEMPLATE,
 			preferredEditor: 'advanced',
+			currentStepId: null,
 		});
 		const cleared = await drafts.save({
 			id: created.id,
@@ -104,6 +106,7 @@ describe('Recoverable Garden drafts', () => {
 		expect(cleared).toMatchObject({
 			sourceTemplateId: null,
 			preferredEditor: 'advanced',
+			currentStepId: null,
 		});
 	});
 
@@ -116,13 +119,14 @@ describe('Recoverable Garden drafts', () => {
 			fields: fields(),
 			sourceTemplateId: null,
 			preferredEditor: 'wizard',
+			currentStepId: 'identity',
 			createdAt: CREATED,
 			updatedAt: CREATED,
 		};
 		const raw = createGardenDatabase(storage.databaseName, dependencies);
 		await raw.open();
 		try {
-			for (const missingField of ['sourceTemplateId', 'preferredEditor']) {
+			for (const missingField of ['sourceTemplateId', 'preferredEditor', 'currentStepId']) {
 				const incomplete = { ...record };
 				delete incomplete[missingField];
 				await expect(storage.repositories.drafts.add(incomplete))
@@ -151,6 +155,44 @@ describe('Recoverable Garden drafts', () => {
 		await drafts.create();
 		await expect(drafts.save({ id: FIRST_DRAFT, fields: fields(), sourceTemplateId: 'not-a-uuid' }))
 			.rejects.toMatchObject({ code: 'INVALID_RECORD_ID', field: 'sourceTemplateId' });
+	});
+
+	it('persists the current stable step through field saves and permits recoverable unknown IDs', async () => {
+		const created = await drafts.create();
+		expect(created.currentStepId).toBe('identity');
+		await drafts.save({
+			id: created.id,
+			fields: fields({ name: 'At options' }),
+			currentStepId: 'options',
+		});
+		const fieldOnly = await drafts.save({
+			id: created.id,
+			fields: fields({ name: 'Autosaved later' }),
+		});
+		expect(fieldOnly.currentStepId).toBe('options');
+
+		const retired = await drafts.save({
+			id: created.id,
+			fields: fieldOnly.fields,
+			currentStepId: 'retired-step',
+		});
+		expect(retired.currentStepId).toBe('retired-step');
+		await expect(drafts.save({
+			id: created.id,
+			fields: retired.fields,
+			currentStepId: '',
+		})).rejects.toMatchObject({ code: 'INVALID_GARDEN_DRAFT_STEP', field: 'currentStepId' });
+		await expect(drafts.save({
+			id: created.id,
+			fields: retired.fields,
+			preferredEditor: 'advanced',
+			currentStepId: 'options',
+		})).rejects.toMatchObject({ code: 'INVALID_GARDEN_DRAFT_STEP', field: 'currentStepId' });
+		await expect(drafts.save({
+			id: created.id,
+			fields: retired.fields,
+			currentStepId: null,
+		})).rejects.toMatchObject({ code: 'INVALID_GARDEN_DRAFT_STEP', field: 'currentStepId' });
 	});
 
 	it('discards only the selected Garden draft', async () => {

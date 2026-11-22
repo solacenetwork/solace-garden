@@ -5,7 +5,6 @@ import { createGardensService } from '../../services/gardens.js';
 import {
 	applyTemplateToGardenDraft,
 	clearTemplateFromGardenDraft,
-	GardenStepper,
 	resolveTemplateLocationForFinalization,
 	templateLocationOriginForDraft,
 	validateGardenDraftForReview,
@@ -39,19 +38,6 @@ const template = {
 };
 
 describe('Full Garden creation UI helpers', () => {
-	it('uses the Bootstrap Stepper states and accessible current step', () => {
-		const tree = GardenStepper({ stage: 1 });
-		const list = nodes(tree).find((node) => node.type === 'ol');
-		const items = nodes(tree).filter((node) => node.type === 'li');
-		expect(list.props.class).toBe('stepper md:stepper-horizontal');
-		expect(items.map(({ props }) => props.class)).toEqual([
-			'stepper-item active garden-step--complete',
-			'stepper-item active garden-step--current',
-			'stepper-item',
-		]);
-		expect(items.map(({ props }) => props['aria-current'])).toEqual([undefined, 'step', undefined]);
-	});
-
 	it('normalizes equivalent Wizard and Advanced fields through the shared validator', () => {
 		const gardens = { validate: (input) => input };
 		const wizard = validateGardenDraftForReview({ ...fields, typeIds: ['indoor', 'container'] }, references, gardens);

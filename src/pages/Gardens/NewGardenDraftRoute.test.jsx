@@ -58,9 +58,10 @@ describe('new Garden draft route navigation', () => {
 			id: expect.any(String),
 			preferredEditor: 'wizard',
 			sourceTemplateId: null,
+			currentStepId: 'identity',
 		}));
 		expect(harness.route).toHaveBeenCalledWith(
-			`/gardens/new/wizard/${DRAFT_ID}?source=template&id=${TEMPLATE_ID}`,
+			`/gardens/new/wizard/${DRAFT_ID}?source=template&id=${TEMPLATE_ID}&step=identity`,
 			true,
 		);
 	});

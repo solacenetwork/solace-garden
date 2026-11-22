@@ -1,8 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Exercise editor event handlers with persistent hook slots, without a browser.
-const hooks = vi.hoisted(() => ({ slots: [], index: 0, effects: [], route: vi.fn() }));
-vi.mock('preact-iso', () => ({ useLocation: () => ({ route: hooks.route }) }));
+const hooks = vi.hoisted(() => ({
+	slots: [], index: 0, effects: [], route: vi.fn(),
+	path: '/gardens/new/wizard/draft', query: { step: 'identity' },
+}));
+vi.mock('preact-iso', () => ({
+	useLocation: () => ({ path: hooks.path, query: hooks.query, route: hooks.route }),
+}));
 vi.mock('preact/hooks', () => {
 	function slot(initial) {
 		const index = hooks.index++;
@@ -26,6 +31,7 @@ import { GardenDraftEditor } from './FullGardenCreation.jsx';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
 import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
 import { GardenFields } from '../../components/GardenFields.jsx';
+import { WizardStepper } from '../../components/WizardStepper.jsx';
 import { loadGardenDrafts } from './viewModel.js';
 
 function nodes(node) {
@@ -45,8 +51,13 @@ const fields = {
 	locationId: 'home', typeIds: [], startDate: '2026-04-01', endDate: '',
 };
 
-function editor({ mode = 'wizard', templates = [template], sourceTemplateId = template.id } = {}) {
-	let draft = { id: 'draft', createdAt: 'created', preferredEditor: mode, sourceTemplateId, fields };
+function editor({
+	mode = 'wizard',
+	templates = [template],
+	sourceTemplateId = template.id,
+	currentStepId = mode === 'wizard' ? 'identity' : null,
+} = {}) {
+	let draft = { id: 'draft', createdAt: 'created', preferredEditor: mode, sourceTemplateId, currentStepId, fields };
 	let renderedDraft = draft;
 	const workspace = {
 		drafts: { save: vi.fn(async (record) => { draft = record; return record; }) },
@@ -88,9 +99,65 @@ beforeEach(() => {
 	hooks.slots = [];
 	hooks.effects = [];
 	hooks.route.mockReset();
+	hooks.path = '/gardens/new/wizard/draft';
+	hooks.query = { step: 'identity' };
 });
 
 describe('Wizard applied Template progression', () => {
+	it('renders the five production steps with the URL-selected stable ID', async () => {
+		hooks.query = { step: 'types' };
+		const view = editor({ currentStepId: 'details' });
+		await view.mount();
+		const stepper = nodes(view.render()).find(({ type }) => type === WizardStepper);
+		expect(stepper.props.steps.map(({ id }) => id)).toEqual([
+			'identity', 'details', 'types', 'dates', 'options',
+		]);
+		expect(stepper.props.activeStepId).toBe('types');
+	});
+
+	it('canonicalizes a resumed persisted step with replace history', async () => {
+		hooks.query = {};
+		const view = editor({ currentStepId: 'dates' });
+		await view.mount();
+		expect(hooks.route).toHaveBeenCalledWith(
+			'/gardens/new/wizard/draft?step=dates',
+			true,
+		);
+		expect(view.workspace.drafts.save).not.toHaveBeenCalled();
+	});
+
+	it('persists a browser-restored URL step without pushing another history entry', async () => {
+		hooks.query = { source: 'template', id: 'template-id', step: 'options' };
+		const view = editor({ currentStepId: 'details' });
+		await view.mount();
+		await vi.waitFor(() => expect(view.workspace.drafts.save).toHaveBeenCalledWith(
+			expect.objectContaining({ currentStepId: 'options', fields }),
+		));
+		expect(hooks.route).not.toHaveBeenCalled();
+	});
+
+	it.each([
+		[{ step: 'retired-step' }, 'details'],
+		[{}, 'retired-step'],
+	])('recovers an invalid URL or persisted step by replacing it without discarding fields', async (query, currentStepId) => {
+		hooks.query = query;
+		const view = editor({ currentStepId });
+		await view.mount();
+		const tree = view.render();
+		const recovery = button(tree, 'Return to First Step');
+		expect(recovery).toBeDefined();
+		expect(view.workspace.drafts.save).not.toHaveBeenCalled();
+		await recovery.props.onClick();
+		expect(view.workspace.drafts.save).toHaveBeenCalledWith(expect.objectContaining({
+			fields,
+			currentStepId: 'identity',
+		}));
+		expect(hooks.route).toHaveBeenCalledWith(
+			'/gardens/new/wizard/draft?step=identity',
+			true,
+		);
+	});
+
 	it.each([
 		['wizard', 'Guided Wizard'],
 		['advanced', 'Advanced Form'],
@@ -139,7 +206,7 @@ describe('Wizard applied Template progression', () => {
 		choices[2].props.onChange();
 		const tree = view.render();
 		expect(button(tree, 'Continue').props.disabled).toBe(true);
-		expect(JSON.stringify(selector(tree))).toContain('Apply Template and Continue');
+		expect(JSON.stringify(selector(tree))).toContain('Apply Template');
 		await button(tree, 'Switch to Advanced').props.onClick();
 		expect(view.draft).toMatchObject({ sourceTemplateId, fields, preferredEditor: 'advanced' });
 		expect(view.workspace.templates.resolveConfiguration).not.toHaveBeenCalled();
@@ -150,13 +217,13 @@ describe('Wizard applied Template progression', () => {
 		await view.mount();
 		await button(view.render(), 'Switch to Wizard').props.onClick();
 		expect(view.draft).toMatchObject({ fields, sourceTemplateId: 'source', preferredEditor: 'wizard' });
-		expect(hooks.route).toHaveBeenLastCalledWith('/gardens/new/wizard/draft');
+		expect(hooks.route).toHaveBeenLastCalledWith('/gardens/new/wizard/draft?step=identity');
 		view.switchMode('wizard');
 		await view.mount();
 		const tree = view.render();
 		expect(nodes(selector(tree)).filter((node) => node.type === 'input')[1].props.checked).toBe(true);
 		expect(button(tree, 'Continue').props.disabled).toBe(false);
-		button(tree, 'Continue').props.onClick();
+		await button(tree, 'Continue').props.onClick();
 		expect(nodes(view.render()).find((node) => node.type === GardenFields).props.fields).toEqual(fields);
 		await button(view.render(), 'Switch to Advanced').props.onClick();
 		expect(view.draft).toMatchObject({ fields, sourceTemplateId: 'source', preferredEditor: 'advanced' });

@@ -80,6 +80,7 @@ export function createGardenDraftsService(repository, {
 				fields: copyGardenDraftFields(),
 				sourceTemplateId: null,
 				preferredEditor,
+				currentStepId: preferredEditor === 'wizard' ? 'identity' : null,
 				createdAt: timestamp,
 				updatedAt: timestamp,
 			}));
@@ -100,6 +101,7 @@ export function createGardenDraftsService(repository, {
 			fields,
 			sourceTemplateId,
 			preferredEditor,
+			currentStepId,
 			createdAt,
 		}) {
 			return requireGardenDraft(await repository.saveExisting({
@@ -110,6 +112,11 @@ export function createGardenDraftsService(repository, {
 				fields: copyGardenDraftFields(fields),
 				...(sourceTemplateId !== undefined ? { sourceTemplateId } : {}),
 				...(preferredEditor !== undefined ? { preferredEditor } : {}),
+				...(currentStepId !== undefined
+					? { currentStepId }
+					: preferredEditor !== undefined
+						? { currentStepId: preferredEditor === 'wizard' ? 'identity' : null }
+						: {}),
 				createdAt: createdAt ?? now(),
 				updatedAt: now(),
 			}, 'garden'));

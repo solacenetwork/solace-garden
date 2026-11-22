@@ -11,7 +11,9 @@ function copyRecord(record) {
 const GARDEN_DRAFT_FIELDS = Object.freeze([
 	'name', 'subtitle', 'description', 'locationId', 'typeIds', 'startDate', 'endDate',
 ]);
-const GARDEN_DRAFT_CONTEXT_FIELDS = Object.freeze(['sourceTemplateId', 'preferredEditor']);
+const GARDEN_DRAFT_CONTEXT_FIELDS = Object.freeze([
+	'sourceTemplateId', 'preferredEditor', 'currentStepId',
+]);
 
 function preserveGardenDraftContext(draft, existing) {
 	if (draft.kind !== 'garden') return draft;
@@ -86,6 +88,16 @@ function validateDraft(draft) {
 		}
 		if (!['wizard', 'advanced'].includes(draft.preferredEditor)) {
 			throw new ValidationError('INVALID_GARDEN_DRAFT_EDITOR', 'Garden draft editor must be wizard or advanced.', { field: 'preferredEditor' });
+		}
+		if (!Object.hasOwn(draft, 'currentStepId')) {
+			throw new ValidationError('INVALID_GARDEN_DRAFT_CONTEXT', 'Garden draft currentStepId is required.', { field: 'currentStepId' });
+		}
+		if (draft.preferredEditor === 'wizard') {
+			if (typeof draft.currentStepId !== 'string' || draft.currentStepId.trim() === '') {
+				throw new ValidationError('INVALID_GARDEN_DRAFT_STEP', 'Wizard drafts require a stable current step ID.', { field: 'currentStepId' });
+			}
+		} else if (draft.currentStepId !== null) {
+			throw new ValidationError('INVALID_GARDEN_DRAFT_STEP', 'Advanced drafts cannot retain a Wizard step ID.', { field: 'currentStepId' });
 		}
 	}
 	for (const field of ['createdAt', 'updatedAt']) {

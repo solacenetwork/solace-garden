@@ -1,0 +1,7 @@
+[
+	{ "id": "identity", "order": 10, "title": "Identity", "stepperLabel": "Identity" },
+	{ "id": "details", "order": 20, "title": "Details", "stepperLabel": "Details" },
+	{ "id": "types", "order": 30, "title": "Garden Type", "stepperLabel": "Garden Type" },
+	{ "id": "dates", "order": 40, "title": "Dates", "stepperLabel": "Dates" },
+	{ "id": "options", "order": 50, "title": "Additional Options", "stepperLabel": "Options" }
+]
