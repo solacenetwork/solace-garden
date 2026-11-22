@@ -1,6 +1,6 @@
 # SOLACE Garden — Roadmap
 
-**Status:** Working roadmap — earlier milestone reports retained as historical evidence  
+**Status:** Working roadmap — accepted milestone evidence archived in [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md)  
 **Updated:** 2026-11-22  
 **References:** [GOALS.md](GOALS.md), [TECH_SPEC.md](TECH_SPEC.md)
 
@@ -118,37 +118,19 @@ This roadmap tracks SOLACE Garden V1 implementation in small, testable slices, f
 | **8E7 — Accepted** | **Associations and permanent deletion:** link/unlink existing Notes, Tasks and Wish List items to Gardens; preserve them through status changes; after confirmation, atomically clear their `gardenId` when permanently deleting a Garden. Recheck protected Location references. | Associated independent records survive deletion without dangling references. |
 | **8E8 — Accepted** | **Integrated 8E acceptance and polish:** end-to-end Garden workflows across Simple/Standard, desktop/mobile, reload and installed offline PWA; regressions for existing Notes, Lists, Locations and Garden Types. | Resolve issues and sign off 8E only after integrated browser/PWA acceptance. |
 
-**Accepted 8E1–8E3:** See [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8e1) through [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8e3).
+**Accepted 8E1–8E8:** Historical implementation and acceptance records: [8E1](MILESTONE_HISTORY.md#garden-v1-8e1), [8E2](MILESTONE_HISTORY.md#garden-v1-8e2), [8E3](MILESTONE_HISTORY.md#garden-v1-8e3), [8E4](MILESTONE_HISTORY.md#garden-v1-8e4), [8E5](MILESTONE_HISTORY.md#garden-v1-8e5), [8E6](MILESTONE_HISTORY.md#garden-v1-8e6), [8E7](MILESTONE_HISTORY.md#garden-v1-8e7), [8E8](MILESTONE_HISTORY.md#garden-v1-8e8).
 
 **8E4 design refinement (November 7, 2026):** Replace the earlier in-memory-only Wizard/Advanced form-state proposal with durable Garden creation drafts. Reuse the existing kind-indexed `drafts` store, support `kind: 'garden'` structured payload validation alongside existing `kind: 'note'`, and reuse the debounced autosave machinery. Use one draft UUID across Wizard and Advanced, support interrupted-session recovery and multiple Garden drafts, never delete drafts solely on navigation, and remove the matching draft atomically only when the Garden is successfully created (or via deliberate confirmed discard). Protect all existing Note draft behavior. The full contract is in TECH_SPEC.md. This is part of 8E4, **not** a new schema migration or a separate milestone; 8E4 was subsequently accepted following implementation review and six focused manual browser checks.
 
-**Historical acceptance:** [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8e4).
-
-**Historical acceptance:** [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8e5).
-
-**Historical acceptance:** [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8e6).
-
-**Historical acceptance:** [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8e7).
-
-**Historical acceptance:** [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8e8).
-
 **8E testing approach (agreed):** For **8E1–8E7**, use focused automated tests/build checks, review the committed code, and perform **basic functional acceptance** for the slice: does its main behavior work, persist where expected, and avoid an obvious regression? Do not require an exhaustive manual matrix, repeated clean PWA installations, or full end-to-end retesting at every intermediate checkpoint. Critical validation, storage safety, referential integrity and irreversible deletion rules should still have automated coverage in the owning slice; defer broader cross-feature, responsive, offline and lifecycle combinations to **8E8**. At **8E8**, conduct thorough end-to-end and regression tests across the integrated Garden feature **before** marking the umbrella milestone 8E accepted. A slice can be provisionally accepted without implying full 8E sign-off.
 
-**Historical acceptance:** [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8b).
-
-**Historical acceptance:** [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8c).
-
-**Historical acceptance:** [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8d1).
-
-**Historical acceptance:** [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8d2).
+**Accepted 8A–8D:** Historical acceptance records: [8A](MILESTONE_HISTORY.md#garden-v1-8a), [8B Notes](MILESTONE_HISTORY.md#garden-v1-8b), [8C Lists](MILESTONE_HISTORY.md#garden-v1-8c), [8D1 Locations](MILESTONE_HISTORY.md#garden-v1-8d1), [8D2 Garden Types](MILESTONE_HISTORY.md#garden-v1-8d2).
 
 **8A decisions (finalized for implementation):** Use a fixed, device-local **`solace-config`** IndexedDB control database, with one main record (`id: 'main'`, `configVersion: 1`, `activeDatabase`, nullable `previousDatabase` and nullable `recoveryState`). Resolve the physical Garden database by pointer, naming it **`solace-garden-data-<uuid>`**, generated using `crypto.randomUUID()`; never assume a fixed physical name. Initialize offline on a demonstrably fresh installation and reuse the pointer on later launches. Missing/invalid control data, unknown previous databases, or failed opens must not trigger silent replacement/deletion; provide a simple actionable error/recovery screen, not a full repair utility. Avoid reliance on database enumeration alone to prove there is no stored data. The two databases have independently versioned schemas. Keep user preferences in the Garden data, not `solace-config`.
 
 **8A schema and repositories:** Start the Garden schema at version 1 with exactly six stores: `notes`, `listItems` (Tasks and Wish List), `locations`, `gardenTypes`, `gardens`, and `gardenTemplates`. Establish primary keys and only sufficiently justified indexes; defer every other store and uncertain indexes. Use stable record UUIDs and reserved system preset IDs. Implement minimal, entity-specific repository boundaries with shared Dexie infrastructure, growing them only as the owning 8B–8F features are built. System preset seeding, feature CRUD/business rules and UI belong to the later slices; 8A can use isolated tests or a temporary harness with no permanent demo data.
 
 **Deprecated smoke test:** Milestone 3 temporarily verified Dexie CRUD and reactive queries after library installation. Those test files were removed. Milestone 8A subsequently introduced the production IndexedDB control database and six-store Garden data schema. The old `SolaceGardenDB` version 1 `items` store is a **deprecated test detail**, not user data to migrate. The new UUID-named Garden data store starts at schema version 1, with normal migration policies for subsequent changes.
-
-**Historical acceptance:** [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-v1-8a).
 
 **Shared record behavior:** Notes, Tasks and Wish List items belong to the gardener's local collection and optionally reference a garden; completion/archiving retains those links. Permanently deleting a garden atomically clears links to independent records, not the records themselves. The embedded Garden Notes is different: it is part of the Garden record and disappears if that garden is permanently deleted. Garden records stay searchable in archived state.
 
