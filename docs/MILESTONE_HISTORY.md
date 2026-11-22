@@ -37,6 +37,55 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 **Completion record:** Official skills, `skills-lock.json`, and `AGENTS.md` were committed in [c850ae8](https://github.com/solacenetwork/solace-garden/commit/c850ae819a01fe6e7edd20167806ff634b74a92e). Initial package checks and Drawer research are complete; actual interactive component testing remains part of the upcoming UI implementation.
 
 
+#### GARDEN-V1-1
+
+**Accepted:** November 22, 2026 (retrospective developer confirmation of the initial UI choices; not a claim that all design questions were resolved that day).
+
+**Outcome:** Initial implementation-blocking UI choices were settled sufficiently to build and accept the working application shell, including Simple/Standard modes, Automatic mode preference, responsive layout direction, navigation, and reusable UI patterns. This checkpoint is complete; UI decisions remain revisable through subsequent approved design/implementation milestones.
+
+**Evidence:** The accepted and implemented V1 shell, responsive modes, navigation and reusable UI building blocks are recorded under [Milestones 2–7](ROADMAP.md) and their acceptance entries below; continuing UI changes are governed by [UI_REDESIGN.md](UI_REDESIGN.md). The developer confirmed on November 22 that Milestone 1 referred to the initial decision checkpoint and should be marked Done.
+
+**Caveat:** The source plan below contains unchecked questions/deliverables. These remain the *historical initial planning checklist*, **not conditions requiring this completed checkpoint to stay open**, and not independently accepted implementation claims. Subsequent UI milestones own the remaining refinement.
+
+##### Original milestone plan (archived verbatim)
+
+## Milestone 1 — Finalize UI Choices
+
+**Status:** In discussion (not yet complete)  
+**Objective:** Establish enough navigation, responsive behavior, primary screens, and interaction patterns to build an initial **working UI mockup/skeleton** before major V1 features. Iterate based on use on real devices; pixel-perfect designs are not a prerequisite.
+
+### 1.1 Decisions already agreed
+
+- **Mobile-first, desktop-complete:** Gardeners will often collect information outside on phones and tablets, then review, organize, and plan on larger screens. Both experiences access the same records and functionality.
+- **Two interface presentations:** **Simple Mode** favors fast, touch-friendly data collection (large controls, checkboxes, buttons, camera/photo capture, date pickers, short forms); **Standard Mode** favors full garden management, history, planning, and detailed editing. These are two presentations of the **same application and Dexie data**, not separate apps or business logic.
+- **Mode preference has exactly three exclusive choices:** `Automatic` (default), `Simple Mode`, and `Standard Mode`, displayed in Settings as a **single native/Bootstrap radio-button group**; only one option can be selected at once.
+- **Automatic selection:** Use responsive viewport/media-query behavior (aligned with Bootstrap breakpoints) to choose Simple Mode on narrower displays and Standard Mode on wider displays. Gardeners can explicitly override the automatic behavior on any screen size. Persist **the selected preference**, not the calculated mode, in local settings (proposed key: `interfaceMode`; values: `auto | simple | standard`).
+- **Responsive, not device-restricted:** Simple Mode is not limited to phones; Standard Mode is not limited to desktops. Browser “Show desktop site” may change the viewport, but is not a reliable substitute for an in-app override.
+- **Shared behaviors:** Both presentations call the same application services and validation rules to create and update records. The simpler interface is not a second source of truth.
+- **Outdoor usability:** Prioritize legibility/contrast in sunlight, touch targets, minimal typing, clear save feedback, accessible controls, and offline workflows. Never rely on hover alone for essential actions.
+- **Garden creation UX redesign:** The original Wizard/Quick Start/Advanced flows are being refined through the separate post-8F UI redesign. The dedicated Create a Garden chooser and Quick Start are accepted; see [UI_REDESIGN.md](UI_REDESIGN.md) §7C and Step 8A for the current approved design and remaining work.
+
+### 1.2 UI questions to finalize
+
+- [ ] **Automatic breakpoint:** Test responsive layouts and choose the threshold(s) for switching effective modes; do not assume browser desktop-site mode crosses a particular breakpoint.
+- [ ] **Mode switch placement:** Determine how gardeners quickly find/change the preference outside Settings, if desired; define behavior on resize/rotation, including while editing an unsaved form.
+- [ ] **Simple Mode scope:** Decide which quick actions are on its home view and which detailed screens remain accessible. Candidates: plant-phase updates, harvest entry, photo capture, task checkoff, calendar entry, and quick notes.
+- [x] **Landing experience:** Home (`/`) is the overview dashboard, reached through the SOLACE logo. A fresh installation shows the full-page Welcome route when **Show Welcome at startup** is enabled (default); otherwise normal launch opens Home. Direct/deep links are preserved. See [GOALS.md](GOALS.md) §2.13b and the detailed [UI_REDESIGN.md](UI_REDESIGN.md).
+- [ ] **Navigation and core views:** Detailed destinations, navbar/sidebar structure, Simple/Standard presentation, and page-level UI are maintained in the authoritative [UI_REDESIGN.md](UI_REDESIGN.md). Do not maintain a parallel navigation or page-layout decision list here.
+- [ ] **Interaction details:** Finalize any cross-page interaction and accessibility requirements in UI_REDESIGN.md and [UI_CONVENTIONS.md](UI_CONVENTIONS.md), including responsive cards, dialogs/forms, save/cancel behavior, empty states, and offline/storage feedback.
+- [ ] **Visual language:** Refine colors, typography, icon conventions, spacing, and theme behavior consistently with Bootstrap and UI_CONVENTIONS.md.
+- [ ] **Wireframes/prototypes:** Produce and review representative phone/tablet/desktop layouts for the approved shell, Home, Gardens, Welcome, and Garden creation workflows before implementation prompts.
+
+### 1.3 Deliverables / definition of done
+
+- [ ] Written UI decisions and a navigation map covering both modes and responsive behavior.
+- [ ] Agreed default/override and radio-group Settings behavior, with selected breakpoint(s).
+- [ ] Representative reviewed wireframes or lightweight prototypes for major views and common data-entry tasks.
+- [ ] Reusable Preact + Bootstrap component and accessibility conventions, including shared service calls across modes.
+- [ ] Remaining open items explicitly deferred so implementation can proceed without repeated UI redesign.
+
+**Scope guard:** This milestone is **planning and UI validation**, not implementation of all features or a commitment to duplicate every screen. The mockup may intentionally change during later slices.
+
 #### GARDEN-V1-2
 
 ##### Milestone 2 — UI mockup and application skeleton
