@@ -1,7 +1,7 @@
 # SOLACE Garden — Testing Notes
 
 **Status:** Local Playwright testing foundation accepted, November 16, 2026.  
-**Baseline:** **57/57 Playwright tests passed in 49.6 seconds** on `oakisland` (developer-run, LMDE 7).  
+**Historical baseline:** **57/57 Playwright tests passed in 49.6 seconds** on `oakisland` on November 16 (developer-run, LMDE 7). The suite has since been consolidated and expanded; **the latest focused run has an unresolved Garden Hub focus-restoration failure**. No new full-suite pass count is claimed.  
 **Quick command reference:** [tests/README.md](../tests/README.md).  
 **Related docs:** [UI_REDESIGN.md](UI_REDESIGN.md), [UI_REVIEW_NOTES.md](UI_REVIEW_NOTES.md), [ROADMAP.md](ROADMAP.md).
 
