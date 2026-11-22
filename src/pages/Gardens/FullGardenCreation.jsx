@@ -412,7 +412,6 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		if (busy || !findWizardStep(resolvedWizardSteps, stepId)) return;
 		setBusy(true);
 		setMessage('');
-		currentStepIdRef.current = stepId;
 		try {
 			await persistCurrent({ currentStepId: stepId });
 			navigateGardenWizardStep({

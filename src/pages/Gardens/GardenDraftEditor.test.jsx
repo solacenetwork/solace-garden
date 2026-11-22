@@ -56,11 +56,16 @@ function editor({
 	templates = [template],
 	sourceTemplateId = template.id,
 	currentStepId = mode === 'wizard' ? 'identity' : null,
+	saveDraft,
 } = {}) {
 	let draft = { id: 'draft', createdAt: 'created', preferredEditor: mode, sourceTemplateId, currentStepId, fields };
 	let renderedDraft = draft;
 	const workspace = {
-		drafts: { save: vi.fn(async (record) => { draft = record; return record; }) },
+		drafts: { save: vi.fn(async (record) => {
+			const saved = saveDraft ? await saveDraft(record) : record;
+			draft = saved;
+			return saved;
+		}) },
 		templates: { list: vi.fn(async () => templates), resolveConfiguration: vi.fn() },
 	};
 	const references = { locations: [{ id: 'home', name: 'Home' }], types: [] };
@@ -134,6 +139,28 @@ describe('Wizard applied Template progression', () => {
 			expect.objectContaining({ currentStepId: 'options', fields }),
 		));
 		expect(hooks.route).not.toHaveBeenCalled();
+	});
+
+	it('keeps the confirmed step authoritative when a navigation save fails', async () => {
+		let attempt = 0;
+		const view = editor({
+			saveDraft: async (record) => {
+				attempt += 1;
+				if (attempt === 1) throw new Error('simulated write failure');
+				return record;
+			},
+		});
+		await view.mount();
+		await button(view.render(), 'Continue').props.onClick();
+		expect(hooks.route).not.toHaveBeenCalled();
+
+		const gardenFields = nodes(view.render()).find(({ type }) => type === GardenFields);
+		gardenFields.props.onChange('name', 'Updated after failed navigation');
+		await vi.waitFor(() => expect(view.workspace.drafts.save).toHaveBeenCalledTimes(2));
+		expect(view.workspace.drafts.save).toHaveBeenLastCalledWith(expect.objectContaining({
+			currentStepId: 'identity',
+			fields: expect.objectContaining({ name: 'Updated after failed navigation' }),
+		}));
 	});
 
 	it.each([
