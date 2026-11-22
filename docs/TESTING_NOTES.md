@@ -3,7 +3,7 @@
 **Status:** Local Playwright testing foundation accepted, November 16, 2026.  
 **Historical baseline:** **57/57 Playwright tests passed in 49.6 seconds** on `oakisland` on November 16 (developer-run, LMDE 7).
 
-**Latest verified full run:** **41/41 Playwright tests passed** on November 22, 2026, after Garden lifecycle and permanent-deletion regressions were added to the November 21 coverage.
+**Latest verified full run:** **45/45 Playwright tests passed** on November 22, 2026, after shell navigation regression coverage was added.
 **Quick command reference:** [tests/README.md](../tests/README.md).  
 **Related docs:** [UI_REDESIGN.md](UI_REDESIGN.md), [UI_REVIEW_NOTES.md](UI_REVIEW_NOTES.md), [ROADMAP.md](ROADMAP.md).
 
@@ -48,11 +48,16 @@ The isolated `tests/e2e/gardens/lifecycle-deletion.spec.mjs` verifies Planned �
 
 **November 22 verification:** Garden lifecycle/deletion: **2 passed**; full Playwright suite: **41 passed**. Tests use isolated contexts based on the synthetic fixture; the committed fixture was not modified.
 
+The isolated `tests/e2e/navigation/shell-navigation.spec.mjs` verifies Simple Mode navigation cards at desktop and mobile widths, Standard Mode workspace and global-tool navigation, Help/About/Settings through More, browser Back/Forward, Garden and Note deep links, and interface-mode switching without losing the current route or saved Notes. Keyboard coverage exercises logo activation, Tab navigation, More-menu Enter/Space/Escape behavior, and Navigation Drawer focus and Escape dismissal at phone and medium widths.
+
+**November 22 verification:** shell navigation: **4 passed**; complete Playwright suite: **45 passed**. Tests use isolated contexts based on the synthetic fixture; the committed fixture was not modified. The navigation cases exercise representative viewport sizes rather than every breakpoint or browser.
+
 ## 3. Running focused test groups
 
 | Purpose | Command |
 | --- | --- |
 | Smoke tests | `npm run test:e2e:smoke` |
+| Shell navigation and keyboard behavior | `npx playwright test tests/e2e/navigation/shell-navigation.spec.mjs` |
 | Quick Start creation | `npx playwright test tests/e2e/gardens/quick-start.spec.mjs` |
 | Garden Templates | `npx playwright test tests/e2e/gardens/templates.spec.mjs` |
 | Garden lifecycle/deletion | `npx playwright test tests/e2e/gardens/lifecycle-deletion.spec.mjs` |
@@ -96,6 +101,8 @@ tests/
 │   ├── notes/
 │   │   ├── editor-accessibility.spec.mjs
 │   │   └── notes-persistence.spec.mjs
+│   ├── navigation/
+│   │   └── shell-navigation.spec.mjs
 │   └── lists/
 │       ├── delete.spec.mjs
 │       └── workflows.spec.mjs
@@ -146,13 +153,13 @@ Also compare browser version, extensions/profile, window state and touchpad/mous
 
 ## 7. Known coverage gaps and next candidate tests
 
-- More comprehensive route/deep-link and actual navigation-click testing.
+- Navigation testing across all application routes, browser engines, and responsive breakpoints remains incomplete.
 - The focused Gardens Hub spec checks ordered sections, lifecycle classification, Draft isolation and resume links, Garden card destinations, and header/Standard navigation routes. Run it with `npx playwright test tests/e2e/gardens/gardens-hub.spec.mjs`.
-- Navbar menus, keyboard access and shell focus behavior.
 - Task/Wish List create, edit, complete/purchase, manual reorder, reload persistence, and top insertion without disturbing existing order are covered by `tests/e2e/lists/workflows.spec.mjs`; deletion confirmation/persistence is covered separately.
 - Note create/edit/reload persistence and recoverable-draft discard protection are covered by `tests/e2e/notes/notes-persistence.spec.mjs`; the editor accessibility test deliberately **does not click Save**. Note deletion confirmation and persistence remain uncovered.
 - **Quick Start create/reload is now covered** by the focused November 21 spec. Remaining Garden creation coverage includes Wizard-specific steps and draft recovery. Add Wizard browser-history and step-resume cases **after** 8A4–8A6 implementation stabilizes.
 - Garden Template save/reload/delete, Advanced application and editing, independent creation/reload, and deleted-Location fallback are covered by `tests/e2e/gardens/templates.spec.mjs`. Garden lifecycle transitions, lock/unlock behavior, and Garden deletion/association cleanup are covered by `tests/e2e/gardens/lifecycle-deletion.spec.mjs`. Remaining Garden creation coverage includes draft recovery and Wizard-specific navigation; defer Wizard cases until 8A4–8A6 stabilize. Broader lifecycle and association workflows across interface modes, mobile layouts, and installed offline PWA remain outside this focused suite.
+- Shell navigation and accessible More/Drawer interactions are covered by `tests/e2e/navigation/shell-navigation.spec.mjs`. Coverage uses representative desktop, phone, and medium viewports; other browsers and fine-grained responsive breakpoints are not covered.
 - Offline/PWA startup, caching and update flows; practical testing on real devices.
 
 These are candidates, **not implemented tests**. Add them incrementally as requirements stabilize and their regression value justifies maintenance.

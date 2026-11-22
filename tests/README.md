@@ -8,6 +8,7 @@ workflow is required.
 
 | Command | Scope |
 |---|---|
+| `npx playwright test tests/e2e/navigation/shell-navigation.spec.mjs` | Simple/Standard navigation, More and Drawer keyboard behavior, deep links, and mode persistence |
 | `npx playwright test tests/e2e/gardens/gardens-hub.spec.mjs` | Garden lifecycle classification, section ordering, and navigation |
 | `npx playwright test tests/e2e/gardens/garden-identity.spec.mjs` | Step 6.5 Garden Identity interactions and persistence |
 | `npx playwright test tests/e2e/gardens/quick-start.spec.mjs` | Create from chooser through Quick Start; verify persistence across reload |
@@ -72,6 +73,12 @@ The suite changed from 59 tests to 21: 40 viewport tests became 2, eight Note
 editor tests became 1, and 7 Garden Identity tests were added. Other suites were
 left unchanged.
 
+The focused `tests/e2e/navigation/shell-navigation.spec.mjs` covers Simple and
+Standard destinations, More-menu Help/About/Settings links, browser history and
+deep links, mode switching, and keyboard activation/focus behavior for the
+header and responsive Navigation Drawer. It checks representative desktop,
+phone, and medium viewports without duplicating Gardens Hub navigation tests.
+
 The deletion suite continues to check both cancel and confirm behavior, plus
 persistence after reload. Layout and Note editor checks are regression tests,
 not fixes: investigate a failing case rather than disabling it or marking it
@@ -86,3 +93,5 @@ typical changes, and the complete suite at milestone acceptance.
 **November 21 verification:** Garden Templates: **3 passed**; complete Playwright suite: **39 passed**. Template coverage uses isolated contexts based on the synthetic fixture; the missing-Location case adds its custom test records to an in-memory copy, and the committed fixture is unchanged.
 
 **November 22 verification:** Garden lifecycle/deletion: **2 passed**; complete Playwright suite: **41 passed**. Tests use isolated contexts based on the synthetic fixture and do not modify the committed fixture.
+
+**November 22 verification:** Shell navigation: **4 passed**; complete Playwright suite: **45 passed**. Navigation tests use isolated contexts based on the synthetic fixture; the committed fixture was not modified.
