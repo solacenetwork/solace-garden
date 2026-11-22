@@ -11,6 +11,7 @@ workflow is required.
 | `npx playwright test tests/e2e/gardens/gardens-hub.spec.mjs` | Garden lifecycle classification, section ordering, and navigation |
 | `npx playwright test tests/e2e/gardens/garden-identity.spec.mjs` | Step 6.5 Garden Identity interactions and persistence |
 | `npx playwright test tests/e2e/gardens/quick-start.spec.mjs` | Create from chooser through Quick Start; verify persistence across reload |
+| `npx playwright test tests/e2e/gardens/templates.spec.mjs` | Template save/reload/delete, Advanced application, and deleted-Location fallback |
 | `npm run test:e2e:smoke` | Restored IndexedDB fixture and populated page rendering |
 | `npm run test:e2e:layout` | Scrolling and bottom-control reachability |
 | `npm run test:e2e:lists` | Tasks and Wish List create/edit/complete/order and deletion workflows |
@@ -80,3 +81,5 @@ when reproducing a device-specific issue.
 
 For day-to-day development, run the affected subset. Run smoke tests after
 typical changes, and the complete suite at milestone acceptance.
+
+**November 21 verification:** Garden Templates: **3 passed**; complete Playwright suite: **39 passed**. Template coverage uses isolated contexts based on the synthetic fixture; the missing-Location case adds its custom test records to an in-memory copy, and the committed fixture is unchanged.
