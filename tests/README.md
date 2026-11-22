@@ -14,7 +14,7 @@ workflow is required.
 | `npm run test:e2e:smoke` | Restored IndexedDB fixture and populated page rendering |
 | `npm run test:e2e:layout` | Scrolling and bottom-control reachability |
 | `npm run test:e2e:lists` | Tasks and Wish List interactions |
-| `npm run test:e2e:notes` | Note editor scroll and keyboard focus accessibility |
+| `npm run test:e2e:notes` | Note create/edit/discard persistence and editor scroll/focus accessibility |
 | `npm run test:e2e:delete` | Deletion confirmation and persistence only |
 | `npm run test:e2e` | Entire suite |
 | `npm run test:e2e:report` | Open the last HTML report |

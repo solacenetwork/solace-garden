@@ -1,7 +1,9 @@
 # SOLACE Garden — Testing Notes
 
 **Status:** Local Playwright testing foundation accepted, November 16, 2026.  
-**Historical baseline:** **57/57 Playwright tests passed in 49.6 seconds** on `oakisland` on November 16 (developer-run, LMDE 7). The suite has since been consolidated and expanded; **the latest focused run has an unresolved Garden Hub focus-restoration failure**. No new full-suite pass count is claimed.  
+**Historical baseline:** **57/57 Playwright tests passed in 49.6 seconds** on `oakisland` on November 16 (developer-run, LMDE 7).
+
+**Latest verified full run:** **32/32 Playwright tests passed** on November 21, 2026, after Garden Hub focus-restoration coverage and Notes persistence coverage were added.
 **Quick command reference:** [tests/README.md](../tests/README.md).  
 **Related docs:** [UI_REDESIGN.md](UI_REDESIGN.md), [UI_REVIEW_NOTES.md](UI_REVIEW_NOTES.md), [ROADMAP.md](ROADMAP.md).
 
@@ -26,17 +28,17 @@ The developer ran `npm run test:e2e` on `oakisland`: **57 passed (49.6s)**.
 
 These are **real reported acceptance results**, not claims that the tests ran here or on the affected laptop.
 
-### Later suite consolidation and November 21 focused run
+### Later suite consolidation and November 21 full run
 
 After the November 16 baseline, redundant viewport/Note-editor permutations were reduced and Garden Identity cases were added; the earlier `tests/README.md` records a **21-test snapshot** at that stage. That number is also historical, not a verified total after the latest changes. The currently tracked specs additionally include `tests/e2e/gardens/gardens-hub.spec.mjs`, `garden-identity.spec.mjs`, and the November 21 `quick-start.spec.mjs`.
 
 **November 21 Copilot browser-test work:** [Commit `16d1080`](https://github.com/solacenetwork/solace-garden/commit/16d1080a10700a4d8dcd2d6a8a55ead78fe4fda9) updated the Gardens smoke assertions for current lifecycle headings/navigation and the Gardens Hub expanded-collection expectation, and added an isolated Quick Start workflow covering chooser → form → create → detail → reload → Gardens listing. No application or fixture changes were reported.
 
-**Reported targeted results (not a full-suite pass):**
-- Quick Start: **1 passed**.
-- Populated-navigation smoke: **4 passed**.
-- Gardens Hub: **2 passed, 1 failed**. The remaining failure reports that focus is not reliably retained/restored after expanding and collapsing the **Previous Gardens** collection, including the Standard-mode check. This is an **open application focus/accessibility defect** requiring a focused code fix and retest; do not weaken the assertion or mark it accepted merely because other tests passed.
-- No new authoritative **full-suite count or green acceptance** is claimed until the developer runs `npm run test:e2e` and records its result. Keep the prior November 16 57-test and later 21-test counts labeled historical.
+The previously reported Garden Hub focus-restoration failure was reproduced and fixed by synchronizing carousel lifecycle cleanup with unmount. The layout reachability test targets the last Previous Garden card when View All is correctly absent because the collection fits, and still checks View All when overflow exposes that control.
+
+The isolated `tests/e2e/notes/notes-persistence.spec.mjs` verifies Note creation and reload/reopen, edit and reload persistence, and cancellation/confirmation of recoverable-draft discard without overwriting the saved Note.
+
+**November 21 verification:** Notes persistence: **3 passed**; Notes group (including editor accessibility): **4 passed**; full Playwright suite: **32 passed**. The committed sample fixture was not modified.
 
 ## 3. Running focused test groups
 
@@ -79,7 +81,8 @@ tests/
 │   ├── layout/
 │   │   └── viewport-scrolling.spec.mjs
 │   ├── notes/
-│   │   └── editor-accessibility.spec.mjs
+│   │   ├── editor-accessibility.spec.mjs
+│   │   └── notes-persistence.spec.mjs
 │   └── lists/
 │       └── delete.spec.mjs
 ├── fixtures/
@@ -133,7 +136,7 @@ Also compare browser version, extensions/profile, window state and touchpad/mous
 - The focused Gardens Hub spec checks ordered sections, lifecycle classification, Draft isolation and resume links, Garden card destinations, and header/Standard navigation routes. Run it with `npx playwright test tests/e2e/gardens/gardens-hub.spec.mjs`.
 - Navbar menus, keyboard access and shell focus behavior.
 - Task/Wish List **create, edit, complete/purchase, manual reorder, reload persistence**, and the approved V1 behavior that a newly added item appears at the top **without disturbing existing manual order**.
-- Note save/edit/discard/recovery, actual database persistence. The current accessibility tests deliberately **do not click Save**.
+- Note create/edit/reload persistence and recoverable-draft discard protection are covered by `tests/e2e/notes/notes-persistence.spec.mjs`; the editor accessibility test deliberately **does not click Save**. Note deletion confirmation and persistence remain uncovered.
 - **Quick Start create/reload is now covered** by the focused November 21 spec; remaining Garden creation coverage includes Wizard/Advanced, drafts, Templates, lifecycle, linked records and deletion safeguards. Add Wizard browser-history and step-resume cases **after** 8A4–8A6 implementation stabilizes.
 - Offline/PWA startup, caching and update flows; practical testing on real devices.
 
