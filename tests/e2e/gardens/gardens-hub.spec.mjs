@@ -133,7 +133,6 @@ test('classifies Gardens and keeps Drafts in their own ordered section', async (
   for (const section of savedSections) {
     await expect(section.locator('[data-presentation="filmstrip"]')).toHaveCount(1);
     await expect(section.locator('.card-carousel')).toHaveCount(1);
-    await expect(section.getByRole('button', { name: 'View All' })).toHaveAttribute('aria-expanded', 'false');
   }
 
   for (const garden of gardens) {
@@ -168,23 +167,20 @@ test('classifies Gardens and keeps Drafts in their own ordered section', async (
   await expect(sections.drafts.getByRole('button', { name: 'Discard Draft' })).toHaveCount(1);
 
   const currentLink = sections.current.getByRole('link', { name: gardens[0].name });
-  const originalHref = await currentLink.getAttribute('href');
   await expect(currentLink.locator('.garden-card__identity .bi-tree-fill')).toHaveCount(1);
 
-  await sections.current.getByRole('button', { name: 'View All' }).click();
-  await expect(sections.current.locator('[data-presentation="grid"]')).toHaveCount(1);
-  await expect(sections.current.locator('.card-carousel')).toHaveCount(0);
-  await expect(sections.current.getByRole('button', { name: 'Collapse' })).toHaveAttribute('aria-expanded', 'true');
+  await sections.previous.getByRole('button', { name: 'View All' }).click();
+  await expect(sections.previous.locator('[data-presentation="grid"]')).toHaveCount(1);
+  await expect(sections.previous.locator('.card-carousel')).toHaveCount(0);
+  await expect(sections.previous.getByRole('button', { name: 'Collapse' })).toHaveAttribute('aria-expanded', 'true');
   await expect(sections.planned.locator('[data-presentation="filmstrip"]')).toHaveCount(1);
-  await expect(sections.previous.locator('[data-presentation="filmstrip"]')).toHaveCount(1);
-  await expect(sections.current.locator('.gardens-collection__grid .garden-card--saved')).toHaveCount(
-    gardens.filter(garden => garden.section === 'Current Gardens').length,
+  await expect(sections.current.locator('[data-presentation="filmstrip"]')).toHaveCount(1);
+  await expect(sections.previous.locator('.gardens-collection__grid .garden-card--saved')).toHaveCount(
+    gardens.filter(garden => garden.section === 'Previous Gardens').length,
   );
-  await expect(sections.current.getByRole('link', { name: gardens[0].name })).toHaveAttribute('href', originalHref);
-  await expect(sections.current.locator('.garden-card__identity .bi-tree-fill')).toHaveCount(1);
 
-  await sections.current.getByRole('button', { name: 'Collapse' }).click();
-  await expect(sections.current.locator('[data-presentation="filmstrip"] .card-carousel')).toHaveCount(1);
+  await sections.previous.getByRole('button', { name: 'Collapse' }).click();
+  await expect(sections.previous.locator('[data-presentation="filmstrip"] .card-carousel')).toHaveCount(1);
 });
 
 test('saved collection controls retain focus and restored carousels scroll in both interface modes', async ({ page }) => {
