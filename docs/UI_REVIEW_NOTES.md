@@ -141,7 +141,9 @@ Add observations here during hands-on use. Keep rough notes until it's time to r
 
 ### Field notes
 
-#### November 16, 2026 — voice design review (proposals; not yet implemented)
+#### November 16, 2026 — historical voice design review (proposals subsequently superseded in part)
+
+**Disposition (November 21):** These notes preserve what was proposed at the time; they are **not current instructions** for Garden creation. The dedicated four-card chooser and separate Quick Start were accepted in UI Redesign 8A2–8A3. The Wizard has an approved five-step structure in [UI_REDESIGN.md](UI_REDESIGN.md) §7C / Step 8A, with 8A4 onward pending. The earlier suggestion to fold Quick Start into Wizard step one must **not** override those newer approvals.
 
 - **Gardens Hub priority:** Users want Current Gardens quickly accessible. Proposed order: compact horizontal Draft Gardens rail, then vertical Current, Planned, and Previous sections. Use **View All** to open a vertical list at `/gardens/drafts`. Evaluate how much space the rail uses on phone/tablet/desktop.
 - **Contextual actions:** Group **Locations → Templates → Create Garden** at the top of Gardens, with Create Garden prominent. Locations remains a Settings-managed concept, and both Locations and Templates should stop appearing as detached Standard sidebar sub-buttons; preserve Settings and direct routes.
