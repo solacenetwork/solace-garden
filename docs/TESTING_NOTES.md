@@ -26,11 +26,26 @@ The developer ran `npm run test:e2e` on `oakisland`: **57 passed (49.6s)**.
 
 These are **real reported acceptance results**, not claims that the tests ran here or on the affected laptop.
 
+### Later suite consolidation and November 21 focused run
+
+After the November 16 baseline, redundant viewport/Note-editor permutations were reduced and Garden Identity cases were added; the earlier `tests/README.md` records a **21-test snapshot** at that stage. That number is also historical, not a verified total after the latest changes. The currently tracked specs additionally include `tests/e2e/gardens/gardens-hub.spec.mjs`, `garden-identity.spec.mjs`, and the November 21 `quick-start.spec.mjs`.
+
+**November 21 Copilot browser-test work:** [Commit `16d1080`](https://github.com/solacenetwork/solace-garden/commit/16d1080a10700a4d8dcd2d6a8a55ead78fe4fda9) updated the Gardens smoke assertions for current lifecycle headings/navigation and the Gardens Hub expanded-collection expectation, and added an isolated Quick Start workflow covering chooser → form → create → detail → reload → Gardens listing. No application or fixture changes were reported.
+
+**Reported targeted results (not a full-suite pass):**
+- Quick Start: **1 passed**.
+- Populated-navigation smoke: **4 passed**.
+- Gardens Hub: **2 passed, 1 failed**. The remaining failure reports that focus is not reliably retained/restored after expanding and collapsing the **Previous Gardens** collection, including the Standard-mode check. This is an **open application focus/accessibility defect** requiring a focused code fix and retest; do not weaken the assertion or mark it accepted merely because other tests passed.
+- No new authoritative **full-suite count or green acceptance** is claimed until the developer runs `npm run test:e2e` and records its result. Keep the prior November 16 57-test and later 21-test counts labeled historical.
+
 ## 3. Running focused test groups
 
 | Purpose | Command |
 | --- | --- |
 | Smoke tests | `npm run test:e2e:smoke` |
+| Quick Start creation | `npx playwright test tests/e2e/gardens/quick-start.spec.mjs` |
+| Gardens Hub / focus regression | `npx playwright test tests/e2e/gardens/gardens-hub.spec.mjs` |
+| Garden Identity | `npx playwright test tests/e2e/gardens/garden-identity.spec.mjs` |
 | Scrolling/layout | `npm run test:e2e:layout` |
 | Note editor | `npm run test:e2e:notes` |
 | Tasks and Wish List | `npm run test:e2e:lists` |
@@ -58,7 +73,9 @@ tests/
 │   │   ├── populated-fixture.spec.mjs
 │   │   └── populated-navigation.spec.mjs
 │   ├── gardens/
-│   │   └── gardens-hub.spec.mjs
+│   │   ├── gardens-hub.spec.mjs
+│   │   ├── garden-identity.spec.mjs
+│   │   └── quick-start.spec.mjs
 │   ├── layout/
 │   │   └── viewport-scrolling.spec.mjs
 │   ├── notes/
@@ -117,7 +134,7 @@ Also compare browser version, extensions/profile, window state and touchpad/mous
 - Navbar menus, keyboard access and shell focus behavior.
 - Task/Wish List **create, edit, complete/purchase, manual reorder, reload persistence**, and the approved V1 behavior that a newly added item appears at the top **without disturbing existing manual order**.
 - Note save/edit/discard/recovery, actual database persistence. The current accessibility tests deliberately **do not click Save**.
-- Garden creation modes, drafts, templates, lifecycle, linked records and delete safeguards.
+- **Quick Start create/reload is now covered** by the focused November 21 spec; remaining Garden creation coverage includes Wizard/Advanced, drafts, Templates, lifecycle, linked records and deletion safeguards. Add Wizard browser-history and step-resume cases **after** 8A4–8A6 implementation stabilizes.
 - Offline/PWA startup, caching and update flows; practical testing on real devices.
 
 These are candidates, **not implemented tests**. Add them incrementally as requirements stabilize and their regression value justifies maintenance.
