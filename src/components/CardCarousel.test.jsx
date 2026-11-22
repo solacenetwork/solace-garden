@@ -26,7 +26,7 @@ vi.mock('preact/hooks', () => ({
 		harness.setters.push(setter);
 		return [typeof initial === 'function' ? initial() : initial, setter];
 	},
-	useEffect: (effect, dependencies) => harness.effects.push({ effect, dependencies }),
+	useLayoutEffect: (effect, dependencies) => harness.effects.push({ effect, dependencies }),
 }));
 
 import {
@@ -157,6 +157,8 @@ describe('CardCarousel lifecycle', () => {
 		expect(harness.constructors[0].config).toEqual(CARD_CAROUSEL_CONFIG);
 		expect(resizeObservers[0].observe).toHaveBeenCalledWith(viewport);
 		expect(mutationObservers[0].observe).toHaveBeenCalledWith(viewport, { childList: true });
+		expect(onOverflowChange).not.toHaveBeenCalled();
+		resizeObservers[0].callback();
 		expect(onOverflowChange).toHaveBeenLastCalledWith(true);
 		expect(globalThis.addEventListener).not.toHaveBeenCalled();
 
@@ -169,10 +171,16 @@ describe('CardCarousel lifecycle', () => {
 		resizeObservers[0].callback();
 		expect(onOverflowChange).toHaveBeenLastCalledWith(false);
 
+		const callbackCount = onOverflowChange.mock.calls.length;
+		const constructorCount = harness.constructors.length;
 		cleanup();
 		expect(resizeObservers[0].disconnect).toHaveBeenCalledOnce();
 		expect(mutationObservers[0].disconnect).toHaveBeenCalledOnce();
 		expect(harness.constructors[1].dispose).toHaveBeenCalledOnce();
+		resizeObservers[0].callback();
+		mutationObservers[0].callback();
+		expect(onOverflowChange).toHaveBeenCalledTimes(callbackCount);
+		expect(harness.constructors).toHaveLength(constructorCount);
 	});
 
 	it('uses and removes a window resize fallback only when ResizeObserver is unavailable', () => {
@@ -219,6 +227,9 @@ describe('CardCarousel lifecycle', () => {
 		viewportNode.ref.current = { scrollWidth: 500, clientWidth: 300 };
 
 		const cleanup = harness.effects.at(-1).effect();
+		expect(harness.setters[0]).not.toHaveBeenCalled();
+		expect(onOverflowChange).not.toHaveBeenCalled();
+		resizeObservers[0].callback();
 		expect(harness.setters[0]).toHaveBeenLastCalledWith(true);
 		expect(onOverflowChange).toHaveBeenLastCalledWith(true);
 

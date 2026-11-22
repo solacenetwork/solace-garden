@@ -6,7 +6,8 @@ const pages = [
   {
     route: '/gardens',
     ready: '.gardens-section .garden-card--saved',
-    bottomTarget: 'section[aria-labelledby="previous-gardens"] .gardens-section__heading button',
+    bottomTarget: 'section[aria-labelledby="previous-gardens"] .garden-card--saved',
+    overflowTarget: 'section[aria-labelledby="previous-gardens"] .gardens-section__heading button',
   },
   {
     route: '/tasks',
@@ -43,7 +44,11 @@ async function openPage(page, route, mode, firstPage) {
 
 async function scrollToBottomTarget(page, entry, viewport) {
   await expect(page.locator(entry.ready).first()).toBeVisible();
-  const target = page.locator(entry.bottomTarget).last();
+  let target = page.locator(entry.bottomTarget).last();
+  if (entry.overflowTarget) {
+    const overflowTarget = page.locator(entry.overflowTarget).last();
+    if (await overflowTarget.count()) target = overflowTarget;
+  }
   await expect(target).toBeAttached();
 
   const main = await page.locator('#main-content').boundingBox();

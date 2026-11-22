@@ -1,6 +1,6 @@
 import { toChildArray } from 'preact';
 import Carousel from 'bootstrap/js/dist/carousel.js';
-import { useEffect, useId, useRef, useState } from 'preact/hooks';
+import { useId, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import './CardCarousel.css';
 
 export const CARD_CAROUSEL_CONFIG = {
@@ -12,7 +12,10 @@ export const CARD_CAROUSEL_CONFIG = {
 
 export function initializeCardCarousel(element, viewport, onOverflowChange) {
 	let instance = new Carousel(element, CARD_CAROUSEL_CONFIG);
+	let initialMeasureFrame = null;
+	let active = true;
 	const updateOverflow = () => {
+		if (!active) return;
 		onOverflowChange(viewport.scrollWidth > viewport.clientWidth + 1);
 	};
 	const resizeObserver = globalThis.ResizeObserver
@@ -20,6 +23,7 @@ export function initializeCardCarousel(element, viewport, onOverflowChange) {
 		: null;
 	const mutationObserver = globalThis.MutationObserver
 		? new MutationObserver(() => {
+			if (!active) return;
 			instance.dispose();
 			instance = new Carousel(element, CARD_CAROUSEL_CONFIG);
 			updateOverflow();
@@ -31,15 +35,22 @@ export function initializeCardCarousel(element, viewport, onOverflowChange) {
 
 	if (!resizeObserver) {
 		globalThis.addEventListener('resize', updateOverflow);
+		if (globalThis.requestAnimationFrame) {
+			initialMeasureFrame = globalThis.requestAnimationFrame(updateOverflow);
+		} else {
+			updateOverflow();
+		}
 	}
 
-	updateOverflow();
-
 	return () => {
+		active = false;
 		resizeObserver?.disconnect();
 		mutationObserver?.disconnect();
 		if (!resizeObserver) {
 			globalThis.removeEventListener('resize', updateOverflow);
+			if (initialMeasureFrame !== null) {
+				globalThis.cancelAnimationFrame?.(initialMeasureFrame);
+			}
 		}
 		instance.dispose();
 	};
@@ -55,7 +66,7 @@ export function CardCarousel({ children, label, id, className = '', onOverflowCh
 	const items = toChildArray(children);
 	overflowCallback.current = onOverflowChange;
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!root.current || !viewport.current) return undefined;
 		return initializeCardCarousel(root.current, viewport.current, (overflow) => {
 			setHasOverflow(overflow);
