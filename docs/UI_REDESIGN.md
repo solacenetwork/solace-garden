@@ -404,7 +404,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ### Step 4.5A — Bootstrap 6 card Carousel proof of concept
 
-**Implementation status (November 15, 2026):** The isolated development-only `/dev/carousel` experiment is implemented and documented in [CAROUSEL_POC.md](CAROUSEL_POC.md). It evaluates static Garden, Gallery, and zero-to-three-card collections with the pinned Bootstrap 6.0.0-alpha.1 scroll-snap Carousel. Automated component/lifecycle tests, a headless Chromium responsive matrix, and physical-phone touch acceptance passed. The production route registry, navigation, storage startup, production bundles, and PWA precache exclude the development harness and sample data.
+**Implementation status (November 15, 2026):** The isolated development-only `/dev/carousel` experiment was implemented and reviewed; the former `CAROUSEL_POC.md` reference is no longer present in the repository, so this accepted summary is the retained roadmap evidence. It evaluates static Garden, Gallery, and zero-to-three-card collections with the pinned Bootstrap 6.0.0-alpha.1 scroll-snap Carousel. Automated component/lifecycle tests, a headless Chromium responsive matrix, and physical-phone touch acceptance passed. The production route registry, navigation, storage startup, production bundles, and PWA precache exclude the development harness and sample data.
 
 ### Step 4.5B — Reusable Preact CardCarousel
 
