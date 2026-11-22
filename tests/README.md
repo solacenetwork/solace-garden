@@ -77,5 +77,7 @@ record the failing Chromium window's `window.innerWidth`,
 `window.innerHeight`, `window.devicePixelRatio`, and selected interface mode
 when reproducing a device-specific issue.
 
+**November 21, 2026 targeted browser run:** After [commit `16d1080`](https://github.com/solacenetwork/solace-garden/commit/16d1080a10700a4d8dcd2d6a8a55ead78fe4fda9), Quick Start passed (1), populated-navigation smoke passed (4), and Gardens Hub reported 2 passed / **1 failed**. The unresolved failure concerns focus retention/restoration when expanding/collapsing Previous Gardens. Do not treat these targeted results as a full-suite pass; see [TESTING_NOTES.md](../docs/TESTING_NOTES.md) for the dated inventory and defect.
+
 For day-to-day development, run the affected subset. Run smoke tests after
 typical changes, and the complete suite at milestone acceptance.
