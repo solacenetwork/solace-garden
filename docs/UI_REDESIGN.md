@@ -506,14 +506,14 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ### Step 8A — Garden creation redesign (nine focused slices; details in Section 7C)
 
-**Status (November 20, 2026):** High-level V1 behavior agreed. **8A1 is complete and manually accepted**; implement the remaining slices incrementally, with focused tests/manual review of each. Do not begin a monolithic Wizard overhaul.
+**Status (November 22, 2026):** High-level V1 behavior agreed. **8A1–8A3 are complete and manually accepted**; **8A4 is the next implementation slice**, followed by 8A5–8A9. Implement and accept each slice separately; do not begin a monolithic Wizard overhaul. The November 21 read-only Codex readiness and architecture audits are already reflected in §7C and [TECH_SPEC.md](TECH_SPEC.md); do not repeat them as a prerequisite.
 
 | Slice | Scope |
 | --- | --- |
 | **8A1 — Accepted** | Reusable horizontal overflow Wizard Stepper; development-only `/dev/wizard` preview using alternate JSON, no storage |
-| **8A2** | Four-card `/gardens/new` chooser and `?type=` dispatcher |
-| **8A3** | Separate Quick Start form, native required name, optional identity, disabled thumbnail, Planned/Active |
-| **8A4** | Five-step JSON Wizard structure, stable ID URL/history navigation, resumable viewed step and recoverable invalid-step error |
+| **8A2 — Accepted** | Four-card `/gardens/new` chooser and `?type=` dispatcher |
+| **8A3 — Accepted** | Separate Quick Start form, native required name, optional identity, disabled thumbnail, Planned/Active |
+| **8A4 — Next** | Five-step JSON Wizard structure, stable ID URL/history navigation, resumable viewed step and recoverable invalid-step error; preserve existing Template selection and creation until 8A5–8A6 |
 | **8A5** | Five step forms, per-step native validity, complete final validation, Additional Options, Template-name prompt and coordinated creation |
 | **8A6** | One-time Template entry/prefill from chooser; remove editor selectors |
 | **8A7** | Advanced Form organization and V1 hide-mode-switching cleanup; preserve historical statuses |
@@ -521,6 +521,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 | **8A9** | Final real-device/manual acceptance and documentation |
 
 **8A1 acceptance (November 20, 2026):** Implemented in [`91b36f8`](https://github.com/solacenetwork/solace-garden/commit/91b36f8420de4e7a668c3290614c0dfe380d4717). The reusable `WizardStepper` and isolated `/dev/wizard` preview were reviewed against the focused scope. Codex reported **524 passing Vitest tests across 55 files**, a successful production build, a clean worktree, and no preview page/components/fixtures included in the production bundle; Playwright was not changed or run. The gardener confirmed **all manual acceptance tests passed**, explicitly including appropriate automatic scrolling while navigating both forward and backward; desktop, phone, configuration variations, reduced motion, keyboard and screen-reader checks were included in the reported manual acceptance. The production Garden Wizard was not modified in this slice. **Proceed to 8A2.**
+
+**8A2–8A3 acceptance:** The dedicated four-option chooser/dispatcher and Quick Start were accepted November 21; see the contemporaneous acceptance record in [ROADMAP.md](ROADMAP.md). The Quick Start workflow is also covered by focused Playwright regression tests. Their completion does not imply Wizard redesign acceptance.
 
 **V1 boundaries:** No Review step; **Finish & Create Garden** on Additional Options navigates straight to new Garden details. Stepper is progress-only, not clickable. V1 failures need clear user-facing messages and basic meaningful console diagnostics; full logging architecture and full Wizard Engine/testing database are deferred. Do not change accepted Welcome except for compatible entry links. No alpha legacy-data migrations.
 
