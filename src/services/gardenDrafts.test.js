@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import Dexie from 'dexie';
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -9,6 +10,7 @@ import { createGardensService } from './gardens.js';
 import { createGardenTemplatesService } from './gardenTemplates.js';
 import { createNoteDraftsService } from './notes.js';
 import { createLocationsService, DEFAULT_LOCATION_ID } from './locations.js';
+import { createDraftsRepository } from '../storage/dexie/draftsRepository.js';
 import { createGardenDatabase } from '../storage/dexie/gardenDatabase.js';
 import { initializeDexieStorage } from '../storage/dexie/initializeDexieStorage.js';
 
@@ -18,6 +20,31 @@ const NOTE_DRAFT = 'c707274f-b57b-4b1a-9346-a3c16f00008f';
 const SOURCE_TEMPLATE = '550e8400-e29b-41d4-a716-446655440010';
 const CREATED = '2026-11-07T18:00:00.000Z';
 const UPDATED = '2026-11-07T18:05:00.000Z';
+
+describe('Garden draft fixture contract', () => {
+	it('validates populated Garden drafts with the current repository contract', async () => {
+		const storageState = JSON.parse(readFileSync(
+			new URL('../../tests/fixtures/sample-garden.json', import.meta.url),
+			'utf8',
+		));
+		const database = storageState.origins
+			.flatMap(({ indexedDB = [] }) => indexedDB)
+			.find(({ name }) => name.startsWith('solace-garden-data-'));
+		const draftsStore = database?.stores.find(({ name }) => name === 'drafts');
+		expect(draftsStore).toBeDefined();
+		const gardenDrafts = draftsStore.records
+			.map(({ value }) => value)
+			.filter(({ kind }) => kind === 'garden');
+		expect(gardenDrafts).toHaveLength(3);
+
+		const repository = createDraftsRepository({
+			table: () => ({ put: async () => {} }),
+		});
+		for (const draft of gardenDrafts) {
+			await expect(repository.save(draft)).resolves.toEqual(draft);
+		}
+	});
+});
 
 function fields(overrides = {}) {
 	return {

@@ -46,11 +46,15 @@
                     "fields": {
                       "name": "Front Island Mums",
                       "subtitle": "Flowers in the large island in the front yard",
+                      "icon": null,
+                      "color": null,
                       "description": "",
                       "locationId": "system-default-location",
                       "typeIds": [],
                       "startDate": "",
-                      "endDate": ""
+                      "endDate": "",
+                      "status": "planned",
+                      "saveAsTemplate": false
                     },
                     "sourceTemplateId": null,
                     "preferredEditor": "advanced",
@@ -90,6 +94,8 @@
                     "fields": {
                       "name": "Flower Garden 2027",
                       "subtitle": "2027 Garden (Next Year)",
+                      "icon": null,
+                      "color": null,
                       "description": "Planning next year's plants",
                       "locationId": "system-default-location",
                       "typeIds": [
@@ -97,7 +103,9 @@
                         "outdoor"
                       ],
                       "startDate": "",
-                      "endDate": ""
+                      "endDate": "",
+                      "status": "planned",
+                      "saveAsTemplate": false
                     },
                     "sourceTemplateId": null,
                     "preferredEditor": "advanced",
@@ -126,6 +134,8 @@
                     "fields": {
                       "name": "Hot Peppers",
                       "subtitle": "Jalepeno and Habanaro peppers",
+                      "icon": null,
+                      "color": null,
                       "description": "Hot pepper garden",
                       "locationId": "system-default-location",
                       "typeIds": [
@@ -133,7 +143,9 @@
                         "raised-bed"
                       ],
                       "startDate": "",
-                      "endDate": ""
+                      "endDate": "",
+                      "status": "planned",
+                      "saveAsTemplate": false
                     },
                     "sourceTemplateId": null,
                     "preferredEditor": "advanced",
