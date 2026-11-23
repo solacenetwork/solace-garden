@@ -506,7 +506,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ### Step 8A — Garden creation redesign (nine focused slices; details in Section 7C)
 
-**Status (November 23, 2026):** High-level V1 behavior agreed. **8A1–8A5 are complete and manually accepted**; 8A6 is next, followed by 8A7–8A9. Implement and accept each slice separately; do not begin a monolithic Wizard overhaul. The November 21 read-only Codex readiness and architecture audits are already reflected in §7C and [TECH_SPEC.md](TECH_SPEC.md); do not repeat them as a prerequisite.
+**Status (November 23, 2026):** High-level V1 behavior agreed. **8A1–8A6 are complete and manually accepted**; 8A7–8A9 follow. Implement and accept each slice separately; do not begin a monolithic Wizard overhaul. The November 21 read-only Codex readiness and architecture audits are already reflected in §7C and [TECH_SPEC.md](TECH_SPEC.md); do not repeat them as a prerequisite.
 
 | Slice | Scope |
 | --- | --- |
@@ -515,10 +515,12 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 | **8A3 — Accepted** | Separate Quick Start form, native required name, optional identity, disabled thumbnail, Planned/Active |
 | **8A4 — Accepted** | Five-step JSON Wizard structure, stable ID URL/history navigation, resumable viewed step and recoverable invalid-step error; preserve existing Template selection and creation until 8A5–8A6 |
 | **8A5 — Accepted** | Five step forms, per-step native validity, complete final validation, Additional Options, Template-name prompt and coordinated creation |
-| **8A6** | One-time Template entry/prefill from chooser; remove editor selectors |
+| **8A6 — Accepted** | One-time Template entry/prefill from chooser; remove editor selectors; Templates breadcrumb |
 | **8A7** | Advanced Form organization and V1 hide-mode-switching cleanup; preserve historical statuses |
 | **8A8** | Integrated automated/regression tests and corrections |
 | **8A9** | Final real-device/manual acceptance and documentation |
+
+**8A6 acceptance (November 23, 2026):** The gardener accepted desktop and phone workflows for scratch and Template-prefilled Wizard/Advanced creation, edited-draft reload, and the Gardens → Templates breadcrumb. Implementation: routing tests [`74d65fc`](https://github.com/solacenetwork/solace-garden/commit/74d65fcfabe48592885b79cbc6beedbc4d4d50bc), atomic initial prefill [`959220d`](https://github.com/solacenetwork/solace-garden/commit/959220d53933591e3f7b71d6375b8d00e3ce7ed1), editor cleanup/breadcrumb [`526ae30`](https://github.com/solacenetwork/solace-garden/commit/526ae301767c74e5d04cc8d12e1c34c0dd79f880), and updated E2E selectors [`584a9a9`](https://github.com/solacenetwork/solace-garden/commit/584a9a95211df2f562e7e17e705607360e92759d). Codex reported focused Vitest 43/43 (B) and 37/37 (C); Copilot reported full Playwright 49/49; developer confirmed `npm run build` succeeded. **Next: 8A7** Advanced form grouping and hiding editor switching (preserving underlying draft/mode functionality).
 
 **8A5 acceptance (November 23, 2026):** The gardener passed desktop and phone manual acceptance of all five step forms, active-step and whole-Garden validation, draft recovery, Template confirmation/cancellation and creation, and browser Back/Forward step/data restoration. Codex's implementation [`91a2853`](https://github.com/solacenetwork/solace-garden/commit/91a2853af6ff654d1d5766331a77cf17066dc2cf) added a Garden-specific form registry, durable icon/color/status/Save-as-Template draft properties, and atomic Garden plus optional Template creation plus draft removal; the existing Template selector stays in Wizard/Advanced until 8A6. Test fixture updates [`2308a41`](https://github.com/solacenetwork/solace-garden/commit/2308a41ca2485b14a9cf6f4895720b6ab7db6188) and four focused browser regression tests [`504eea5`](https://github.com/solacenetwork/solace-garden/commit/504eea578cfa3fa384f0d4adf25ca870ca48a55d) followed. Codex reported **601/601 Vitest** and production build passing; Copilot reported **4/4 focused and 49/49 full Playwright tests** passing after retrying an intermittent smoke timeout. **Deferred, not a blocker:** Vivaldi Mobile browser Back/Forward restores the correct step and data but vertically scrolls to the bottom and focuses/highlights Continue; see Step 10 item 18. Full evidence: [MILESTONE_HISTORY.md](MILESTONE_HISTORY.md#garden-ui-8a5).
 
