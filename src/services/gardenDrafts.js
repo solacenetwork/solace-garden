@@ -77,15 +77,19 @@ export function createGardenDraftsService(repository, {
 	randomUUID = createUUID,
 } = {}) {
 	return Object.freeze({
-		async create({ preferredEditor = 'wizard' } = {}) {
+		async create({
+			preferredEditor = 'wizard',
+			initialFields = EMPTY_GARDEN_DRAFT_FIELDS,
+			sourceTemplateId = null,
+		} = {}) {
 			const timestamp = now();
 			return requireGardenDraft(await repository.add({
 				id: randomUUID(),
 				kind: 'garden',
 				subjectId: null,
 				isNew: true,
-				fields: copyGardenDraftFields(),
-				sourceTemplateId: null,
+				fields: copyGardenDraftFields(initialFields),
+				sourceTemplateId,
 				preferredEditor,
 				currentStepId: preferredEditor === 'wizard' ? 'identity' : null,
 				createdAt: timestamp,

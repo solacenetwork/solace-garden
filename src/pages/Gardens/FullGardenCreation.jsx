@@ -93,6 +93,32 @@ export async function applyTemplateToGardenDraft({
 	};
 }
 
+export async function initializeGardenDraft({
+	mode,
+	templateId = null,
+	drafts,
+	templates,
+}) {
+	if (!templateId) {
+		return drafts.create({ preferredEditor: mode });
+	}
+
+	const resolution = await templates.resolveConfiguration(templateId);
+	if (!resolution) {
+		throw new ValidationError(
+			'TEMPLATE_NOT_FOUND',
+			'That Template is no longer available. Choose another Template or start from scratch.',
+			{ field: 'templateId' },
+		);
+	}
+
+	return drafts.create({
+		preferredEditor: mode,
+		initialFields: gardenDraftFieldsFromTemplate(resolution.configuration),
+		sourceTemplateId: templateId,
+	});
+}
+
 export async function clearTemplateFromGardenDraft({ draft, currentFields, autosave, drafts }) {
 	await autosave.stop();
 	return drafts.save({
@@ -328,6 +354,13 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 			}, templates);
 			if (sourceTemplateIdRef.current && !source) {
 				setTemplateNotice('The source Template is no longer available. Your independent draft and edits are preserved.');
+			} else if (
+				source
+				&& source.configuration.locationId !== fieldsRef.current.locationId
+				&& fieldsRef.current.locationId === DEFAULT_LOCATION_ID
+				&& !currentReferences.locations.some(({ id }) => id === source.configuration.locationId)
+			) {
+				setTemplateNotice('The Template’s saved Location is no longer available, so Default Location was selected.');
 			}
 		} catch (error) {
 			setTemplateState({ status: 'error', error });
@@ -795,29 +828,26 @@ export function GardenDraftRoute({ params, mode, wizardDefinition }) {
 
 export function NewGardenDraftRoute({ mode }) {
 	const { query, route } = useLocation();
-	const { drafts } = useGardenCreationWorkspace();
+	const { drafts, templates } = useGardenCreationWorkspace();
 	const started = useRef(false);
 	const [error, setError] = useState('');
 	useEffect(() => {
 		if (started.current) return;
 		started.current = true;
 		let active = true;
-		drafts.create({ preferredEditor: mode }).then((draft) => {
+		const templateId = templateSourceSearch(query) ? query.id : null;
+		initializeGardenDraft({ mode, templateId, drafts, templates }).then((draft) => {
 			if (!active) return;
 			const path = `/gardens/new/${mode}/${draft.id}`;
 			if (mode === 'wizard') {
-				const templateSearch = templateSourceSearch(query);
-				const preservedQuery = templateSearch
-					? Object.fromEntries(new URLSearchParams(templateSearch.slice(1)))
-					: {};
-				route(createGardenWizardUrl(path, draft.currentStepId, preservedQuery), true);
+				route(createGardenWizardUrl(path, draft.currentStepId), true);
 			} else {
-				route(`${path}${templateSourceSearch(query)}`, true);
+				route(path, true);
 			}
 		}, (creationFailure) => {
 			if (active) setError(creationError(creationFailure, 'started'));
 		});
 		return () => { active = false; };
-	}, [drafts, mode, query, route]);
+	}, [drafts, mode, query, route, templates]);
 	return <GardenDraftLoadState state={error ? { status: 'error', message: error } : { status: 'loading' }} />;
 }

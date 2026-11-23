@@ -5,9 +5,9 @@ vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
 import { createGardenDraftsService, gardenInputFromDraftFields } from '../../services/gardenDrafts.js';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';
 import { createGardensService } from '../../services/gardens.js';
-import { DEFAULT_LOCATION_ID } from '../../services/locations.js';
+import { createLocationsService, DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import { initializeDexieStorage } from '../../storage/dexie/initializeDexieStorage.js';
-import { applyTemplateToGardenDraft } from './FullGardenCreation.jsx';
+import { applyTemplateToGardenDraft, initializeGardenDraft } from './FullGardenCreation.jsx';
 
 const FIRST_DRAFT = '38c2bed1-0e03-4187-aefd-233ca7b037c2';
 const SECOND_DRAFT = 'fe1cbe08-4384-4dfa-9357-4ed87eea0398';
@@ -139,5 +139,66 @@ describe('Garden creation from a saved Template', () => {
 		expect(garden).toMatchObject({ name: 'Garden Two', subtitle: 'My edit', status: 'planned' });
 		expect(garden).not.toHaveProperty('sourceTemplateId');
 		expect(garden).not.toHaveProperty('preferredEditor');
+	});
+
+	it('keeps an initialized draft authoritative after edits, reload, and source Template deletion', async () => {
+		const source = await gardens.create({
+			name: 'Template Name',
+			description: 'Template description',
+			locationId: DEFAULT_LOCATION_ID,
+			typeIds: ['outdoor'],
+		});
+		const template = await templates.createFromGarden({ gardenId: source.id, name: 'Starting point' });
+		const initialized = await initializeGardenDraft({
+			mode: 'advanced', templateId: template.id, drafts, templates,
+		});
+		expect(initialized).toMatchObject({
+			fields: {
+				name: 'Template Name',
+				description: 'Template description',
+				locationId: DEFAULT_LOCATION_ID,
+				typeIds: ['outdoor'],
+			},
+			sourceTemplateId: template.id,
+			preferredEditor: 'advanced',
+			currentStepId: null,
+		});
+
+		await drafts.save({
+			id: initialized.id,
+			fields: { ...initialized.fields, name: 'Gardener edit' },
+		});
+		await templates.removePermanently(template.id);
+		storage.close();
+		storage = await initializeDexieStorage({ dependencies });
+		drafts = createGardenDraftsService(storage.repositories.drafts);
+
+		expect(await drafts.getById(initialized.id)).toMatchObject({
+			fields: { name: 'Gardener edit', description: 'Template description' },
+			sourceTemplateId: template.id,
+			preferredEditor: 'advanced',
+		});
+	});
+
+	it('initializes with Default Location when the saved Template Location was deleted', async () => {
+		const locations = createLocationsService(storage.repositories.locations, { now: () => CREATED });
+		const custom = await locations.create({ name: 'Former plot' });
+		const source = await gardens.create({
+			name: 'Portable setup', locationId: custom.id, typeIds: ['container'],
+		});
+		const template = await templates.createFromGarden({ gardenId: source.id, name: 'Portable' });
+		await gardens.update(source.id, { locationId: DEFAULT_LOCATION_ID });
+		await locations.remove(custom.id);
+
+		const initialized = await initializeGardenDraft({
+			mode: 'wizard', templateId: template.id, drafts, templates,
+		});
+		expect(initialized).toMatchObject({
+			fields: { locationId: DEFAULT_LOCATION_ID, typeIds: ['container'] },
+			sourceTemplateId: template.id,
+			preferredEditor: 'wizard',
+			currentStepId: 'identity',
+		});
+		expect((await templates.getById(template.id)).configuration.locationId).toBe(custom.id);
 	});
 });
