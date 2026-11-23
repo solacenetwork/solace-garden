@@ -287,7 +287,7 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 ##### Post-8F UI redesign checkpoint (historical November 15 report; current status above)
 
-**Historical acceptance:** Steps 1–5 and 4.5A/B were accepted by November 15. Step 5 Home dashboard was implemented in `881d125` (Codex reported 446 passing tests and successful build); the gardener reported desktop/device acceptance. **Subsequent progress supersedes this snapshot:** Steps 6A–6D, 6.5, 6.6, 7 and 8A1–8A3 have since been accepted, while 8A4 onward remains pending. Refer to [UI_REDESIGN.md](UI_REDESIGN.md) for the authoritative current step status.
+**Historical acceptance:** Steps 1–5 and 4.5A/B were accepted by November 15. Step 5 Home dashboard was implemented in `881d125` (Codex reported 446 passing tests and successful build); the gardener reported desktop/device acceptance. **Subsequent progress supersedes this snapshot:** Steps 6A–6D, 6.5, 6.6, 7 and 8A1–8A4 have since been accepted, while 8A5 onward remains pending. Refer to [UI_REDESIGN.md](UI_REDESIGN.md) for the authoritative current step status.
 
 **Local browser-testing checkpoint, Step 5.5 — accepted November 16, 2026:** The original Playwright `1.65.1` harness, synthetic IndexedDB fixture and isolated-browser tests were accepted; the developer reported **57/57 passing in 49.6 seconds** on `oakisland` at that time. This is a **historical baseline**, not the current suite count or a claim that later tests pass. Subsequent viewport consolidation, Garden Identity tests and November 21 Quick Start coverage are recorded in [TESTING_NOTES.md](TESTING_NOTES.md). The Garden collection focus regression was fixed in [commit `b0384f2`](https://github.com/solacenetwork/solace-garden/commit/b0384f265a4cd1d714536b972d75d1db28e5af0c); Copilot subsequently reported **45/45 passing** in the November 22 full Playwright run (see [TESTING_NOTES.md](TESTING_NOTES.md)). GitHub Actions remains deferred.
 
@@ -297,6 +297,19 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 #### GARDEN-UI-7
 
 **Step 7 accepted:** The normal `/welcome` route, four-slide informational photo carousel, explicit Show Welcome at startup preference (enabled by default), direct/deep-link preservation, Skip / Go to Gardens, Help revisit and offline/mobile behavior were manually accepted. These controls **do not** set a one-time `welcomeSeen` flag. The approved/current behavior and original acceptance evidence are documented in [UI_REDESIGN.md](UI_REDESIGN.md), Step 7; see [GOALS.md](GOALS.md) §2.13b for product intent.
+
+
+#### GARDEN-UI-8A4
+
+**Accepted:** November 22, 2026 — gardener confirmation following desktop browser and phone testing.
+
+**Outcome:** Five-step Garden Wizard navigation accepted, with production-owned strictly validated step definition (Identity, Details, Garden Type, Dates, Additional Options), headless reusable stable-ID resolution/adjacency, Garden-specific `?step=` URL/history handling, persisted `currentStepId` for draft resume, invalid-step recovery, and visible invalid-production-configuration failure. Existing Template selection and Advanced Form were preserved; all existing Garden fields deliberately remain together pending 8A5. No new IndexedDB stores/indexes, alpha-data compatibility migrations, sixth Review step, or generic Wizard Engine were introduced.
+
+**Implementation:** [`2c01b88`](https://github.com/solacenetwork/solace-garden/commit/2c01b8834e14b559d92307a42acdfc37e2e270cb). Targeted correction for an eager current-step reference mutation before persistence success, with failed-write regression: [`1ed9da3`](https://github.com/solacenetwork/solace-garden/commit/1ed9da3b2658778043205c3ce96175bc5729552c). Playwright test fixture correction to require `currentStepId: null` on Advanced drafts: [`abe05a3`](https://github.com/solacenetwork/solace-garden/commit/abe05a3b832b6cf10fc2fec1dc9ceaf90416b162).
+
+**Verification (reported, not independently executed by reviewer):** Codex reported **585/585 Vitest passing across 62 files**, successful production PWA build and `git diff --check` for implementation; focused follow-up reported **16/16 passing** for the Garden editor test file. The first full Playwright run yielded 39 passing and six failures due to obsolete alpha Garden draft fixtures; Copilot updated four fixture records (no production changes), then reported **6/6 previously failing cases and 45/45 full Playwright E2E tests passing**, with `git diff --check`. The gardener separately confirmed successful desktop browser and phone acceptance, including stepper navigation and browser Back/Forward buttons.
+
+**Remaining work:** Step-specific field organization and validation/finalization belong to **8A5**; Template entry/prefill cleanup belongs to **8A6**. This acceptance does not complete the broader UI redesign.
 
 
 ## Future archive entries
