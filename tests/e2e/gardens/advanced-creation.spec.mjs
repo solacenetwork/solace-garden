@@ -42,6 +42,46 @@ async function readStoredRecords(page, storeNames) {
   }, storeNames);
 }
 
+test('Advanced creates an Active Garden that is independently locked', async ({ page }) => {
+  const gardenName = `Playwright Active Locked ${Date.now()}`;
+  await openAdvanced(page);
+  await page.getByRole('textbox', { name: 'Garden name' }).fill(gardenName);
+  await page.getByRole('radio', { name: 'Active' }).check();
+
+  const locked = page.getByRole('checkbox', { name: 'Locked' });
+  await locked.check();
+  await expect(locked).toBeChecked();
+  await expect(locked).toBeEnabled();
+
+  await waitForDraftSaved(page);
+  await page.getByRole('button', { name: 'Create Garden' }).click();
+  await expect(page.getByRole('heading', { name: gardenName, level: 1 })).toBeVisible();
+
+  const gardenId = new URL(page.url()).pathname.split('/').at(-1);
+  const { gardens } = await readStoredRecords(page, ['gardens']);
+  expect(gardens.find(({ id }) => id === gardenId)).toMatchObject({
+    name: gardenName,
+    status: 'active',
+    isClosed: true,
+  });
+});
+
+test('Advanced creation sections are visible in the expected order', async ({ page }) => {
+  await openAdvanced(page);
+
+  const headings = page.getByRole('heading', { level: 2 });
+  await expect(headings).toHaveText([
+    'Identity',
+    'Details',
+    'Garden Type',
+    'Dates',
+    'Additional Options',
+  ]);
+  for (const heading of await headings.all()) {
+    await expect(heading).toBeVisible();
+  }
+});
+
 test('Advanced creates a Completed Garden with the expected open state', async ({ page }) => {
   const gardenName = `Playwright Completed ${Date.now()}`;
   await openAdvanced(page);
