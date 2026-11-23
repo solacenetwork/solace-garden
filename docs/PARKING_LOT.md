@@ -11,6 +11,21 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## V4+ candidate: Optional AI assistance and agent interoperability
+
+**Status (November 23, 2026):** Long-term exploration only, **not before approximately V4** and not a committed release target. **Prerequisites:** Server-side user accounts, authenticated APIs, suitable authorization and permissions, and a defined offline-first synchronization/conflict model. Do not expand V1 UI redesign or current server plans to implement this.
+
+**Two complementary integration directions:**
+
+- **Bring Your Own AI (inside Garden):** An optional Settings connection where the gardener selects a compatible hosted AI provider or potentially a locally operated model. Example: attach a photograph of a tomato leaf and ask, “Why do my tomatoes look like this?” The assistant could suggest possible explanations and follow-up checks without claiming certainty; the gardener decides whether to save notes or create tasks. Explore provider connections, model capabilities (including image input), costs, offline limitations, and safe credential handling at design time. Never assume a third-party provider API key is safe to store directly in browser/IndexedDB data; prefer appropriately secured server-side or delegated connection mechanisms when available.
+- **External assistants interacting with Garden:** A documented, authenticated Garden API could eventually allow authorized assistants—including a potential ChatGPT connector and other third-party/local agents—to read selected Garden information or perform scoped actions (e.g., add a Task, record a harvest, create a Journal entry). Use explicit per-capability permissions, separate read and write access, user approval for consequential changes, auditability, and revocation. The underlying API should not depend on one AI vendor.
+
+**Agent discovery and developer guidance:** Consider repository `AGENTS.md` for coding-agent guidance independently of the server rollout. Once a public server/API and useful agent-facing documentation exist, evaluate a site `llms.txt`, published API reference, and supported integration protocol(s). Discovery text alone does not provide authentication, tools, or authorization.
+
+**Nonnegotiable product direction:** Garden remains fully useful through its ordinary manual UI, with **AI optional and off by default**. A user must be able to continue using their data after disconnecting an assistant. Only data explicitly required and authorized for an individual request should be shared; photo and journal privacy matter. Preserve offline-first operation, user ownership/control, and normal data integrity.
+
+**Open future design questions:** Account architecture, credential protection, user consent and permission scopes, API authentication/rate limits, hosted versus local inference, supported providers, cost transparency, photo handling, server sync and conflicts, and a revocation/audit interface. Reassess versions and scope when the prerequisite server capabilities exist.
+
 ## V1 release-candidate tooling review
 
 **Status:** Deferred until the V1 release-candidate preparation and repository-wide cleanup; not part of current feature development.
