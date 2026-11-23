@@ -506,7 +506,7 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ### Step 8A — Garden creation redesign (nine focused slices; details in Section 7C)
 
-**Status (November 23, 2026):** High-level V1 behavior agreed. **8A1–8A6 are complete and manually accepted**; 8A7–8A9 follow. Implement and accept each slice separately; do not begin a monolithic Wizard overhaul. The November 21 read-only Codex readiness and architecture audits are already reflected in §7C and [TECH_SPEC.md](TECH_SPEC.md); do not repeat them as a prerequisite.
+**Status (November 23, 2026):** **8A1–8A6 are accepted; 8A7 implementation is complete and reviewed; 8A8 automated regression changes are accepted.** 8A9 final real-device/manual acceptance and documentation remain open. Implement and accept each slice separately; do not begin a monolithic Wizard overhaul. The November 21 read-only Codex readiness and architecture audits are already reflected in §7C and [TECH_SPEC.md](TECH_SPEC.md); do not repeat them as a prerequisite.
 
 | Slice | Scope |
 | --- | --- |
@@ -516,9 +516,11 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 | **8A4 — Accepted** | Five-step JSON Wizard structure, stable ID URL/history navigation, resumable viewed step and recoverable invalid-step error; preserve existing Template selection and creation until 8A5–8A6 |
 | **8A5 — Accepted** | Five step forms, per-step native validity, complete final validation, Additional Options, Template-name prompt and coordinated creation |
 | **8A6 — Accepted** | One-time Template entry/prefill from chooser; remove editor selectors; Templates breadcrumb |
-| **8A7** | Advanced Form organization, Save as Template checkbox/shared finalization, and V1 hide-mode-switching cleanup; preserve historical statuses |
-| **8A8** | Integrated automated/regression tests and corrections |
+| **8A7 — Implementation reviewed** | Advanced Form organization, Save as Template checkbox/shared finalization, and V1 hide-mode-switching cleanup; preserve historical statuses |
+| **8A8 — Accepted** | Integrated automated/regression tests and corrections |
 | **8A9** | Final real-device/manual acceptance and documentation |
+
+**8A8 acceptance (November 23, 2026):** The developer accepted Copilot's integrated Playwright regression changes in [`275dc47`](https://github.com/solacenetwork/solace-garden/commit/275dc47148ab6d03168c75863851d2be562fbfbb) and targeted follow-up in [`8514628`](https://github.com/solacenetwork/solace-garden/commit/85146289db67703258c492f14bccae1fbdf48e24). Coverage verifies Advanced Completed, Archived/Locked and Active/Locked creation with persisted IndexedDB values; form section order; draft recovery; Advanced Save as Template cancel/confirm and atomic records; Wizard/Advanced status and editor isolation. Copilot reported focused Advanced tests **7/7** passing; first full run **53/54**, follow-up full run **55/56**. Each unrelated full-suite failure passed in isolation (navigation teardown, then short-desktop viewport-scrolling); these are possible intermittent test issues, **not clean full-suite passes**. No confirmed production regression; `git diff --check` passed. **Next: 8A9** production build, final desktop/phone acceptance and documentation. Step 8A remains open until 8A9 acceptance.
 
 **8A6 acceptance (November 23, 2026):** The gardener accepted desktop and phone workflows for scratch and Template-prefilled Wizard/Advanced creation, edited-draft reload, and the Gardens → Templates breadcrumb. Implementation: routing tests [`74d65fc`](https://github.com/solacenetwork/solace-garden/commit/74d65fcfabe48592885b79cbc6beedbc4d4d50bc), atomic initial prefill [`959220d`](https://github.com/solacenetwork/solace-garden/commit/959220d53933591e3f7b71d6375b8d00e3ce7ed1), editor cleanup/breadcrumb [`526ae30`](https://github.com/solacenetwork/solace-garden/commit/526ae301767c74e5d04cc8d12e1c34c0dd79f880), and updated E2E selectors [`584a9a9`](https://github.com/solacenetwork/solace-garden/commit/584a9a95211df2f562e7e17e705607360e92759d). Codex reported focused Vitest 43/43 (B) and 37/37 (C); Copilot reported full Playwright 49/49; developer confirmed `npm run build` succeeded. **Next: 8A7** Advanced form grouping and hiding editor switching (preserving underlying draft/mode functionality).
 
