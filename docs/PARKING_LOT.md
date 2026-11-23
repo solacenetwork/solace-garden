@@ -284,6 +284,19 @@ Retain this entry as a pointer only; future alternative Welcome experiences shou
 
 **Revisit only if user demand or future design work justifies it.**
 
+## Future idea: Create a Garden directly from a Template card
+
+**Status (November 23, 2026):** Parking Lot proposal; **not part of UI milestone 8A6**. 8A6 implements the approved From Template selection workflow on `/gardens/new`, with one-time prefill and Wizard/Advanced entry. The following adds alternative shortcuts on the separate `/templates` management page for later consideration.
+
+Each existing Template card currently offers Delete. Consider adding two explicit creation actions alongside the management controls:
+
+- **Create New Garden From This Template (Wizard)** → `/gardens/new?type=wizard&source=template&id=UUID`
+- **Create New Garden From This Template (Advanced Form)** → `/gardens/new?type=advanced&source=template&id=UUID`
+
+`UUID` is the selected Template's ID; encode the actual value in the link. These are **proposed route contracts**, not a claim that the current dispatcher supports the `source` and `id` query parameters yet. When implemented, the route should resolve the selected Template, initialize a **new independent draft by copying its configuration once**, and open the chosen editor with that data. Preserve the same deleted/missing Template handling, Location fallback, autosave, and no-reapplication behavior as the approved 8A6 flow. Do not modify the source Template when users edit or save the resulting Garden.
+
+Evaluate card action layout and mobile accessibility before implementation; avoid crowding Template cards with multiple long button labels. Keep existing Delete confirmation intact.
+
 ## Future UI Review (after 8F): Template IDs as optional details
 
 **Status:** Parked visual/UX refinement; 8F2 accepted, no change needed during 8F3/8F4.
