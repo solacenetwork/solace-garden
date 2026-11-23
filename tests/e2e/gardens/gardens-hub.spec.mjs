@@ -104,6 +104,7 @@ draftsStore.records = [{
       startDate: '',
       endDate: '',
       status: 'planned',
+      isClosed: false,
       saveAsTemplate: false,
     },
     sourceTemplateId: null,

@@ -108,7 +108,7 @@ test.describe('Garden Template management and application', () => {
     await expect(page.getByRole('textbox', { name: 'Description (optional)' })).toHaveValue(
       'This garden is mainly for bees and pollinators and for looks',
     );
-    await expect(page.getByLabel('Location', { exact: true })).toHaveValue('system-default-location');
+    await expect(page.getByLabel('Geographic Location', { exact: true })).toHaveValue('system-default-location');
     await expect(page.getByRole('checkbox', { name: /In-Ground/ })).toBeChecked();
     await expect(page.getByRole('checkbox', { name: /Outdoor/ })).toBeChecked();
 
@@ -173,7 +173,7 @@ test.describe('Garden Template missing-Location fallback', () => {
     await expect(page.getByRole('textbox', { name: 'Description (optional)' })).toHaveValue(
       'Reusable details for the fallback regression.',
     );
-    await expect(page.getByLabel('Location', { exact: true })).toHaveValue('system-default-location');
+    await expect(page.getByLabel('Geographic Location', { exact: true })).toHaveValue('system-default-location');
 
     const gardenName = `Playwright Fallback Garden ${Date.now()}`;
     await page.getByRole('textbox', { name: 'Garden name' }).fill(gardenName);
