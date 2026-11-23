@@ -42,8 +42,14 @@ function nodes(node) {
 	if (Array.isArray(node)) return node.flatMap(nodes);
 	return [node, ...nodes(node.props?.children)];
 }
+function nodeText(node) {
+	if (node === null || node === undefined || typeof node === 'boolean') return '';
+	if (typeof node !== 'object') return String(node);
+	if (Array.isArray(node)) return node.map(nodeText).join('');
+	return nodeText(node.props?.children);
+}
 function button(tree, label) {
-	return nodes(tree).find((node) => node.type === 'button' && [node.props.children].flat().join('') === label);
+	return nodes(tree).find((node) => node.type === 'button' && nodeText(node).trim() === label);
 }
 const template = {
 	id: 'source', name: 'Saved Template',
@@ -308,47 +314,37 @@ describe('Garden draft editor progression', () => {
 		expect(rendered).not.toContain('Choose how to start');
 	});
 
-	it('preserves fields and source across Advanced → Wizard → Advanced, and continues normally', async () => {
-		const view = editor({ mode: 'advanced' });
-		await view.mount();
-		await button(view.render(), 'Switch to Wizard').props.onClick();
-		expect(view.draft).toMatchObject({ fields, sourceTemplateId: 'source', preferredEditor: 'wizard' });
-		expect(hooks.route).toHaveBeenLastCalledWith('/gardens/new/wizard/draft?step=identity');
-		view.switchMode('wizard');
+	it.each([
+		['wizard', 'Advanced'],
+		['advanced', 'Wizard'],
+	])('keeps Discard Draft but hides the editor switch in %s', async (mode, otherEditor) => {
+		const view = editor({ mode });
 		await view.mount();
 		const tree = view.render();
-		expect(button(tree, 'Continue').props.disabled).toBe(false);
-		await button(tree, 'Continue').props.onClick();
-		expect(nodes(view.render()).find((node) => node.type === GardenWizardIdentityStep).props.fields).toEqual(fields);
-		await button(view.render(), 'Switch to Advanced').props.onClick();
-		expect(view.draft).toMatchObject({ fields, sourceTemplateId: 'source', preferredEditor: 'advanced' });
-		expect(view.workspace.templates.resolveConfiguration).not.toHaveBeenCalled();
+
+		expect(button(tree, `Switch to ${otherEditor}`)).toBeUndefined();
+		expect(button(tree, 'Discard Draft')).toBeDefined();
 	});
 
 	it.each([
 		['advanced', 'wizard'],
 		['wizard', 'advanced'],
-	])('does not let a stale %s route snapshot overwrite a switch to %s', async (fromMode, toMode) => {
-		const view = editor({ mode: fromMode });
+	])('keeps the selected route authoritative over a stale %s snapshot when entering %s', async (staleMode, routeMode) => {
+		const view = editor({ mode: staleMode });
 		await view.mount();
 		const staleSnapshot = { ...view.draft };
 
-		await button(view.render(), `Switch to ${toMode === 'wizard' ? 'Wizard' : 'Advanced'}`).props.onClick();
-		expect(view.draft).toMatchObject({
-			fields, sourceTemplateId: 'source', preferredEditor: toMode,
-		});
-
-		// Reproduce the route transition regression: the new editor mounts in the
-		// selected mode while GardenDraftRoute still has its previous snapshot.
-		view.switchMode(toMode, staleSnapshot);
+		// The selected route remains authoritative if its first render still has
+		// the previous editor's draft snapshot during a route transition.
+		view.switchMode(routeMode, staleSnapshot);
 		await view.mount();
 		await button(view.render(), 'Back to Gardens').props.onClick();
 
 		expect(view.draft).toMatchObject({
-			fields, sourceTemplateId: 'source', preferredEditor: toMode,
+			fields, sourceTemplateId: 'source', preferredEditor: routeMode,
 		});
 		const draftCards = await loadGardenDrafts({ drafts: { list: async () => [view.draft] } });
-		expect(draftCards.drafts[0].href).toBe(`/gardens/new/${toMode}/draft`);
+		expect(draftCards.drafts[0].href).toBe(`/gardens/new/${routeMode}/draft`);
 		expect(hooks.route).toHaveBeenLastCalledWith('/gardens');
 	});
 

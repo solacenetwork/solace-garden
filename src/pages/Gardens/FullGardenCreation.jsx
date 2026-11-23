@@ -567,7 +567,6 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		await finalizeGarden();
 	}
 
-	const otherMode = mode === 'wizard' ? 'advanced' : 'wizard';
 	const title = mode === 'wizard' ? 'Create Garden Wizard' : 'Advanced Garden Creation';
 	if (mode === 'wizard' && stepResolution.status === 'invalid') {
 		const invalidSource = stepResolution.source === 'url'
@@ -613,8 +612,7 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 			</header>
 			{message && <div class="garden-create__error" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{message}</span></div>}
 			{templateNotice && <div class="garden-template-notice" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i><span>{templateNotice}</span></div>}
-			<div class="garden-full-create__toolbar">
-				<button class="btn-outline" type="button" disabled={busy} onClick={() => navigatePreservingDraft(`/gardens/new/${otherMode}/${draft.id}`, otherMode)}>Switch to {otherMode === 'wizard' ? 'Wizard' : 'Advanced'}</button>
+			<div class="garden-full-create__toolbar garden-full-create__toolbar--discard">
 				<button class="btn-text theme-danger" type="button" disabled={busy} onClick={discard}><i class="bi bi-trash3" aria-hidden="true"></i> Discard Draft</button>
 			</div>
 

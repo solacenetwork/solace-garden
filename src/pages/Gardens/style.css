@@ -669,6 +669,10 @@
 	margin-block-end: 1rem;
 }
 
+.garden-full-create__toolbar--discard {
+	justify-content: flex-end;
+}
+
 .garden-full-create__form {
 	display: grid;
 	padding: clamp(1rem, 4vw, 1.5rem);
