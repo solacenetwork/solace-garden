@@ -1,7 +1,7 @@
 # SOLACE Garden — Milestone History
 
 **Created:** 2026-11-21  
-**Updated:** 2026-11-22  
+**Updated:** 2026-11-23  
 **Purpose:** Durable evidence for accepted milestones, whether or not their monday.com items are currently retained.
 
 ## Policy
@@ -287,7 +287,7 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 ##### Post-8F UI redesign checkpoint (historical November 15 report; current status above)
 
-**Historical acceptance:** Steps 1–5 and 4.5A/B were accepted by November 15. Step 5 Home dashboard was implemented in `881d125` (Codex reported 446 passing tests and successful build); the gardener reported desktop/device acceptance. **Subsequent progress supersedes this snapshot:** Steps 6A–6D, 6.5, 6.6, 7 and 8A1–8A4 have since been accepted, while 8A5 onward remains pending. Refer to [UI_REDESIGN.md](UI_REDESIGN.md) for the authoritative current step status.
+**Historical acceptance:** Steps 1–5 and 4.5A/B were accepted by November 15. Step 5 Home dashboard was implemented in `881d125` (Codex reported 446 passing tests and successful build); the gardener reported desktop/device acceptance. **Subsequent progress supersedes this snapshot:** Steps 6A–6D, 6.5, 6.6, 7 and 8A1–8A5 have since been accepted, while 8A6 onward remains pending. Refer to [UI_REDESIGN.md](UI_REDESIGN.md) for the authoritative current step status.
 
 **Local browser-testing checkpoint, Step 5.5 — accepted November 16, 2026:** The original Playwright `1.65.1` harness, synthetic IndexedDB fixture and isolated-browser tests were accepted; the developer reported **57/57 passing in 49.6 seconds** on `oakisland` at that time. This is a **historical baseline**, not the current suite count or a claim that later tests pass. Subsequent viewport consolidation, Garden Identity tests and November 21 Quick Start coverage are recorded in [TESTING_NOTES.md](TESTING_NOTES.md). The Garden collection focus regression was fixed in [commit `b0384f2`](https://github.com/solacenetwork/solace-garden/commit/b0384f265a4cd1d714536b972d75d1db28e5af0c); Copilot subsequently reported **45/45 passing** in the November 22 full Playwright run (see [TESTING_NOTES.md](TESTING_NOTES.md)). GitHub Actions remains deferred.
 
@@ -310,6 +310,21 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 **Verification (reported, not independently executed by reviewer):** Codex reported **585/585 Vitest passing across 62 files**, successful production PWA build and `git diff --check` for implementation; focused follow-up reported **16/16 passing** for the Garden editor test file. The first full Playwright run yielded 39 passing and six failures due to obsolete alpha Garden draft fixtures; Copilot updated four fixture records (no production changes), then reported **6/6 previously failing cases and 45/45 full Playwright E2E tests passing**, with `git diff --check`. The gardener separately confirmed successful desktop browser and phone acceptance, including stepper navigation and browser Back/Forward buttons.
 
 **Remaining work:** Step-specific field organization and validation/finalization belong to **8A5**; Template entry/prefill cleanup belongs to **8A6**. This acceptance does not complete the broader UI redesign.
+
+
+#### GARDEN-UI-8A5
+
+**Accepted:** November 23, 2026 — gardener confirmation after desktop and Vivaldi Mobile acceptance tests.
+
+**Outcome:** Garden-specific five-step form registry with Identity, Details, Garden Type, Dates and Additional Options; active-step Continue validation with focus, validation-free Back, whole-Garden validation that returns to invalid earlier steps, durable icon/color/status/Save-as-Template draft fields, and final creation directly to Garden detail. Optional Save as Template opens an editable Template-name dialog before creation, with cancellation leaving the draft and no Garden/Template created; successful confirmation creates Garden, independent Template snapshot, and removes draft in one IndexedDB transaction. Existing Quick Start, Advanced, and Template application remain operational. Template selection UI within Wizard/Advanced intentionally remains until 8A6.
+
+**Code/verification evidence:** Implementation [`91a2853`](https://github.com/solacenetwork/solace-garden/commit/91a2853af6ff654d1d5766331a77cf17066dc2cf) and technical contract update in `TECH_SPEC.md`; fixture/validator test update [`2308a41`](https://github.com/solacenetwork/solace-garden/commit/2308a41ca2485b14a9cf6f4895720b6ab7db6188); new isolated-context four-test browser spec [`504eea5`](https://github.com/solacenetwork/solace-garden/commit/504eea578cfa3fa384f0d4adf25ca870ca48a55d). Codex reported **82/82 focused, 601/601 full Vitest, production PWA build and diff check passing**. Copilot reported fixture-contract Vitest **19/19** and **4/4 focused Wizard Playwright** plus **49/49 full Playwright** passing after a transient smoke-test timeout was cleared by isolated and full-suite reruns. These test commands were reported by the developer and agents, not independently executed by the document editor. Existing unit tests cover atomic rollback and draft retention on failure.
+
+**Manual acceptance:** The gardener confirmed the desktop checklist and phone checks passed, including field layout/touch interaction, validation, local draft reload/recovery, icon/color/status/options persistence, template-name dialog cancel/confirm, and browser Back/Forward retaining correct step and draft data. A phone storage-control issue (`CONTROL_DATABASE_MISSING` after clearing browsing history but not all site storage) was resolved by clearing Vivaldi's site data; it did not remain an 8A5 blocker.
+
+**Deferred usability observation (Step 10 item 18):** Vivaldi Mobile browser Back/Forward restores the correct Wizard step and data but scrolls to the page bottom and highlights/focuses Continue; gardener must manually scroll up to inspect the stepper. Investigate vertical scroll/focus restoration while preserving keyboard focus, intentional scrolling, horizontal stepper behavior and reduced motion. This does not block 8A5 acceptance.
+
+**Remaining UI redesign:** 8A6 Template entry/prefill, 8A7 Advanced refinement, 8A8 integrated tests, 8A9 final acceptance, subsequent 8B and Step 9/10. 8A5 acceptance does not complete the redesign.
 
 
 ## Future archive entries
