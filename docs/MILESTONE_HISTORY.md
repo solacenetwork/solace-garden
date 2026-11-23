@@ -324,8 +324,12 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 **Deferred usability observation (Step 10 item 18):** Vivaldi Mobile browser Back/Forward restores the correct Wizard step and data but scrolls to the page bottom and highlights/focuses Continue; gardener must manually scroll up to inspect the stepper. Investigate vertical scroll/focus restoration while preserving keyboard focus, intentional scrolling, horizontal stepper behavior and reduced motion. This does not block 8A5 acceptance.
 
-**Remaining UI redesign:** 8A6 Template entry/prefill, 8A7 Advanced refinement, 8A8 integrated tests, 8A9 final acceptance, subsequent 8B and Step 9/10. 8A5 acceptance does not complete the redesign.
+**Remaining UI redesign:** 8A7 Advanced refinement, 8A8 integrated tests, 8A9 final acceptance, subsequent 8B and Step 9/10. 8A5 acceptance does not complete the redesign.
 
+
+#### GARDEN-UI-8A6 — Template entry and one-time prefill
+
+**8A6 acceptance (November 23, 2026):** The gardener accepted desktop and phone workflows for scratch and Template-prefilled Wizard/Advanced creation, edited-draft reload, and the Gardens → Templates breadcrumb. Implementation: routing tests [`74d65fc`](https://github.com/solacenetwork/solace-garden/commit/74d65fcfabe48592885b79cbc6beedbc4d4d50bc), atomic initial prefill [`959220d`](https://github.com/solacenetwork/solace-garden/commit/959220d53933591e3f7b71d6375b8d00e3ce7ed1), editor cleanup/breadcrumb [`526ae30`](https://github.com/solacenetwork/solace-garden/commit/526ae301767c74e5d04cc8d12e1c34c0dd79f880), and updated E2E selectors [`584a9a9`](https://github.com/solacenetwork/solace-garden/commit/584a9a95211df2f562e7e17e705607360e92759d). Codex reported focused Vitest 43/43 (B) and 37/37 (C); Copilot reported full Playwright 49/49; developer confirmed `npm run build` succeeded. **Next: 8A7** Advanced form grouping and hiding editor switching (preserving underlying draft/mode functionality).
 
 ## Future archive entries
 
