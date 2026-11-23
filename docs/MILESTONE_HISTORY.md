@@ -331,6 +331,17 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 **8A6 acceptance (November 23, 2026):** The gardener accepted desktop and phone workflows for scratch and Template-prefilled Wizard/Advanced creation, edited-draft reload, and the Gardens → Templates breadcrumb. Implementation: routing tests [`74d65fc`](https://github.com/solacenetwork/solace-garden/commit/74d65fcfabe48592885b79cbc6beedbc4d4d50bc), atomic initial prefill [`959220d`](https://github.com/solacenetwork/solace-garden/commit/959220d53933591e3f7b71d6375b8d00e3ce7ed1), editor cleanup/breadcrumb [`526ae30`](https://github.com/solacenetwork/solace-garden/commit/526ae301767c74e5d04cc8d12e1c34c0dd79f880), and updated E2E selectors [`584a9a9`](https://github.com/solacenetwork/solace-garden/commit/584a9a95211df2f562e7e17e705607360e92759d). Codex reported focused Vitest 43/43 (B) and 37/37 (C); Copilot reported full Playwright 49/49; developer confirmed `npm run build` succeeded. **Next: 8A7** Advanced form grouping and hiding editor switching (preserving underlying draft/mode functionality).
 
+#### GARDEN-UI-8A8 — Integrated Playwright regression coverage
+
+**Accepted November 23, 2026.** The developer accepted the Copilot-authored Playwright tests and corrections, including follow-up coverage:
+
+- [`275dc47`](https://github.com/solacenetwork/solace-garden/commit/275dc47148ab6d03168c75863851d2be562fbfbb): new `tests/e2e/gardens/advanced-creation.spec.mjs` verifying Advanced Completed and Archived/Locked record creation and IndexedDB persistence, Advanced draft reload/resume, Save as Template cancel/confirm with Garden/Template records and draft consumption, Wizard/Advanced status isolation and absence of mode-switching controls. Updated the Gardens Hub synthetic draft to include required `isClosed: false` and aligned Template selectors with the `Geographic Location` label. No production-code changes.
+- [`8514628`](https://github.com/solacenetwork/solace-garden/commit/85146289db67703258c492f14bccae1fbdf48e24): added explicit Active + Locked creation/persistence and simultaneous five-section Advanced heading order. No production-code changes.
+
+**Reported verification:** Initial focused Advanced/Template **8/8** and Gardens Hub **3/3** passed; initial full Playwright **53/54** with unrelated navigation browser-context teardown timeout passing on isolated rerun. After follow-up, focused Advanced **7/7** passed; full Playwright **55/56** with unrelated short-desktop viewport-scrolling failure passing on isolated rerun. `git diff --check` passed in both assignments. These results support acceptance of the changes but **do not constitute a clean full-suite run**; retain possible intermittent test behavior as a testing observation. No confirmed application regression was reported.
+
+**Boundary:** This accepts **8A8 automated test changes**, not 8A9 final real-device/manual acceptance, production build or full Step 8A completion. 8A9 is next; 8B and Steps 9–10 follow. The source-code slices 8A7-A/B/C were reviewed separately.
+
 ## Future archive entries
 
 When additional milestones are accepted, copy the factual acceptance outcome, verified tests, implementation commits, caveats and original milestone ID here; link the concise roadmap status to the entry. Use the current GitHub documentation as the implementation contract and do not confuse earlier test counts with the latest suite.
