@@ -138,8 +138,8 @@ export function GardenAdvancedOptionsStep({ fields, errors, onChange, disabled, 
 					aria-describedby={[closedHelpId, errors.isClosed && closedErrorId].filter(Boolean).join(' ')}
 					onChange={(event) => onChange('isClosed', event.currentTarget.checked)}
 				/>
-				<label for={`${idPrefix}-isClosed`}>Closed</label>
-				<p id={closedHelpId} class="form-text">Closed Gardens are read-only. Archived Gardens must remain closed.</p>
+				<label for={`${idPrefix}-isClosed`}>Locked</label>
+				<p id={closedHelpId} class="form-text">Locked Gardens are read-only. Archived Gardens must remain locked.</p>
 				{errors.isClosed && <p id={closedErrorId} class="garden-create__field-error" role="alert">{errors.isClosed}</p>}
 			</div>
 			<SaveAsTemplateField checked={fields.saveAsTemplate} disabled={disabled} idPrefix={idPrefix} onChange={(value) => onChange('saveAsTemplate', value)} />
