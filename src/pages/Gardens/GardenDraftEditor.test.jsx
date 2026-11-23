@@ -30,7 +30,6 @@ vi.mock('preact/hooks', () => {
 
 import { GardenDraftEditor, GardenFinalizationTemplateDialog } from './FullGardenCreation.jsx';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
-import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
 import { GardenWizardIdentityStep } from './gardenWizardSteps.jsx';
 import { WizardStepper } from '../../components/WizardStepper.jsx';
 import { loadGardenDrafts } from './viewModel.js';
@@ -71,7 +70,11 @@ function editor({
 			draft = saved;
 			return saved;
 		}) },
-		templates: { list: vi.fn(async () => templates), resolveConfiguration: vi.fn() },
+		templates: {
+			getById: vi.fn(async (id) => templates.find((candidate) => candidate.id === id) ?? null),
+			list: vi.fn(async () => templates),
+			resolveConfiguration: vi.fn(),
+		},
 		locations: { list: vi.fn(async () => [{ id: 'home', name: 'Home' }]) },
 		types: { list: vi.fn(async () => []) },
 		gardens: {
@@ -113,11 +116,6 @@ function editor({
 function creationForm(tree) {
 	return nodes(tree).find((node) => node.type === 'form' && node.props.class === 'garden-full-create__form');
 }
-function selector(tree) {
-	const node = nodes(tree).find((node) => node.type === GardenTemplateSelection);
-	return GardenTemplateSelection(node.props);
-}
-
 function creationBreadcrumb(tree) {
 	const node = nodes(tree).find(({ type }) => type === GardenCreationBreadcrumb);
 	return { node, tree: GardenCreationBreadcrumb(node.props) };
@@ -131,7 +129,7 @@ beforeEach(() => {
 	hooks.query = { step: 'identity' };
 });
 
-describe('Wizard applied Template progression', () => {
+describe('Garden draft editor progression', () => {
 	it('blocks Continue on the active invalid step, preserves fields, and focuses the invalid control', async () => {
 		const focus = vi.fn();
 		vi.stubGlobal('document', {
@@ -258,37 +256,31 @@ describe('Wizard applied Template progression', () => {
 		expect(hooks.route).toHaveBeenCalledWith('/gardens/new');
 	});
 
-	it.each([false, true])('continues with edited fields without reapplying (deleted source: %s)', async (deleted) => {
-		const view = editor({ templates: deleted ? [] : [template] });
+	it.each(['wizard', 'advanced'])('opens %s directly without the obsolete Template chooser', async (mode) => {
+		const view = editor({ mode });
 		await view.mount();
 		const tree = view.render();
-		const selection = selector(tree);
-		expect(nodes(selection).filter((node) => node.type === 'button')).toHaveLength(0);
-		if (deleted) expect(JSON.stringify(selection)).toContain('Source Template unavailable');
-		else {
-			expect(JSON.stringify(selection)).toContain('Applied');
-			expect(nodes(selection).filter((node) => node.type === 'input').map((node) => node.props.checked)).toEqual([false, true]);
+		const rendered = JSON.stringify(tree);
+		expect(rendered).not.toContain('Choose how to start');
+		expect(rendered).not.toContain('Start from Scratch');
+		expect(rendered).not.toContain('Manage Templates');
+		if (mode === 'wizard') {
+			expect(nodes(tree).find((node) => node.type === WizardStepper)).toBeDefined();
+			expect(nodes(tree).find((node) => node.type === GardenWizardIdentityStep).props.fields).toEqual(fields);
+		} else {
+			expect(rendered).toContain('Garden details');
 		}
-		const next = button(tree, 'Continue');
-		expect(next.props.disabled).toBe(false);
-		next.props.onClick();
-		expect(nodes(view.render()).find((node) => node.type === GardenWizardIdentityStep).props.fields).toEqual(fields);
+		expect(view.workspace.templates.getById).toHaveBeenCalledWith(template.id);
+		expect(view.workspace.templates.list).not.toHaveBeenCalled();
 		expect(view.workspace.templates.resolveConfiguration).not.toHaveBeenCalled();
-		expect(view.workspace.drafts.save).not.toHaveBeenCalled();
 	});
 
-	it.each(['source', null])('requires applying a new selection and persists only the applied association (source: %s)', async (sourceTemplateId) => {
-		const other = { ...template, id: 'other' };
-		const view = editor({ templates: [template, other], sourceTemplateId });
+	it('preserves a missing-source notice without restoring Template controls', async () => {
+		const view = editor({ templates: [] });
 		await view.mount();
-		const choices = nodes(selector(view.render())).filter((node) => node.type === 'input');
-		choices[2].props.onChange();
-		const tree = view.render();
-		expect(button(tree, 'Continue').props.disabled).toBe(true);
-		expect(JSON.stringify(selector(tree))).toContain('Apply Template');
-		await button(tree, 'Switch to Advanced').props.onClick();
-		expect(view.draft).toMatchObject({ sourceTemplateId, fields, preferredEditor: 'advanced' });
-		expect(view.workspace.templates.resolveConfiguration).not.toHaveBeenCalled();
+		const rendered = JSON.stringify(view.render());
+		expect(rendered).toContain('source Template is no longer available');
+		expect(rendered).not.toContain('Choose how to start');
 	});
 
 	it('preserves fields and source across Advanced → Wizard → Advanced, and continues normally', async () => {
@@ -300,7 +292,6 @@ describe('Wizard applied Template progression', () => {
 		view.switchMode('wizard');
 		await view.mount();
 		const tree = view.render();
-		expect(nodes(selector(tree)).filter((node) => node.type === 'input')[1].props.checked).toBe(true);
 		expect(button(tree, 'Continue').props.disabled).toBe(false);
 		await button(tree, 'Continue').props.onClick();
 		expect(nodes(view.render()).find((node) => node.type === GardenWizardIdentityStep).props.fields).toEqual(fields);
@@ -336,18 +327,6 @@ describe('Wizard applied Template progression', () => {
 		expect(hooks.route).toHaveBeenLastCalledWith('/gardens');
 	});
 
-	it('clears the association for Start from Scratch while keeping fields and allowing Continue', async () => {
-		const view = editor();
-		await view.mount();
-		const selectionNode = nodes(view.render()).find((node) => node.type === GardenTemplateSelection);
-		await selectionNode.props.onSelect(null);
-		expect(view.draft).toMatchObject({ sourceTemplateId: null, fields });
-		const tree = view.render();
-		expect(button(tree, 'Continue').props.disabled).toBe(false);
-		button(tree, 'Continue').props.onClick();
-		expect(nodes(view.render()).find((node) => node.type === GardenWizardIdentityStep).props.fields).toEqual(fields);
-		expect(view.workspace.templates.resolveConfiguration).not.toHaveBeenCalled();
-	});
 });
 
 describe('Wizard finalization', () => {

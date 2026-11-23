@@ -30,26 +30,6 @@ export function gardenDraftFieldsFromTemplate(configuration, currentFields = EMP
 	};
 }
 
-export function gardenTemplateWouldOverwriteDraft(currentFields, templateFields) {
-	const currentTypeIds = currentFields.typeIds ?? [];
-	const templateTypeIds = templateFields.typeIds ?? [];
-	return (
-		(currentFields.name.trim() !== '' && currentFields.name !== templateFields.name)
-		|| (currentFields.description.trim() !== '' && currentFields.description !== templateFields.description)
-		|| (
-			currentFields.locationId !== DEFAULT_LOCATION_ID
-			&& currentFields.locationId !== templateFields.locationId
-		)
-		|| (
-			currentTypeIds.length > 0
-			&& (
-				currentTypeIds.length !== templateTypeIds.length
-				|| currentTypeIds.some((id, index) => id !== templateTypeIds[index])
-			)
-		)
-	);
-}
-
 export function gardenInputFromDraftFields(fields) {
 	return {
 		name: fields.name,

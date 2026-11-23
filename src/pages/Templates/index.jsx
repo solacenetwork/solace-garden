@@ -93,6 +93,13 @@ export function TemplateDeletionDialog({
 export function TemplatesPageView({ state, message = '', onRetry, onRequestDelete }) {
 	return (
 		<section class="container templates-page" aria-labelledby="templates-title">
+			<nav class="garden-creation-breadcrumb" aria-label="Templates breadcrumb">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item"><a class="breadcrumb-link" href="/gardens">Gardens</a></li>
+					<li class="breadcrumb-divider" aria-hidden="true"></li>
+					<li class="breadcrumb-item"><span class="breadcrumb-link active" aria-current="page">Templates</span></li>
+				</ol>
+			</nav>
 			<header class="templates-page__header">
 				<p class="templates-page__eyebrow">Reusable Garden setup</p>
 				<h1 id="templates-title">Templates</h1>

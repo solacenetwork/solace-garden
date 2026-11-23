@@ -72,6 +72,20 @@ describe('Templates management page', () => {
 		};
 	}
 
+	it('renders the Gardens to Templates breadcrumb with Templates as the current page', () => {
+		const view = TemplatesPageView({ state: { status: 'loading', items: [] } });
+		const navigation = nodes(view).find((node) => node.type === 'nav');
+		const links = nodes(navigation).filter((node) => node.type === 'a');
+		const current = nodes(navigation).find((node) => node.props?.['aria-current'] === 'page');
+
+		expect(navigation.props).toMatchObject({
+			class: 'garden-creation-breadcrumb',
+			'aria-label': 'Templates breadcrumb',
+		});
+		expect(links.map(({ props }) => [props.href, props.children])).toEqual([['/gardens', 'Gardens']]);
+		expect(current.props).toMatchObject({ class: 'breadcrumb-link active', children: 'Templates' });
+	});
+
 	it('renders loading, retryable errors, and an informative empty state', () => {
 		const retry = vi.fn();
 		expect(nodes(TemplatesPageView({ state: { status: 'loading', items: [] } }))

@@ -10,14 +10,12 @@ import {
 	createGardenDraftsService,
 	gardenDraftFieldsFromTemplate,
 	gardenInputFromDraftFields,
-	gardenTemplateWouldOverwriteDraft,
 } from '../../services/gardenDrafts.js';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';
 import { createGardensService } from '../../services/gardens.js';
 import { createGardenTypesService } from '../../services/gardenTypes.js';
 import { createLocationsService, DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import { StorageError, ValidationError } from '../../storage/errors.js';
-import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
 import { SaveTemplateDialog, suggestedTemplateName } from './TemplateNameDialog.jsx';
 import {
 	GARDEN_FIELD_STEP_IDS, gardenWizardStepRegistration,
@@ -58,41 +56,6 @@ function useGardenCreationWorkspace() {
 	}), [repositories]);
 }
 
-export async function applyTemplateToGardenDraft({
-	templateId,
-	draft,
-	currentFields,
-	autosave,
-	drafts,
-	templates,
-	confirmReplacement = () => globalThis.confirm('Applying this Template will replace details already entered in this draft. Continue?'),
-}) {
-	const resolution = await templates.resolveConfiguration(templateId);
-	if (!resolution) return { status: 'missing' };
-	const fields = gardenDraftFieldsFromTemplate(resolution.configuration, currentFields);
-	if (gardenTemplateWouldOverwriteDraft(currentFields, fields) && !confirmReplacement()) {
-		return { status: 'cancelled' };
-	}
-	await autosave.stop();
-	const saved = await drafts.save({
-		id: draft.id,
-		fields,
-		sourceTemplateId: templateId,
-		preferredEditor: draft.preferredEditor,
-		currentStepId: draft.currentStepId,
-		createdAt: draft.createdAt,
-	});
-	return {
-		status: 'applied',
-		fields: saved.fields,
-		sourceTemplateId: saved.sourceTemplateId,
-		preferredEditor: saved.preferredEditor,
-		currentStepId: saved.currentStepId,
-		createdAt: saved.createdAt,
-		locationResolution: resolution.locationResolution,
-	};
-}
-
 export async function initializeGardenDraft({
 	mode,
 	templateId = null,
@@ -116,18 +79,6 @@ export async function initializeGardenDraft({
 		preferredEditor: mode,
 		initialFields: gardenDraftFieldsFromTemplate(resolution.configuration),
 		sourceTemplateId: templateId,
-	});
-}
-
-export async function clearTemplateFromGardenDraft({ draft, currentFields, autosave, drafts }) {
-	await autosave.stop();
-	return drafts.save({
-		id: draft.id,
-		fields: currentFields,
-		sourceTemplateId: null,
-		preferredEditor: draft.preferredEditor,
-		currentStepId: draft.currentStepId,
-		createdAt: draft.createdAt,
 	});
 }
 
@@ -258,8 +209,6 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 	const [errors, setErrors] = useState({});
 	const [message, setMessage] = useState('');
 	const [busy, setBusy] = useState(false);
-	const [selectedTemplateId, setSelectedTemplateId] = useState(draft.sourceTemplateId);
-	const [templateState, setTemplateState] = useState({ status: 'loading' });
 	const [templateNotice, setTemplateNotice] = useState('');
 	const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
 	const [templateDialogError, setTemplateDialogError] = useState('');
@@ -342,32 +291,30 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		}
 	}, [mode, requestedStepId, route, stepResolution?.status, stepResolution?.stepId, wizardPath]);
 
-	async function loadTemplates() {
-		setTemplateState({ status: 'loading' });
-		try {
-			const templates = await workspace.templates.list();
-			setTemplateState({ status: 'ready', templates });
-			const source = templates.find(({ id }) => id === sourceTemplateIdRef.current);
+	useEffect(() => {
+		const sourceTemplateId = sourceTemplateIdRef.current;
+		if (!sourceTemplateId) return undefined;
+		let active = true;
+		void workspace.templates.getById(sourceTemplateId).then((source) => {
+			if (!active) return;
 			templateLocationOrigin.current = templateLocationOriginForDraft({
 				fields: fieldsRef.current,
-				sourceTemplateId: sourceTemplateIdRef.current,
-			}, templates);
-			if (sourceTemplateIdRef.current && !source) {
+				sourceTemplateId,
+			}, source ? [source] : []);
+			if (!source) {
 				setTemplateNotice('The source Template is no longer available. Your independent draft and edits are preserved.');
 			} else if (
-				source
-				&& source.configuration.locationId !== fieldsRef.current.locationId
+				source.configuration.locationId !== fieldsRef.current.locationId
 				&& fieldsRef.current.locationId === DEFAULT_LOCATION_ID
 				&& !currentReferences.locations.some(({ id }) => id === source.configuration.locationId)
 			) {
 				setTemplateNotice('The Template’s saved Location is no longer available, so Default Location was selected.');
 			}
-		} catch (error) {
-			setTemplateState({ status: 'error', error });
-		}
-	}
-
-	useEffect(() => { void loadTemplates(); }, [workspace.templates]);
+		}, (error) => {
+			if (active) setMessage(creationError(error, 'opened'));
+		});
+		return () => { active = false; };
+	}, [workspace.templates]);
 
 	function changeField(field, value) {
 		if (field === 'locationId') {
@@ -381,90 +328,6 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		});
 		setErrors((current) => ({ ...current, [field]: undefined }));
 		setMessage('');
-	}
-
-	async function applySelectedTemplate() {
-		if (!selectedTemplateId || busy) return;
-		setBusy(true);
-		setMessage('');
-		setTemplateNotice('');
-		try {
-			const result = await applyTemplateToGardenDraft({
-				templateId: selectedTemplateId,
-				draft: {
-					id: draft.id,
-					createdAt: createdAt.current,
-					preferredEditor: preferredEditorRef.current,
-					currentStepId: currentStepIdRef.current,
-				},
-				currentFields: fieldsRef.current,
-				autosave,
-				drafts: { save: saveDraft },
-				templates: workspace.templates,
-			});
-			if (result.status === 'cancelled') return;
-			if (result.status === 'missing') {
-				setSelectedTemplateId(sourceTemplateIdRef.current);
-				setMessage('That Template was deleted before it could be applied. Choose another Template or continue from scratch.');
-				await loadTemplates();
-				return;
-			}
-			createdAt.current = result.createdAt;
-			sourceTemplateIdRef.current = result.sourceTemplateId;
-			preferredEditorRef.current = result.preferredEditor;
-			fieldsRef.current = result.fields;
-			setFields(result.fields);
-			setErrors({});
-			setStatus('draft-saved');
-			templateLocationOrigin.current = { locationId: result.fields.locationId };
-			setTemplateNotice(result.locationResolution.fallbackOccurred
-				? 'Template applied. Its saved Location is no longer available, so Default Location was selected.'
-				: 'Template applied to this draft. The Garden remains independent of the Template.');
-		} catch (error) {
-			setStatus('error');
-			setMessage(creationError(error, 'saved'));
-		} finally {
-			setBusy(false);
-		}
-	}
-
-	async function selectTemplateSource(templateId) {
-		if (templateId !== null) {
-			setSelectedTemplateId(templateId);
-			return;
-		}
-		if (busy) return;
-		if (sourceTemplateIdRef.current === null) {
-			setSelectedTemplateId(null);
-			return;
-		}
-		setBusy(true);
-		setMessage('');
-		try {
-			const saved = await clearTemplateFromGardenDraft({
-				draft: {
-					id: draft.id,
-					preferredEditor: preferredEditorRef.current,
-					currentStepId: currentStepIdRef.current,
-					createdAt: createdAt.current,
-				},
-				currentFields: fieldsRef.current,
-				autosave,
-				drafts: { save: saveDraft },
-			});
-			createdAt.current = saved.createdAt;
-			sourceTemplateIdRef.current = null;
-			setSelectedTemplateId(null);
-			templateLocationOrigin.current = null;
-			setTemplateNotice('Start from Scratch selected. Existing draft fields were kept.');
-			setStatus('draft-saved');
-		} catch (error) {
-			setSelectedTemplateId(sourceTemplateIdRef.current);
-			setStatus('error');
-			setMessage(creationError(error, 'saved'));
-		} finally {
-			setBusy(false);
-		}
 	}
 
 	async function persistCurrent({
@@ -727,8 +590,6 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 	const nextStepId = activeStepIndex >= 0 && activeStepIndex < resolvedWizardSteps.length - 1
 		? adjacentWizardStepId(resolvedWizardSteps, activeStepId, 1)
 		: null;
-	const pendingTemplateSelection = selectedTemplateId !== null
-		&& selectedTemplateId !== sourceTemplateIdRef.current;
 	return (
 		<section class="container gardens-page garden-full-create" aria-labelledby="full-create-title">
 			<GardenCreationBreadcrumb
@@ -749,7 +610,6 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 
 			<form class="garden-full-create__form" noValidate onSubmit={createGarden}>
 				{mode === 'wizard' ? <>
-					<GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} sourceTemplateId={sourceTemplateIdRef.current} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="wizard-garden" />
 					<WizardStepper steps={resolvedWizardSteps} activeStepId={activeStepId} label="Garden creation progress" />
 					<section class="garden-wizard__stage" aria-labelledby="wizard-stage-title">
 						<h2 id="wizard-stage-title">{activeStep.title}</h2>
@@ -758,11 +618,10 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 					<div class="garden-full-create__actions">
 						<button class="btn-outline" type="button" disabled={busy} onClick={() => previousStepId ? navigateToWizardStep(previousStepId) : navigatePreservingDraft('/gardens')}>{previousStepId ? 'Back' : 'Back to Gardens'}</button>
 						{nextStepId
-							? <button class="btn-solid theme-primary" type="button" disabled={busy || pendingTemplateSelection} onClick={continueWizard}>Continue</button>
-							: <button class="btn-solid theme-primary" type="submit" disabled={busy || pendingTemplateSelection}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Finish & Create Garden'}</button>}
+							? <button class="btn-solid theme-primary" type="button" disabled={busy} onClick={continueWizard}>Continue</button>
+							: <button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Finish & Create Garden'}</button>}
 					</div>
 				</> : <>
-					<GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} sourceTemplateId={sourceTemplateIdRef.current} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="advanced-garden" />
 					<section aria-labelledby="advanced-details-title"><h2 id="advanced-details-title">Garden details</h2><GardenFields fields={fields} errors={errors} locations={currentReferences.locations} types={currentReferences.types} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>
 					<div class="garden-full-create__actions"><button class="btn-outline" type="button" disabled={busy} onClick={() => navigatePreservingDraft('/gardens')}>Back to Gardens</button><button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button></div>
 				</>}
