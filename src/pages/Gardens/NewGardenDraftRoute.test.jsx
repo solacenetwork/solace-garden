@@ -51,18 +51,25 @@ beforeEach(() => {
 });
 
 describe('new Garden draft route navigation', () => {
-	it('preserves a selected Template identifier without applying it to the draft', async () => {
+	it.each([
+		['wizard', `?source=template&id=${TEMPLATE_ID}&step=identity`, 'identity'],
+		['advanced', `?source=template&id=${TEMPLATE_ID}`, null],
+	])('preserves a selected Template identifier for %s without applying it to the draft', async (
+		mode,
+		expectedSearch,
+		currentStepId,
+	) => {
 		harness.query = { source: 'template', id: TEMPLATE_ID };
-		await start('wizard');
+		await start(mode);
 
 		expect(harness.repositories.drafts.add).toHaveBeenCalledWith(expect.objectContaining({
 			id: expect.any(String),
-			preferredEditor: 'wizard',
+			preferredEditor: mode,
 			sourceTemplateId: null,
-			currentStepId: 'identity',
+			currentStepId,
 		}));
 		expect(harness.route).toHaveBeenCalledWith(
-			`/gardens/new/wizard/${DRAFT_ID}?source=template&id=${TEMPLATE_ID}&step=identity`,
+			`/gardens/new/${mode}/${DRAFT_ID}${expectedSearch}`,
 			true,
 		);
 	});
