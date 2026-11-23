@@ -3,7 +3,7 @@
 **Status:** Local Playwright testing foundation accepted, November 16, 2026.  
 **Historical baseline:** **57/57 Playwright tests passed in 49.6 seconds** on `oakisland` on November 16 (developer-run, LMDE 7).
 
-**Latest verified full run:** **45/45 Playwright tests passed** on November 22, 2026, after shell navigation regression coverage was added.
+**Latest developer-reported full run:** **49/49 Playwright tests passed** on November 23, 2026, after four Garden Wizard 8A5 regression cases were added; an earlier intermittent smoke timeout passed on isolated retest and the subsequent complete rerun. (The tests were not independently run by this document editor.)
 **Quick command reference:** [tests/README.md](../tests/README.md).  
 **Related docs:** [UI_REDESIGN.md](UI_REDESIGN.md), [UI_REVIEW_NOTES.md](UI_REVIEW_NOTES.md), [ROADMAP.md](ROADMAP.md).
 
@@ -157,12 +157,14 @@ Also compare browser version, extensions/profile, window state and touchpad/mous
 - The focused Gardens Hub spec checks ordered sections, lifecycle classification, Draft isolation and resume links, Garden card destinations, and header/Standard navigation routes. Run it with `npx playwright test tests/e2e/gardens/gardens-hub.spec.mjs`.
 - Task/Wish List create, edit, complete/purchase, manual reorder, reload persistence, and top insertion without disturbing existing order are covered by `tests/e2e/lists/workflows.spec.mjs`; deletion confirmation/persistence is covered separately.
 - Note create/edit/reload persistence and recoverable-draft discard protection are covered by `tests/e2e/notes/notes-persistence.spec.mjs`; the editor accessibility test deliberately **does not click Save**. Note deletion confirmation and persistence remain uncovered.
-- **Quick Start create/reload is now covered** by the focused November 21 spec. Remaining Garden creation coverage includes Wizard-specific steps and draft recovery. Add Wizard browser-history and step-resume cases **after** 8A4–8A6 implementation stabilizes.
-- Garden Template save/reload/delete, Advanced application and editing, independent creation/reload, and deleted-Location fallback are covered by `tests/e2e/gardens/templates.spec.mjs`. Garden lifecycle transitions, lock/unlock behavior, and Garden deletion/association cleanup are covered by `tests/e2e/gardens/lifecycle-deletion.spec.mjs`. Remaining Garden creation coverage includes draft recovery and Wizard-specific navigation; defer Wizard cases until 8A4–8A6 stabilize. Broader lifecycle and association workflows across interface modes, mobile layouts, and installed offline PWA remain outside this focused suite.
+- **Quick Start create/reload is covered** by the focused November 21 spec. **Wizard 8A5 browser coverage was added November 23** in `tests/e2e/gardens/wizard-finalization.spec.mjs` (four isolated-context tests): five-step rendering; required name/invalid-date focus; validation-free Back and browser history; draft autosave/reload with icon/color/type/date preservation; whole-Garden final validation returning to Identity; Save-as-Template dialog cancel/confirm; IndexedDB assertions for Garden/Template creation and draft consumption. More comprehensive Template chooser/prefill tests belong to 8A6.
+- Garden Template save/reload/delete, Advanced application and editing, independent creation/reload, and deleted-Location fallback are covered by `tests/e2e/gardens/templates.spec.mjs`. Garden lifecycle transitions, lock/unlock behavior, and Garden deletion/association cleanup are covered by `tests/e2e/gardens/lifecycle-deletion.spec.mjs`. Wizard 8A5 draft recovery, finalization and navigation are now covered by the new isolated-context E2E spec; more comprehensive Template entry/prefill regression tests remain for 8A6. Broader lifecycle and association workflows across interface modes, mobile layouts, and installed offline PWA remain outside this focused suite.
 - Shell navigation and accessible More/Drawer interactions are covered by `tests/e2e/navigation/shell-navigation.spec.mjs`. Coverage uses representative desktop, phone, and medium viewports; other browsers and fine-grained responsive breakpoints are not covered.
 - Offline/PWA startup, caching and update flows; practical testing on real devices.
 
 These are candidates, **not implemented tests**. Add them incrementally as requirements stabilize and their regression value justifies maintenance.
+
+**Real-device limitation found during 8A5 manual acceptance (November 23):** On Vivaldi Mobile, browser Back/Forward retains the correct Wizard step and draft data but scrolls to the page bottom and highlights/focuses Continue. This did not block functional acceptance; vertical scroll/focus-restoration polish is tracked in [UI_REDESIGN.md](UI_REDESIGN.md) Step 10 item 18. Chromium Playwright passing does not prove this mobile-browser usability behavior is fixed.
 
 ## 8. Keeping this document useful
 
