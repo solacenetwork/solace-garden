@@ -10,7 +10,7 @@ function copyRecord(record) {
 
 const GARDEN_DRAFT_FIELDS = Object.freeze([
 	'name', 'subtitle', 'icon', 'color', 'description', 'locationId', 'typeIds', 'startDate', 'endDate',
-	'status', 'saveAsTemplate',
+	'status', 'isClosed', 'saveAsTemplate',
 ]);
 const GARDEN_DRAFT_CONTEXT_FIELDS = Object.freeze([
 	'sourceTemplateId', 'preferredEditor', 'currentStepId',
@@ -48,8 +48,10 @@ function validateGardenDraftFields(fields) {
 			throw new ValidationError('INVALID_GARDEN_DRAFT_FIELD', `${field} must be text or null.`, { field });
 		}
 	}
-	if (typeof fields.saveAsTemplate !== 'boolean') {
-		throw new ValidationError('INVALID_GARDEN_DRAFT_FIELD', 'saveAsTemplate must be a boolean.', { field: 'saveAsTemplate' });
+	for (const field of ['isClosed', 'saveAsTemplate']) {
+		if (typeof fields[field] !== 'boolean') {
+			throw new ValidationError('INVALID_GARDEN_DRAFT_FIELD', `${field} must be a boolean.`, { field });
+		}
 	}
 }
 

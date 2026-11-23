@@ -49,7 +49,7 @@ const template = {
 const fields = {
 	name: 'Edited after application', subtitle: 'Keep subtitle', icon: null, color: null,
 	description: 'Keep description', locationId: 'home', typeIds: [], startDate: '2026-04-01',
-	endDate: '', status: 'planned', saveAsTemplate: false,
+	endDate: '', status: 'planned', isClosed: false, saveAsTemplate: false,
 };
 
 function editor({
@@ -88,6 +88,11 @@ function editor({
 			}),
 			createFromDraft,
 			createFromDraftWithTemplate,
+			advanced: {
+				validate: vi.fn((input) => input),
+				createFromDraft,
+				createFromDraftWithTemplate,
+			},
 		},
 	};
 	const references = { locations: [{ id: 'home', name: 'Home' }], types: [] };

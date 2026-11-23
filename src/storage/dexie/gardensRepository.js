@@ -3,8 +3,8 @@ import { StorageError, ValidationError } from '../errors.js';
 import { validateRecordId } from '../validation.js';
 import { validateGardenTypeSelection } from '../gardenTypeValidation.js';
 import {
-	GARDEN_EDITABLE_FIELDS, gardenError, validateGardenFields, validateGardenRecord,
-	validateGardenLifecycle,
+	GARDEN_CREATION_POLICIES, GARDEN_EDITABLE_FIELDS, gardenError, validateGardenFields,
+	validateGardenRecord, validateGardenLifecycle,
 } from '../gardenValidation.js';
 import {
 	normalizeTemplateConfiguration, normalizeTemplateName, validateTemplateRecord,
@@ -36,11 +36,11 @@ export function createGardensRepository(database, {
 		}
 		validateGardenTypeSelection(record.typeIds, await types.toArray());
 	}
-	function prepareCreate(record) {
+	function prepareCreate(record, creationPolicy = GARDEN_CREATION_POLICIES.ORDINARY) {
 		validateGardenFields(record, [...GARDEN_EDITABLE_FIELDS, 'status', 'isClosed',
 			'icon', 'color', 'thumbnailMediaId', 'layoutMediaId', 'createdAt', 'updatedAt']);
 		const garden = { ...record, typeIds: Array.isArray(record.typeIds) ? [...record.typeIds] : record.typeIds, id: randomUUID() };
-		validateGardenRecord(garden, { creating: true });
+		validateGardenRecord(garden, { creationPolicy });
 		return garden;
 	}
 	async function persistCreate(garden) {
@@ -98,15 +98,15 @@ export function createGardensRepository(database, {
 			validateRecordId(id);
 			return run('get Garden', async () => copy(await gardens.get(id)));
 		},
-		async create(record) {
-			const garden = prepareCreate(record);
+		async create(record, { creationPolicy } = {}) {
+			const garden = prepareCreate(record, creationPolicy);
 			return run('create Garden', () => database.transaction('rw', gardens, locations, types, async () => {
 				return persistCreate(garden);
 			}));
 		},
-		async createFromDraft(record, draftId, templateRequest) {
+		async createFromDraft(record, draftId, templateRequest, { creationPolicy } = {}) {
 			validateRecordId(draftId, 'draftId');
-			const garden = prepareCreate(record);
+			const garden = prepareCreate(record, creationPolicy);
 			return run('create Garden from draft', () => database.transaction(
 				'rw', gardens, locations, types, drafts, templates, async () => {
 					const draft = await drafts.get(draftId);

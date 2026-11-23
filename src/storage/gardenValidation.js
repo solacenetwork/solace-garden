@@ -12,6 +12,10 @@ const MEDIA_FIELDS = ['thumbnailMediaId', 'layoutMediaId'];
 const RECORD_FIELDS = [...GARDEN_EDITABLE_FIELDS, ...MEDIA_FIELDS,
 	'id', 'status', 'isClosed', 'createdAt', 'updatedAt'];
 export const GARDEN_STATUSES = Object.freeze(['planned', 'active', 'completed', 'archived']);
+export const GARDEN_CREATION_POLICIES = Object.freeze({
+	ORDINARY: 'ordinary',
+	ADVANCED: 'advanced',
+});
 
 export function gardenError(code, message, field = 'garden') {
 	return new ValidationError(code, message, { field });
@@ -110,10 +114,13 @@ export function validateGardenLifecycle(value, field = 'lifecycle') {
 }
 
 export function validateGardenRecord(record, {
-	creating = false,
+	creationPolicy = null,
 	preserveInvalidIcon = false,
 	preserveInvalidColor = false,
 } = {}) {
+	if (creationPolicy !== null && !Object.values(GARDEN_CREATION_POLICIES).includes(creationPolicy)) {
+		throw gardenError('INVALID_GARDEN_CREATION_POLICY', 'Garden creation policy is invalid.');
+	}
 	validateGardenFields(record, RECORD_FIELDS);
 	validateRecordId(record.id);
 	const normalizedFields = GARDEN_EDITABLE_FIELDS.filter((field) =>
@@ -128,11 +135,12 @@ export function validateGardenRecord(record, {
 	}
 	validateGardenDateOrder(record);
 	validateGardenLifecycle({ status: record.status, isClosed: record.isClosed });
-	if (creating && (!['planned', 'active'].includes(record.status) || record.isClosed)) {
+	if (creationPolicy === GARDEN_CREATION_POLICIES.ORDINARY &&
+		(!['planned', 'active'].includes(record.status) || record.isClosed)) {
 		throw gardenError('INVALID_GARDEN_LIFECYCLE', 'New Gardens must be Planned or Active and open.');
 	}
 	for (const field of MEDIA_FIELDS) {
-		if (creating && record[field] !== null) {
+		if (creationPolicy !== null && record[field] !== null) {
 			throw gardenError('UNSUPPORTED_GARDEN_FIELD', `${field} must initially be null.`, field);
 		}
 	}

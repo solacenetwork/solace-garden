@@ -14,7 +14,7 @@ const references = {
 };
 const fields = {
 	name: 'Garden', subtitle: '', icon: null, color: null, description: '', locationId: DEFAULT_LOCATION_ID,
-	typeIds: [], startDate: '', endDate: '', status: 'planned', saveAsTemplate: false,
+	typeIds: [], startDate: '', endDate: '', status: 'planned', isClosed: false, saveAsTemplate: false,
 };
 
 const template = {

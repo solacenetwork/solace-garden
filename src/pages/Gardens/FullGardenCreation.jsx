@@ -472,7 +472,8 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 			await persistTemplateLocationFallback(locationResult);
 			throw new ValidationError('LOCATION_FALLBACK_REVIEW', 'Default Location was selected. Review it before creating this Garden.', { field: 'locationId' });
 		}
-		return validateGardenDraftForReview(fieldsRef.current, freshReferences, workspace.gardens);
+		const creation = mode === 'advanced' ? workspace.gardens.advanced : workspace.gardens;
+		return validateGardenDraftForReview(fieldsRef.current, freshReferences, creation);
 	}
 
 	async function showFinalValidationError(error) {
@@ -497,11 +498,12 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		try {
 			const input = await completeInputValidation();
 			setErrors({});
+			const creation = mode === 'advanced' ? workspace.gardens.advanced : workspace.gardens;
 			let result;
 			try {
 				result = templateName === null
-					? await workspace.gardens.createFromDraft(input, draft.id)
-					: await workspace.gardens.createFromDraftWithTemplate(input, draft.id, templateName);
+					? await creation.createFromDraft(input, draft.id)
+					: await creation.createFromDraftWithTemplate(input, draft.id, templateName);
 			} catch (error) {
 				if (error?.code !== 'LOCATION_NOT_FOUND' || !templateLocationOrigin.current) throw error;
 				const latestLocations = await workspace.locations.list();

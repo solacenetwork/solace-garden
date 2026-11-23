@@ -49,7 +49,8 @@ describe('Garden draft fixture contract', () => {
 function fields(overrides = {}) {
 	return {
 		name: 'Tomatoes', subtitle: '', icon: null, color: null, description: '', locationId: DEFAULT_LOCATION_ID,
-		typeIds: [], startDate: '', endDate: '', status: 'planned', saveAsTemplate: false, ...overrides,
+		typeIds: [], startDate: '', endDate: '', status: 'planned', isClosed: false,
+		saveAsTemplate: false, ...overrides,
 	};
 }
 
@@ -302,9 +303,32 @@ describe('Recoverable Garden drafts', () => {
 		expect(await drafts.getById(FIRST_DRAFT)).toBeNull();
 	});
 
+	it('atomically creates an Advanced historical Garden with its Template', async () => {
+		await drafts.create();
+		const saved = await drafts.save({
+			id: FIRST_DRAFT,
+			fields: fields({
+				name: 'Archived Kitchen Garden', description: 'Historical setup',
+				status: 'archived', isClosed: true, typeIds: ['container'],
+			}),
+		});
+		const result = await gardens.advanced.createFromDraftWithTemplate(
+			gardenInputFromDraftFields(saved.fields), FIRST_DRAFT, 'Archived Kitchen Plan',
+		);
+		const templates = createGardenTemplatesService(storage.repositories.gardenTemplates);
+
+		expect(result.garden).toMatchObject({ status: 'archived', isClosed: true });
+		expect(result.template).toMatchObject({ name: 'Archived Kitchen Plan' });
+		expect(await templates.list()).toEqual([result.template]);
+		expect(await drafts.getById(FIRST_DRAFT)).toBeNull();
+	});
+
 	it('rolls back Garden creation and retains the draft when coordinated Template persistence fails', async () => {
 		await drafts.create();
-		const saved = await drafts.save({ id: FIRST_DRAFT, fields: fields() });
+		const saved = await drafts.save({
+			id: FIRST_DRAFT,
+			fields: fields({ status: 'completed', isClosed: true }),
+		});
 		const failTemplate = vi.fn(() => { throw new Error('simulated Template failure'); });
 		const hooked = await initializeDexieStorage({
 			dependencies,
@@ -317,7 +341,7 @@ describe('Recoverable Garden drafts', () => {
 		});
 		try {
 			const hookedGardens = createGardensService(hooked.repositories.gardens, { now: () => UPDATED });
-			await expect(hookedGardens.createFromDraftWithTemplate(
+			await expect(hookedGardens.advanced.createFromDraftWithTemplate(
 				gardenInputFromDraftFields(saved.fields), FIRST_DRAFT, 'Tomato Plan',
 			)).rejects.toMatchObject({ code: 'STORAGE_OPERATION_FAILED' });
 			expect(failTemplate).toHaveBeenCalledOnce();
@@ -343,6 +367,20 @@ describe('Recoverable Garden drafts', () => {
 		await expect(gardens.createFromDraft(gardenInputFromDraftFields(valid.fields), FIRST_DRAFT))
 			.rejects.toMatchObject({ code: 'GARDEN_DRAFT_NOT_FOUND' });
 		expect(await gardens.list()).toHaveLength(1);
+	});
+
+	it('retains the draft when Advanced lifecycle validation fails', async () => {
+		await drafts.create({ preferredEditor: 'advanced' });
+		const saved = await drafts.save({
+			id: FIRST_DRAFT,
+			fields: fields({ status: 'archived', isClosed: false }),
+		});
+
+		await expect(gardens.advanced.createFromDraft(
+			gardenInputFromDraftFields(saved.fields), FIRST_DRAFT,
+		)).rejects.toMatchObject({ code: 'INVALID_GARDEN_LIFECYCLE' });
+		expect(await drafts.getById(FIRST_DRAFT)).toEqual(saved);
+		expect(await gardens.list()).toEqual([]);
 	});
 
 	it('rejects invalid dates while retaining the correctable draft', async () => {

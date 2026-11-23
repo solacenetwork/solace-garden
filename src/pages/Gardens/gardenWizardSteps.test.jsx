@@ -13,7 +13,7 @@ import {
 const fields = {
 	name: '', subtitle: '', icon: null, color: null, description: '',
 	locationId: DEFAULT_LOCATION_ID, typeIds: [], startDate: '', endDate: '',
-	status: 'planned', saveAsTemplate: false,
+	status: 'planned', isClosed: false, saveAsTemplate: false,
 };
 const references = {
 	locations: [{ id: DEFAULT_LOCATION_ID, name: 'Default Location' }],

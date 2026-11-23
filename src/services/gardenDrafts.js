@@ -13,6 +13,7 @@ export const EMPTY_GARDEN_DRAFT_FIELDS = Object.freeze({
 	startDate: '',
 	endDate: '',
 	status: 'planned',
+	isClosed: false,
 	saveAsTemplate: false,
 });
 
@@ -42,6 +43,7 @@ export function gardenInputFromDraftFields(fields) {
 		startDate: fields.startDate || null,
 		endDate: fields.endDate || null,
 		status: fields.status,
+		isClosed: fields.isClosed,
 	};
 }
 

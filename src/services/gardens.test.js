@@ -173,7 +173,7 @@ describe('Garden data foundation', () => {
 		await gardens.update(created.id, { endDate: null });
 	});
 
-	it.each(['id', 'createdAt', 'updatedAt', 'isClosed', 'thumbnailMediaId', 'layoutMediaId', 'unknown'])(
+	it.each(['id', 'createdAt', 'updatedAt', 'thumbnailMediaId', 'layoutMediaId', 'unknown'])(
 		'rejects caller-managed field %s', async (field) => {
 			const created = await gardens.create(input);
 			await expect(gardens.create({ ...input, [field]: 'override' })).rejects.toBeInstanceOf(ValidationError);
@@ -189,6 +189,45 @@ describe('Garden data foundation', () => {
 		await expect(gardens.create({ ...input, status })).rejects.toMatchObject({
 			code: 'INVALID_GARDEN_STATUS', field: 'status',
 		});
+		expect(await gardens.list()).toEqual([]);
+	});
+
+	it('keeps ordinary creation limited to open Planned and Active Gardens', async () => {
+		await expect(gardens.create({ ...input, status: 'planned', isClosed: false }))
+			.resolves.toMatchObject({ status: 'planned', isClosed: false });
+		await expect(gardens.create({ ...input, name: 'Active', status: 'active', isClosed: false }))
+			.resolves.toMatchObject({ status: 'active', isClosed: false });
+		await expect(gardens.create({ ...input, name: 'Closed', isClosed: true }))
+			.rejects.toMatchObject({ code: 'INVALID_GARDEN_LIFECYCLE', field: 'isClosed' });
+	});
+
+	it.each([
+		['planned', false],
+		['active', true],
+		['completed', false],
+		['completed', true],
+		['archived', true],
+	])('allows Advanced creation with valid %s / closed=%s lifecycle', async (status, isClosed) => {
+		const created = await gardens.advanced.create({
+			...input, name: `${status}-${isClosed}`, status, isClosed,
+		});
+		expect(created).toMatchObject({ status, isClosed });
+	});
+
+	it('rejects invalid Advanced lifecycle combinations', async () => {
+		await expect(gardens.advanced.create({ ...input, status: 'archived', isClosed: false }))
+			.rejects.toMatchObject({ code: 'INVALID_GARDEN_LIFECYCLE' });
+		await expect(gardens.advanced.create({ ...input, status: 'closed', isClosed: true }))
+			.rejects.toMatchObject({ code: 'INVALID_GARDEN_STATUS', field: 'status' });
+		expect(await gardens.list()).toEqual([]);
+	});
+
+	it('keeps the repository creation default restrictive', async () => {
+		const historical = gardens.advanced.validate({
+			...input, status: 'completed', isClosed: true,
+		});
+		await expect(storage.repositories.gardens.create(historical))
+			.rejects.toMatchObject({ code: 'INVALID_GARDEN_LIFECYCLE' });
 		expect(await gardens.list()).toEqual([]);
 	});
 
