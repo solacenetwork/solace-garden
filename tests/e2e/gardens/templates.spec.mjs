@@ -96,13 +96,13 @@ test.describe('Garden Template management and application', () => {
     const gardenName = `Playwright Template Garden ${Date.now()}`;
     const sourceGardenPath = `/gardens/${flowerGardenId}`;
 
-    await page.goto('/gardens/new/advanced');
+    await page.goto('/gardens/new');
+    await expect(page.getByRole('heading', { name: 'Choose how to begin', level: 1 })).toBeVisible();
+    await page.getByLabel('Saved Template').selectOption({
+      label: 'Flower Garden Template — Flower Garden',
+    });
+    await page.getByRole('link', { name: 'Use with Advanced' }).click();
     await expect(page.getByRole('heading', { name: 'Advanced Garden Creation', level: 1 })).toBeVisible();
-    await page.getByRole('radio', { name: /Flower Garden Template/ }).check();
-    await page.getByRole('button', { name: 'Apply Template' }).click();
-    await expect(page.getByRole('status').filter({
-      hasText: 'Template applied to this draft. The Garden remains independent of the Template.',
-    })).toBeVisible();
 
     await expect(page.getByRole('textbox', { name: 'Garden name' })).toHaveValue('Flower Garden');
     await expect(page.getByRole('textbox', { name: 'Description (optional)' })).toHaveValue(
@@ -159,12 +159,15 @@ test.describe('Garden Template missing-Location fallback', () => {
     await locationCard.getByRole('button', { name: 'Delete' }).click();
     await expect(locationCard).toHaveCount(0);
 
-    await page.goto('/gardens/new/advanced');
+    await page.goto('/gardens/new');
+    await expect(page.getByRole('heading', { name: 'Choose how to begin', level: 1 })).toBeVisible();
+    await page.getByLabel('Saved Template').selectOption({
+      label: 'Deleted Location Template — Fallback Garden',
+    });
+    await page.getByRole('link', { name: 'Use with Advanced' }).click();
     await expect(page.getByRole('heading', { name: 'Advanced Garden Creation', level: 1 })).toBeVisible();
-    await page.getByRole('radio', { name: /Deleted Location Template/ }).check();
-    await page.getByRole('button', { name: 'Apply Template' }).click();
     await expect(page.getByRole('status').filter({
-      hasText: 'Template applied. Its saved Location is no longer available, so Default Location was selected.',
+      hasText: 'The Template’s saved Location is no longer available, so Default Location was selected.',
     })).toBeVisible();
     await expect(page.getByRole('textbox', { name: 'Garden name' })).toHaveValue('Fallback Garden');
     await expect(page.getByRole('textbox', { name: 'Description (optional)' })).toHaveValue(
