@@ -136,11 +136,7 @@ async function saveIdentity(dialog) {
 }
 
 async function dismissIdentityDialog(dialog, action) {
-  const hidden = dialog.evaluate(element => new Promise(resolve => {
-    element.addEventListener('hidden.bs.dialog', resolve, { once: true });
-  }));
   await action();
-  await hidden;
   await expect(dialog).toBeHidden();
 }
 
@@ -234,7 +230,9 @@ test('Cancel and X dismissal preserve existing customization', async ({ page }) 
   await dismissIdentityDialog(dialog, () => dialog.getByRole('button', { name: 'Cancel Garden identity changes' }).click());
 
   await page.reload();
+  await expect(page.getByRole('heading', { name: `Edit ${customGarden.name}` })).toBeVisible();
   await expectIdentity(page, { color: '#12AB34', icon: 'alarm' });
+  await expect(await storedIdentity(page, customGarden)).toEqual({ color: '#12AB34', icon: 'alarm' });
 });
 
 test('Escape dismisses pending identity changes without saving', async ({ page }) => {
