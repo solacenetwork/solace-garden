@@ -2,6 +2,7 @@ import { GardenColorChoices, GardenIconChoices } from '../../components/GardenId
 import { GardenTypeSelector } from '../../components/GardenTypeSelector.jsx';
 import { CURATED_GARDEN_ICONS, GARDEN_NUMBER_ICONS, validateBootstrapIconName, validateGardenColor } from '../../gardenIdentity.js';
 import { normalizeGardenFields, validateGardenDateOrder } from '../../storage/gardenValidation.js';
+import { SaveAsTemplateField } from './SaveAsTemplateField.jsx';
 
 function FieldError({ id, message }) {
 	return message ? <div id={id} class="invalid-feedback">{message}</div> : null;
@@ -98,11 +99,50 @@ export function GardenWizardOptionsStep({ fields, errors, onChange, disabled, id
 				<label><input class="radio" type="radio" name={`${idPrefix}-status`} value="active" checked={fields.status === 'active'} disabled={disabled} onChange={() => onChange('status', 'active')} /> Active</label>
 				{errors.status && <p id={`${idPrefix}-status-error`} class="garden-create__field-error" role="alert">{errors.status}</p>}
 			</fieldset>
+			<SaveAsTemplateField checked={fields.saveAsTemplate} disabled={disabled} idPrefix={idPrefix} onChange={(value) => onChange('saveAsTemplate', value)} />
+		</div>
+	);
+}
+
+export function GardenAdvancedOptionsStep({ fields, errors, onChange, disabled, idPrefix }) {
+	const statusErrorId = `${idPrefix}-status-error`;
+	const closedHelpId = `${idPrefix}-isClosed-help`;
+	const closedErrorId = `${idPrefix}-isClosed-error`;
+	const archived = fields.status === 'archived';
+	function changeStatus(status) {
+		onChange('status', status);
+		if (status === 'archived' && !fields.isClosed) onChange('isClosed', true);
+	}
+	return (
+		<div class="garden-fields">
+			<fieldset class="garden-create__status garden-fields__wide" aria-describedby={errors.status ? statusErrorId : undefined}>
+				<legend>Garden status</legend>
+				{[
+					['planned', 'Planned'], ['active', 'Active'],
+					['completed', 'Completed'], ['archived', 'Archived'],
+				].map(([value, label], index) => (
+					<label key={value}>
+						<input id={index === 0 ? `${idPrefix}-status` : undefined} class="radio" type="radio" name={`${idPrefix}-status`} value={value} checked={fields.status === value} disabled={disabled} onChange={() => changeStatus(value)} /> {label}
+					</label>
+				))}
+				{errors.status && <p id={statusErrorId} class="garden-create__field-error" role="alert">{errors.status}</p>}
+			</fieldset>
 			<div class="form-field garden-fields__wide">
-				<input id={`${idPrefix}-save-template`} class="check" type="checkbox" checked={fields.saveAsTemplate} disabled={disabled} onChange={(event) => onChange('saveAsTemplate', event.currentTarget.checked)} />
-				<label for={`${idPrefix}-save-template`}>Save as Template</label>
-				<p class="form-text">You’ll confirm the Template name before the Garden is created.</p>
+				<input
+					id={`${idPrefix}-isClosed`}
+					class="check"
+					type="checkbox"
+					checked={fields.isClosed}
+					disabled={disabled || (archived && fields.isClosed)}
+					aria-invalid={errors.isClosed ? 'true' : undefined}
+					aria-describedby={[closedHelpId, errors.isClosed && closedErrorId].filter(Boolean).join(' ')}
+					onChange={(event) => onChange('isClosed', event.currentTarget.checked)}
+				/>
+				<label for={`${idPrefix}-isClosed`}>Closed</label>
+				<p id={closedHelpId} class="form-text">Closed Gardens are read-only. Archived Gardens must remain closed.</p>
+				{errors.isClosed && <p id={closedErrorId} class="garden-create__field-error" role="alert">{errors.isClosed}</p>}
 			</div>
+			<SaveAsTemplateField checked={fields.saveAsTemplate} disabled={disabled} idPrefix={idPrefix} onChange={(value) => onChange('saveAsTemplate', value)} />
 		</div>
 	);
 }
@@ -150,6 +190,19 @@ function validateOptions(fields) {
 		? {} : { status: 'Choose Planned or Active.' });
 }
 
+export function validateAdvancedOptions(fields) {
+	if (!['planned', 'active', 'completed', 'archived'].includes(fields.status)) {
+		return validation({ status: 'Choose Planned, Active, Completed, or Archived.' });
+	}
+	if (typeof fields.isClosed !== 'boolean') {
+		return validation({ isClosed: 'Choose whether this Garden is closed.' });
+	}
+	if (fields.status === 'archived' && !fields.isClosed) {
+		return validation({ isClosed: 'Archived Gardens must be closed.' });
+	}
+	return validation();
+}
+
 export const GARDEN_WIZARD_STEP_FORMS = Object.freeze({
 	identity: Object.freeze({ Component: GardenWizardIdentityStep, validate: validateIdentity }),
 	details: Object.freeze({ Component: GardenWizardDetailsStep, validate: validateDetails }),
@@ -161,7 +214,7 @@ export const GARDEN_WIZARD_STEP_FORMS = Object.freeze({
 export const GARDEN_FIELD_STEP_IDS = Object.freeze({
 	name: 'identity', subtitle: 'identity', icon: 'identity', color: 'identity',
 	description: 'details', locationId: 'details', typeIds: 'types',
-	startDate: 'dates', endDate: 'dates', status: 'options',
+	startDate: 'dates', endDate: 'dates', status: 'options', isClosed: 'options',
 });
 
 export function gardenWizardStepRegistration(steps) {

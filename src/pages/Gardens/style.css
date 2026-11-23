@@ -684,6 +684,16 @@
 	font-size: 1.35rem;
 }
 
+.garden-advanced__section {
+	display: grid;
+	gap: 1rem;
+}
+
+.garden-advanced__section + .garden-advanced__section {
+	padding-block-start: 1.5rem;
+	border-block-start: 1px solid var(--sg-color-border);
+}
+
 .garden-start-option {
 	display: flex;
 	padding: 1rem;

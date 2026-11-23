@@ -30,7 +30,10 @@ vi.mock('preact/hooks', () => {
 
 import { GardenDraftEditor, GardenFinalizationTemplateDialog } from './FullGardenCreation.jsx';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
-import { GardenWizardIdentityStep } from './gardenWizardSteps.jsx';
+import {
+	GardenAdvancedOptionsStep, GardenWizardDatesStep, GardenWizardDetailsStep,
+	GardenWizardIdentityStep, GardenWizardTypesStep,
+} from './gardenWizardSteps.jsx';
 import { WizardStepper } from '../../components/WizardStepper.jsx';
 import { loadGardenDrafts } from './viewModel.js';
 
@@ -61,6 +64,8 @@ function editor({
 	fieldValues = fields,
 	createFromDraft = vi.fn(async () => ({ id: 'created-garden' })),
 	createFromDraftWithTemplate = vi.fn(async () => ({ garden: { id: 'created-garden' }, template: { id: 'template' } })),
+	advancedCreateFromDraft = createFromDraft,
+	advancedCreateFromDraftWithTemplate = createFromDraftWithTemplate,
 } = {}) {
 	let draft = { id: 'draft', createdAt: 'created', preferredEditor: mode, sourceTemplateId, currentStepId, fields: fieldValues };
 	let renderedDraft = draft;
@@ -90,8 +95,8 @@ function editor({
 			createFromDraftWithTemplate,
 			advanced: {
 				validate: vi.fn((input) => input),
-				createFromDraft,
-				createFromDraftWithTemplate,
+				createFromDraft: advancedCreateFromDraft,
+				createFromDraftWithTemplate: advancedCreateFromDraftWithTemplate,
 			},
 		},
 	};
@@ -273,11 +278,26 @@ describe('Garden draft editor progression', () => {
 			expect(nodes(tree).find((node) => node.type === WizardStepper)).toBeDefined();
 			expect(nodes(tree).find((node) => node.type === GardenWizardIdentityStep).props.fields).toEqual(fields);
 		} else {
-			expect(rendered).toContain('Garden details');
+			expect(rendered).toContain('Additional Options');
 		}
 		expect(view.workspace.templates.getById).toHaveBeenCalledWith(template.id);
 		expect(view.workspace.templates.list).not.toHaveBeenCalled();
 		expect(view.workspace.templates.resolveConfiguration).not.toHaveBeenCalled();
+	});
+
+	it('renders the Advanced form as five continuous sections in Wizard order', async () => {
+		const view = editor({ mode: 'advanced' });
+		await view.mount();
+		const sections = nodes(creationForm(view.render())).filter(
+			({ type, props }) => type === 'section' && props.class === 'garden-advanced__section',
+		);
+		expect(sections.map(({ props }) => nodes(props.children).find(({ type }) => type === 'h2')?.props.children))
+			.toEqual(['Identity', 'Details', 'Garden Type', 'Dates', 'Additional Options']);
+		expect(sections.map(({ props }) => nodes(props.children).find(({ type }) => typeof type === 'function')?.type))
+			.toEqual([
+				GardenWizardIdentityStep, GardenWizardDetailsStep, GardenWizardTypesStep,
+				GardenWizardDatesStep, GardenAdvancedOptionsStep,
+			]);
 	});
 
 	it('preserves a missing-source notice without restoring Template controls', async () => {
@@ -414,5 +434,91 @@ describe('Wizard finalization', () => {
 		).props.error).toContain('could not be created'));
 		expect(hooks.route).not.toHaveBeenCalledWith('/gardens/created-garden');
 		expect(view.draft.fields).toEqual({ ...fields, saveAsTemplate: true });
+	});
+});
+
+describe('Advanced finalization', () => {
+	it('identifies an invalid Archived closed-state combination and preserves the draft', async () => {
+		const focus = vi.fn();
+		vi.stubGlobal('document', { getElementById: vi.fn(() => ({ focus })) });
+		try {
+			const advancedCreate = vi.fn();
+			const invalid = { ...fields, status: 'archived', isClosed: false };
+			const view = editor({
+				mode: 'advanced', fieldValues: invalid, advancedCreateFromDraft: advancedCreate,
+			});
+			await view.mount();
+			await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+
+			expect(advancedCreate).not.toHaveBeenCalled();
+			expect(JSON.stringify(view.render())).toContain('Archived Gardens must be closed.');
+			expect(view.draft.fields).toEqual(invalid);
+			expect(focus).toHaveBeenCalledOnce();
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
+	it('creates only the Garden through the Advanced policy when Save as Template is unchecked', async () => {
+		const ordinaryCreate = vi.fn();
+		const advancedCreate = vi.fn(async () => ({ id: 'advanced-garden' }));
+		const view = editor({
+			mode: 'advanced', createFromDraft: ordinaryCreate, advancedCreateFromDraft: advancedCreate,
+			fieldValues: { ...fields, status: 'completed', isClosed: true },
+		});
+		await view.mount();
+		await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+
+		expect(advancedCreate).toHaveBeenCalledWith(expect.objectContaining({
+			status: 'completed', isClosed: true,
+		}), 'draft');
+		expect(ordinaryCreate).not.toHaveBeenCalled();
+		expect(hooks.route).toHaveBeenLastCalledWith('/gardens/advanced-garden');
+	});
+
+	it('opens shared Template confirmation and cancellation retains the Advanced draft', async () => {
+		const advancedCreate = vi.fn();
+		const advancedCreateWithTemplate = vi.fn();
+		const selected = { ...fields, status: 'archived', isClosed: true, saveAsTemplate: true };
+		const view = editor({
+			mode: 'advanced', fieldValues: selected,
+			advancedCreateFromDraft: advancedCreate,
+			advancedCreateFromDraftWithTemplate: advancedCreateWithTemplate,
+		});
+		await view.mount();
+		await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+		let dialog = nodes(view.render()).find(({ type }) => type === GardenFinalizationTemplateDialog);
+		expect(dialog.props.open).toBe(true);
+		dialog.props.onCancel();
+		dialog = nodes(view.render()).find(({ type }) => type === GardenFinalizationTemplateDialog);
+
+		expect(dialog.props.open).toBe(false);
+		expect(advancedCreate).not.toHaveBeenCalled();
+		expect(advancedCreateWithTemplate).not.toHaveBeenCalled();
+		expect(view.draft.fields).toEqual(selected);
+	});
+
+	it('atomically finalizes the Advanced Garden and Template through the Advanced policy', async () => {
+		const ordinaryCreateWithTemplate = vi.fn();
+		const advancedCreateWithTemplate = vi.fn(async () => ({
+			garden: { id: 'advanced-garden' }, template: { id: 'advanced-template' },
+		}));
+		const view = editor({
+			mode: 'advanced', createFromDraftWithTemplate: ordinaryCreateWithTemplate,
+			advancedCreateFromDraftWithTemplate: advancedCreateWithTemplate,
+			fieldValues: { ...fields, status: 'archived', isClosed: true, saveAsTemplate: true },
+		});
+		await view.mount();
+		await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+		const dialog = nodes(view.render()).find(({ type }) => type === GardenFinalizationTemplateDialog);
+		dialog.props.onConfirm('Historical Garden Template');
+
+		await vi.waitFor(() => expect(advancedCreateWithTemplate).toHaveBeenCalledWith(
+			expect.objectContaining({ status: 'archived', isClosed: true }),
+			'draft',
+			'Historical Garden Template',
+		));
+		expect(ordinaryCreateWithTemplate).not.toHaveBeenCalled();
+		expect(hooks.route).toHaveBeenLastCalledWith('/gardens/advanced-garden');
 	});
 });

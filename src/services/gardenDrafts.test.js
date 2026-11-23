@@ -106,10 +106,10 @@ describe('Recoverable Garden drafts', () => {
 		expect(await drafts.list()).toHaveLength(2);
 	});
 
-	it('round-trips Wizard identity, status, dates, and finalization choice across draft recovery', async () => {
+	it('round-trips identity, Advanced lifecycle, dates, and finalization choice across draft recovery', async () => {
 		await drafts.create();
 		const durableFields = fields({
-			icon: 'flower1', color: '#287D46', status: 'active',
+			icon: 'flower1', color: '#287D46', status: 'archived', isClosed: true,
 			startDate: '2027-03-10', endDate: '2027-10-20', saveAsTemplate: true,
 		});
 		await drafts.save({ id: FIRST_DRAFT, fields: durableFields, currentStepId: 'options' });

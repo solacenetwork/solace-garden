@@ -1,7 +1,6 @@
 import Dialog from 'bootstrap/js/dist/dialog.js';
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { GardenFields } from '../../components/GardenFields.jsx';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
 import { WizardStepper } from '../../components/WizardStepper.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
@@ -18,7 +17,9 @@ import { createLocationsService, DEFAULT_LOCATION_ID } from '../../services/loca
 import { StorageError, ValidationError } from '../../storage/errors.js';
 import { SaveTemplateDialog, suggestedTemplateName } from './TemplateNameDialog.jsx';
 import {
-	GARDEN_FIELD_STEP_IDS, gardenWizardStepRegistration,
+	GARDEN_FIELD_STEP_IDS, GardenAdvancedOptionsStep, GardenWizardDatesStep,
+	GardenWizardDetailsStep, GardenWizardIdentityStep, GardenWizardTypesStep,
+	gardenWizardStepRegistration, validateAdvancedOptions,
 } from './gardenWizardSteps.jsx';
 import { templateSourceSearch } from './creationNavigation.js';
 import {
@@ -472,6 +473,13 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 			await persistTemplateLocationFallback(locationResult);
 			throw new ValidationError('LOCATION_FALLBACK_REVIEW', 'Default Location was selected. Review it before creating this Garden.', { field: 'locationId' });
 		}
+		if (mode === 'advanced') {
+			const options = validateAdvancedOptions(fieldsRef.current);
+			if (!options.valid) {
+				const field = Object.keys(options.errors)[0];
+				throw new ValidationError('INVALID_GARDEN_LIFECYCLE', options.errors[field], { field });
+			}
+		}
 		const creation = mode === 'advanced' ? workspace.gardens.advanced : workspace.gardens;
 		return validateGardenDraftForReview(fieldsRef.current, freshReferences, creation);
 	}
@@ -540,7 +548,7 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 	async function createGarden(event) {
 		event?.preventDefault();
 		if (submitting.current) return;
-		if (mode === 'wizard' && fieldsRef.current.saveAsTemplate) {
+		if (fieldsRef.current.saveAsTemplate) {
 			submitting.current = true;
 			setBusy(true);
 			try {
@@ -624,7 +632,11 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 							: <button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Finish & Create Garden'}</button>}
 					</div>
 				</> : <>
-					<section aria-labelledby="advanced-details-title"><h2 id="advanced-details-title">Garden details</h2><GardenFields fields={fields} errors={errors} locations={currentReferences.locations} types={currentReferences.types} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>
+					<section class="garden-advanced__section" aria-labelledby="advanced-identity-title"><h2 id="advanced-identity-title">Identity</h2><GardenWizardIdentityStep fields={fields} errors={errors} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>
+					<section class="garden-advanced__section" aria-labelledby="advanced-details-title"><h2 id="advanced-details-title">Details</h2><GardenWizardDetailsStep fields={fields} errors={errors} locations={currentReferences.locations} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>
+					<section class="garden-advanced__section" aria-labelledby="advanced-types-title"><h2 id="advanced-types-title">Garden Type</h2><GardenWizardTypesStep fields={fields} errors={errors} types={currentReferences.types} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>
+					<section class="garden-advanced__section" aria-labelledby="advanced-dates-title"><h2 id="advanced-dates-title">Dates</h2><GardenWizardDatesStep fields={fields} errors={errors} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>
+					<section class="garden-advanced__section" aria-labelledby="advanced-options-title"><h2 id="advanced-options-title">Additional Options</h2><GardenAdvancedOptionsStep fields={fields} errors={errors} onChange={changeField} disabled={busy} idPrefix="create-garden" /></section>
 					<div class="garden-full-create__actions"><button class="btn-outline" type="button" disabled={busy} onClick={() => navigatePreservingDraft('/gardens')}>Back to Gardens</button><button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button></div>
 				</>}
 			</form>
