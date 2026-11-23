@@ -340,7 +340,9 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 **Reported verification:** Initial focused Advanced/Template **8/8** and Gardens Hub **3/3** passed; initial full Playwright **53/54** with unrelated navigation browser-context teardown timeout passing on isolated rerun. After follow-up, focused Advanced **7/7** passed; full Playwright **55/56** with unrelated short-desktop viewport-scrolling failure passing on isolated rerun. `git diff --check` passed in both assignments. These results support acceptance of the changes but **do not constitute a clean full-suite run**; retain possible intermittent test behavior as a testing observation. No confirmed application regression was reported.
 
-**Boundary:** This accepts **8A8 automated test changes**, not 8A9 final real-device/manual acceptance, production build or full Step 8A completion. 8A9 is next; 8B and Steps 9–10 follow. The source-code slices 8A7-A/B/C were reviewed separately.
+**Final 8A8 stabilization and closure (November 23, 2026):** Copilot's [`f567cfd`](https://github.com/solacenetwork/solace-garden/commit/f567cfdd5687565acf1b3bc7e8c02358375031c8) updated the Garden Identity Playwright test to wait for observable dialog-hidden state instead of the Bootstrap `hidden.bs.dialog` event, and added editor-readiness and persisted IndexedDB identity assertions after reload. Copilot reported a **56/56 full-suite pass**. The developer then independently ran the entire Playwright suite with competing workloads stopped and confirmed **56/56 passed**. The developer noted older/slower hardware and two concurrent Vite servers during earlier intermittent failures; resource contention is plausible, not a proven root cause. No production regression confirmed. **8A8 is fully accepted and closed.**
+
+**Boundary:** This closes **8A8 automated regression testing**, not 8A9 final real-device/manual acceptance, production build or full Step 8A completion. 8A9 is next; 8B and Steps 9–10 follow. The source-code slices 8A7-A/B/C were reviewed separately.
 
 ## Future archive entries
 
