@@ -1,6 +1,7 @@
 import {
 	GARDEN_EDITABLE_FIELDS, gardenError, normalizeGardenFields, validateGardenDateOrder, validateGardenFields,
 } from '../storage/gardenValidation.js';
+import { normalizeTemplateName } from '../storage/templateValidation.js';
 
 const GARDEN_CREATION_FIELDS = [...GARDEN_EDITABLE_FIELDS, 'status'];
 const GARDEN_CREATION_STATUSES = ['planned', 'active'];
@@ -35,6 +36,14 @@ export function createGardensService(repository, {
 		},
 		async createFromDraft(input, draftId) {
 			return repository.createFromDraft(newGardenRecord(input, now()), draftId);
+		},
+		async createFromDraftWithTemplate(input, draftId, templateName) {
+			const timestamp = now();
+			return repository.createFromDraft(
+				newGardenRecord(input, timestamp),
+				draftId,
+				{ name: normalizeTemplateName(templateName), createdAt: timestamp, updatedAt: timestamp },
+			);
 		},
 		async update(id, changes) {
 			validateGardenFields(changes, GARDEN_EDITABLE_FIELDS, { requireChanges: true });

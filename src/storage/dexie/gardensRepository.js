@@ -6,6 +6,9 @@ import {
 	GARDEN_EDITABLE_FIELDS, gardenError, validateGardenFields, validateGardenRecord,
 	validateGardenLifecycle,
 } from '../gardenValidation.js';
+import {
+	normalizeTemplateConfiguration, normalizeTemplateName, validateTemplateRecord,
+} from '../templateValidation.js';
 
 function copy(record) {
 	return record ? { ...record, typeIds: [...record.typeIds] } : null;
@@ -18,6 +21,7 @@ export function createGardensRepository(database, {
 	const locations = database.table('locations');
 	const types = database.table('gardenTypes');
 	const drafts = database.table('drafts');
+	const templates = database.table('gardenTemplates');
 	const notes = database.table('notes');
 	const listItems = database.table('listItems');
 	async function run(operation, action) {
@@ -43,6 +47,25 @@ export function createGardensRepository(database, {
 		await checkReferences(garden);
 		await gardens.add(garden);
 		return copy(garden);
+	}
+	async function prepareTemplate(garden, request) {
+		if (request === undefined) return null;
+		const catalog = await types.toArray();
+		const template = {
+			id: randomUUID(),
+			name: normalizeTemplateName(request.name),
+			configuration: normalizeTemplateConfiguration({
+				name: garden.name,
+				description: garden.description,
+				locationId: garden.locationId,
+				typeIds: [...garden.typeIds],
+				layoutMediaId: garden.layoutMediaId,
+			}, catalog),
+			createdAt: request.createdAt,
+			updatedAt: request.updatedAt,
+		};
+		validateTemplateRecord(template, catalog);
+		return template;
 	}
 	function validateTimestamp(value) {
 		if (typeof value !== 'string' || !Number.isFinite(Date.parse(value)) ||
@@ -81,11 +104,11 @@ export function createGardensRepository(database, {
 				return persistCreate(garden);
 			}));
 		},
-		async createFromDraft(record, draftId) {
+		async createFromDraft(record, draftId, templateRequest) {
 			validateRecordId(draftId, 'draftId');
 			const garden = prepareCreate(record);
 			return run('create Garden from draft', () => database.transaction(
-				'rw', gardens, locations, types, drafts, async () => {
+				'rw', gardens, locations, types, drafts, templates, async () => {
 					const draft = await drafts.get(draftId);
 					if (!draft) {
 						throw gardenError('GARDEN_DRAFT_NOT_FOUND', 'This Garden draft is no longer available.', 'draftId');
@@ -94,8 +117,12 @@ export function createGardensRepository(database, {
 						throw gardenError('WRONG_DRAFT_KIND', 'This draft cannot create a Garden.', 'draftId');
 					}
 					const created = await persistCreate(garden);
+					const template = await prepareTemplate(created, templateRequest);
+					if (template) await templates.add(template);
 					await drafts.delete(draftId);
-					return created;
+					return template
+						? { garden: created, template: { ...template, configuration: { ...template.configuration, typeIds: [...template.configuration.typeIds] } } }
+						: created;
 				},
 			));
 		},

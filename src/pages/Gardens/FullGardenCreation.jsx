@@ -1,3 +1,4 @@
+import Dialog from 'bootstrap/js/dist/dialog.js';
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { GardenFields } from '../../components/GardenFields.jsx';
@@ -17,6 +18,10 @@ import { createGardenTypesService } from '../../services/gardenTypes.js';
 import { createLocationsService, DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import { StorageError, ValidationError } from '../../storage/errors.js';
 import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
+import { SaveTemplateDialog, suggestedTemplateName } from './TemplateNameDialog.jsx';
+import {
+	GARDEN_FIELD_STEP_IDS, gardenWizardStepRegistration,
+} from './gardenWizardSteps.jsx';
 import { templateSourceSearch } from './creationNavigation.js';
 import {
 	createGardenWizardUrl,
@@ -137,14 +142,85 @@ export function validateGardenDraftForReview(fields, references, gardens) {
 	return input;
 }
 
+export function GardenFinalizationTemplateDialog({ open, gardenName, busy, error, onCancel, onConfirm }) {
+	const dialogElement = useRef(null);
+	const inputElement = useRef(null);
+	const dialogInstance = useRef(null);
+	const busyRef = useRef(busy);
+	const openRef = useRef(open);
+	const [name, setName] = useState(() => suggestedTemplateName(gardenName));
+	const [nameError, setNameError] = useState('');
+	busyRef.current = busy;
+	openRef.current = open;
+
+	useEffect(() => {
+		const element = dialogElement.current;
+		if (!element) return undefined;
+		const instance = new Dialog(element);
+		const focusInput = () => { inputElement.current?.focus(); inputElement.current?.select(); };
+		const preventBusyHide = (event) => { if (busyRef.current) event.preventDefault(); };
+		dialogInstance.current = instance;
+		element.addEventListener('shown.bs.dialog', focusInput);
+		element.addEventListener('hide.bs.dialog', preventBusyHide);
+		if (openRef.current) void instance.show();
+		return () => {
+			element.removeEventListener('shown.bs.dialog', focusInput);
+			element.removeEventListener('hide.bs.dialog', preventBusyHide);
+			instance.dispose();
+			dialogInstance.current = null;
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!open) return;
+		setName(suggestedTemplateName(gardenName));
+		setNameError('');
+		void dialogInstance.current?.show();
+	}, [open, gardenName]);
+
+	function cancel() {
+		if (busyRef.current) return;
+		void dialogInstance.current?.hide();
+		onCancel();
+	}
+
+	function submit(event) {
+		event.preventDefault();
+		if (!name.trim()) {
+			setNameError('Enter a Template name.');
+			inputElement.current?.focus();
+			return;
+		}
+		onConfirm(name);
+	}
+
+	return (
+		<SaveTemplateDialog
+			dialogRef={dialogElement}
+			inputRef={inputElement}
+			garden={{ name: gardenName }}
+			name={name}
+			onNameChange={(value) => { setName(value); setNameError(''); }}
+			nameError={nameError}
+			saveError={error}
+			busy={busy}
+			onCancel={cancel}
+			onSubmit={submit}
+			submitLabel="Finish & Create Garden"
+			description={<>Name the reusable Template snapshot that will be created with <strong>{gardenName}</strong>.</>}
+		/>
+	);
+}
+
 export function GardenDraftEditor({ draft, references, mode, workspace, wizardSteps }) {
 	const { path, query = {}, route } = useLocation();
-	const resolvedWizardSteps = wizardSteps ?? loadGardenWizardSteps();
+	const resolvedWizardSteps = gardenWizardStepRegistration(wizardSteps ?? loadGardenWizardSteps());
 	const createdAt = useRef(draft.createdAt);
 	const submitting = useRef(false);
 	const fieldsRef = useRef(draft.fields);
 	const sourceTemplateIdRef = useRef(draft.sourceTemplateId);
 	const currentStepIdRef = useRef(draft.currentStepId);
+	const pendingFocusField = useRef(null);
 	const persistenceChain = useRef(Promise.resolve());
 	// The route is the authoritative editor selection. Async route state may still
 	// carry the previous draft snapshot during an editor-mode change.
@@ -159,6 +235,8 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 	const [selectedTemplateId, setSelectedTemplateId] = useState(draft.sourceTemplateId);
 	const [templateState, setTemplateState] = useState({ status: 'loading' });
 	const [templateNotice, setTemplateNotice] = useState('');
+	const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+	const [templateDialogError, setTemplateDialogError] = useState('');
 	const wizardPath = path ?? `/gardens/new/wizard/${draft.id}`;
 	const stepResolution = mode === 'wizard'
 		? resolveGardenWizardLocation({
@@ -169,6 +247,13 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		: null;
 	const activeStepId = stepResolution?.status === 'resolved' ? stepResolution.stepId : null;
 	const activeStep = activeStepId ? findWizardStep(resolvedWizardSteps, activeStepId) : null;
+	const ActiveStepForm = activeStep?.Component;
+	useEffect(() => {
+		const field = pendingFocusField.current;
+		if (!field || GARDEN_FIELD_STEP_IDS[field] !== activeStepId) return;
+		pendingFocusField.current = null;
+		queueMicrotask(() => focusWizardField(field));
+	}, [activeStepId]);
 
 	function saveDraft(record) {
 		const operation = persistenceChain.current
@@ -408,8 +493,8 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		}
 	}
 
-	async function navigateToWizardStep(stepId, { replace = false } = {}) {
-		if (busy || !findWizardStep(resolvedWizardSteps, stepId)) return;
+	async function navigateToWizardStep(stepId, { replace = false, allowBusy = false } = {}) {
+		if ((!allowBusy && busy) || !findWizardStep(resolvedWizardSteps, stepId)) return;
 		setBusy(true);
 		setMessage('');
 		try {
@@ -429,6 +514,36 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		}
 	}
 
+	function focusWizardField(field) {
+		const suffixes = { locationId: 'location', startDate: 'start-date', endDate: 'end-date' };
+		const element = globalThis.document?.getElementById?.(`create-garden-${suffixes[field] ?? field}`);
+		element?.focus?.();
+	}
+
+	function validateActiveStep() {
+		const result = activeStep.validate(fieldsRef.current, currentReferences);
+		setErrors(result.errors);
+		if (!result.valid) {
+			const field = Object.keys(result.errors)[0];
+			setMessage(result.errors[field]);
+			focusWizardField(field);
+			return false;
+		}
+		const stage = globalThis.document?.querySelector?.('.garden-wizard__stage');
+		const invalid = stage?.querySelector?.(':invalid');
+		if (invalid) {
+			invalid?.reportValidity?.();
+			invalid?.focus?.();
+			return false;
+		}
+		return true;
+	}
+
+	async function continueWizard() {
+		if (!validateActiveStep()) return;
+		await navigateToWizardStep(nextStepId);
+	}
+
 	async function discard() {
 		if (!globalThis.confirm('Permanently discard this unfinished Garden draft?')) return;
 		setBusy(true);
@@ -444,60 +559,106 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		}
 	}
 
-	async function createGarden(event) {
-		event?.preventDefault();
-		if (submitting.current) return;
+	async function completeInputValidation() {
+		await persistCurrent();
+		const [locations, types] = await Promise.all([
+			workspace.locations.list(), workspace.types.list(),
+		]);
+		const freshReferences = { locations, types };
+		setCurrentReferences(freshReferences);
+		const locationResult = resolveTemplateLocationForFinalization(
+			fieldsRef.current, locations, templateLocationOrigin.current,
+		);
+		if (locationResult.locationUnavailable) {
+			throw new ValidationError('LOCATION_NOT_FOUND', 'Select an available Location.', { field: 'locationId' });
+		}
+		if (locationResult.fallbackOccurred) {
+			await persistTemplateLocationFallback(locationResult);
+			throw new ValidationError('LOCATION_FALLBACK_REVIEW', 'Default Location was selected. Review it before creating this Garden.', { field: 'locationId' });
+		}
+		return validateGardenDraftForReview(fieldsRef.current, freshReferences, workspace.gardens);
+	}
+
+	async function showFinalValidationError(error) {
+		const field = error?.field;
+		pendingFocusField.current = field;
+		setErrors(field ? { [field]: error.message } : {});
+		setMessage(error instanceof ValidationError ? error.message : creationError(error, 'created'));
+		const stepId = mode === 'wizard' ? GARDEN_FIELD_STEP_IDS[field] : null;
+		if (stepId && stepId !== activeStepId) {
+			await navigateToWizardStep(stepId, { allowBusy: true });
+			setMessage(`Review ${findWizardStep(resolvedWizardSteps, stepId).title}: ${error.message}`);
+		}
+		focusWizardField(field);
+	}
+
+	async function finalizeGarden(templateName = null) {
+		if (submitting.current) return null;
 		submitting.current = true;
 		setBusy(true);
 		setMessage('');
+		setTemplateDialogError('');
 		try {
-			await persistCurrent();
-			const [locations, types] = await Promise.all([
-				workspace.locations.list(),
-				workspace.types.list(),
-			]);
-			const freshReferences = { locations, types };
-			setCurrentReferences(freshReferences);
-			const locationResult = resolveTemplateLocationForFinalization(
-				fieldsRef.current,
-				locations,
-				templateLocationOrigin.current,
-			);
-			if (locationResult.locationUnavailable) {
-				setErrors({ locationId: 'Select an available Location.' });
-				setMessage('The selected Location is no longer available. Choose another Location before creating this Garden.');
-				return;
-			}
-			if (locationResult.fallbackOccurred) {
-				await persistTemplateLocationFallback(locationResult);
-				return;
-			}
-			const input = validateGardenDraftForReview(fieldsRef.current, freshReferences, workspace.gardens);
+			const input = await completeInputValidation();
 			setErrors({});
-			let garden;
+			let result;
 			try {
-				garden = await workspace.gardens.createFromDraft(input, draft.id);
+				result = templateName === null
+					? await workspace.gardens.createFromDraft(input, draft.id)
+					: await workspace.gardens.createFromDraftWithTemplate(input, draft.id, templateName);
 			} catch (error) {
 				if (error?.code !== 'LOCATION_NOT_FOUND' || !templateLocationOrigin.current) throw error;
 				const latestLocations = await workspace.locations.list();
 				setCurrentReferences((current) => ({ ...current, locations: latestLocations }));
 				const raceResult = resolveTemplateLocationForFinalization(
-					fieldsRef.current,
-					latestLocations,
-					templateLocationOrigin.current,
+					fieldsRef.current, latestLocations, templateLocationOrigin.current,
 				);
 				if (!raceResult.fallbackOccurred) throw error;
 				await persistTemplateLocationFallback(raceResult);
-				return;
+				throw new ValidationError(
+					'LOCATION_FALLBACK_REVIEW',
+					'Default Location was selected. Review it before creating this Garden.',
+					{ field: 'locationId' },
+				);
 			}
+			const garden = result.garden ?? result;
 			route(`/gardens/${garden.id}`);
+			return garden;
 		} catch (error) {
-			setErrors(error?.field ? { [error.field]: error.message } : {});
-			setMessage(creationError(error, 'created'));
+			if (templateName !== null && !(error instanceof ValidationError && GARDEN_FIELD_STEP_IDS[error.field])) {
+				setTemplateDialogError(error instanceof ValidationError
+					? error.message
+					: 'Your Garden and Template could not be created. Your draft remains available, so you can try again.');
+			} else {
+				await showFinalValidationError(error);
+			}
+			return null;
 		} finally {
 			setBusy(false);
 			submitting.current = false;
 		}
+	}
+
+	async function createGarden(event) {
+		event?.preventDefault();
+		if (submitting.current) return;
+		if (mode === 'wizard' && fieldsRef.current.saveAsTemplate) {
+			submitting.current = true;
+			setBusy(true);
+			try {
+				await completeInputValidation();
+				setErrors({});
+				setTemplateDialogError('');
+				setTemplateDialogOpen(true);
+			} catch (error) {
+				await showFinalValidationError(error);
+			} finally {
+				setBusy(false);
+				submitting.current = false;
+			}
+			return;
+		}
+		await finalizeGarden();
 	}
 
 	const otherMode = mode === 'wizard' ? 'advanced' : 'wizard';
@@ -559,13 +720,13 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 					<WizardStepper steps={resolvedWizardSteps} activeStepId={activeStepId} label="Garden creation progress" />
 					<section class="garden-wizard__stage" aria-labelledby="wizard-stage-title">
 						<h2 id="wizard-stage-title">{activeStep.title}</h2>
-						<GardenFields fields={fields} errors={errors} locations={currentReferences.locations} types={currentReferences.types} onChange={changeField} disabled={busy} idPrefix="create-garden" />
+						<ActiveStepForm fields={fields} errors={errors} locations={currentReferences.locations} types={currentReferences.types} onChange={changeField} disabled={busy} idPrefix="create-garden" />
 					</section>
 					<div class="garden-full-create__actions">
 						<button class="btn-outline" type="button" disabled={busy} onClick={() => previousStepId ? navigateToWizardStep(previousStepId) : navigatePreservingDraft('/gardens')}>{previousStepId ? 'Back' : 'Back to Gardens'}</button>
 						{nextStepId
-							? <button class="btn-solid theme-primary" type="button" disabled={busy || pendingTemplateSelection} onClick={() => navigateToWizardStep(nextStepId)}>Continue</button>
-							: <button class="btn-solid theme-primary" type="submit" disabled={busy || pendingTemplateSelection}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button>}
+							? <button class="btn-solid theme-primary" type="button" disabled={busy || pendingTemplateSelection} onClick={continueWizard}>Continue</button>
+							: <button class="btn-solid theme-primary" type="submit" disabled={busy || pendingTemplateSelection}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Finish & Create Garden'}</button>}
 					</div>
 				</> : <>
 					<GardenTemplateSelection state={templateState} references={currentReferences} selectedId={selectedTemplateId} sourceTemplateId={sourceTemplateIdRef.current} onSelect={selectTemplateSource} onApply={applySelectedTemplate} onRetry={loadTemplates} busy={busy} idPrefix="advanced-garden" />
@@ -573,6 +734,14 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 					<div class="garden-full-create__actions"><button class="btn-outline" type="button" disabled={busy} onClick={() => navigatePreservingDraft('/gardens')}>Back to Gardens</button><button class="btn-solid theme-primary" type="submit" disabled={busy}><i class="bi bi-check2" aria-hidden="true"></i>{busy ? 'Creating…' : 'Create Garden'}</button></div>
 				</>}
 			</form>
+			<GardenFinalizationTemplateDialog
+				open={templateDialogOpen}
+				gardenName={fields.name}
+				busy={busy}
+				error={templateDialogError}
+				onCancel={() => setTemplateDialogOpen(false)}
+				onConfirm={(name) => { void finalizeGarden(name); }}
+			/>
 		</section>
 	);
 }
@@ -587,7 +756,7 @@ export function GardenDraftRoute({ params, mode, wizardDefinition }) {
 	const draftId = params?.draftId;
 	let wizardSteps;
 	try {
-		wizardSteps = loadGardenWizardSteps(wizardDefinition);
+		wizardSteps = gardenWizardStepRegistration(loadGardenWizardSteps(wizardDefinition));
 	} catch (error) {
 			console.error('[Garden Wizard] Invalid production step configuration.', {
 				name: error?.name,

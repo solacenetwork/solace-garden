@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
 import { createDraftAutosave } from '../../services/draftAutosave.js';
 import { DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import { createGardensService } from '../../services/gardens.js';
@@ -24,8 +25,8 @@ const references = {
 	types: [{ id: 'indoor', name: 'Indoor' }, { id: 'container', name: 'Container' }],
 };
 const fields = {
-	name: 'Garden', subtitle: '', description: '', locationId: DEFAULT_LOCATION_ID,
-	typeIds: [], startDate: '', endDate: '',
+	name: 'Garden', subtitle: '', icon: null, color: null, description: '', locationId: DEFAULT_LOCATION_ID,
+	typeIds: [], startDate: '', endDate: '', status: 'planned', saveAsTemplate: false,
 };
 
 const template = {

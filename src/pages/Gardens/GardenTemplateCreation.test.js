@@ -1,6 +1,7 @@
 import Dexie from 'dexie';
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
 import { createGardenDraftsService, gardenInputFromDraftFields } from '../../services/gardenDrafts.js';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';
 import { createGardensService } from '../../services/gardens.js';

@@ -6,6 +6,7 @@ import {
 	createGardenDraftsService, gardenInputFromDraftFields,
 } from './gardenDrafts.js';
 import { createGardensService } from './gardens.js';
+import { createGardenTemplatesService } from './gardenTemplates.js';
 import { createNoteDraftsService } from './notes.js';
 import { createLocationsService, DEFAULT_LOCATION_ID } from './locations.js';
 import { createGardenDatabase } from '../storage/dexie/gardenDatabase.js';
@@ -20,8 +21,8 @@ const UPDATED = '2026-11-07T18:05:00.000Z';
 
 function fields(overrides = {}) {
 	return {
-		name: 'Tomatoes', subtitle: '', description: '', locationId: DEFAULT_LOCATION_ID,
-		typeIds: [], startDate: '', endDate: '', ...overrides,
+		name: 'Tomatoes', subtitle: '', icon: null, color: null, description: '', locationId: DEFAULT_LOCATION_ID,
+		typeIds: [], startDate: '', endDate: '', status: 'planned', saveAsTemplate: false, ...overrides,
 	};
 }
 
@@ -75,6 +76,23 @@ describe('Recoverable Garden drafts', () => {
 		expect(await drafts.getById(FIRST_DRAFT)).toMatchObject({ fields: { typeIds: ['outdoor'] } });
 		expect(await drafts.getById(SECOND_DRAFT)).toEqual(second);
 		expect(await drafts.list()).toHaveLength(2);
+	});
+
+	it('round-trips Wizard identity, status, dates, and finalization choice across draft recovery', async () => {
+		await drafts.create();
+		const durableFields = fields({
+			icon: 'flower1', color: '#287D46', status: 'active',
+			startDate: '2027-03-10', endDate: '2027-10-20', saveAsTemplate: true,
+		});
+		await drafts.save({ id: FIRST_DRAFT, fields: durableFields, currentStepId: 'options' });
+		storage.close();
+		storage = await initializeDexieStorage({ dependencies });
+		drafts = createGardenDraftsService(storage.repositories.drafts);
+
+		expect(await drafts.getById(FIRST_DRAFT)).toMatchObject({
+			currentStepId: 'options',
+			fields: durableFields,
+		});
 	});
 
 	it('persists Garden-only editor context and preserves it through field-only saves and reopen', async () => {
@@ -235,6 +253,52 @@ describe('Recoverable Garden drafts', () => {
 		expect(await drafts.getById(FIRST_DRAFT)).toBeNull();
 		expect(await drafts.getById(SECOND_DRAFT)).toEqual(retained);
 		expect((await notes.list()).map(({ id }) => id)).toEqual([NOTE_DRAFT]);
+	});
+
+	it('atomically creates a Garden and a separately named Template before consuming the draft', async () => {
+		await drafts.create();
+		const saved = await drafts.save({
+			id: FIRST_DRAFT,
+			fields: fields({ name: 'Kitchen Garden', description: 'Sunny beds', typeIds: ['container'] }),
+		});
+		const result = await gardens.createFromDraftWithTemplate(
+			gardenInputFromDraftFields(saved.fields), FIRST_DRAFT, '  Kitchen Plan  ',
+		);
+		const templates = createGardenTemplatesService(storage.repositories.gardenTemplates);
+
+		expect(result.garden).toMatchObject({ name: 'Kitchen Garden', description: 'Sunny beds' });
+		expect(result.template).toMatchObject({
+			name: 'Kitchen Plan',
+			configuration: { name: 'Kitchen Garden', description: 'Sunny beds', typeIds: ['container'] },
+		});
+		expect(await templates.list()).toEqual([result.template]);
+		expect(await drafts.getById(FIRST_DRAFT)).toBeNull();
+	});
+
+	it('rolls back Garden creation and retains the draft when coordinated Template persistence fails', async () => {
+		await drafts.create();
+		const saved = await drafts.save({ id: FIRST_DRAFT, fields: fields() });
+		const failTemplate = vi.fn(() => { throw new Error('simulated Template failure'); });
+		const hooked = await initializeDexieStorage({
+			dependencies,
+			openGarden: async () => {
+				const database = createGardenDatabase(storage.databaseName, dependencies);
+				await database.open();
+				database.table('gardenTemplates').hook('creating', failTemplate);
+				return database;
+			},
+		});
+		try {
+			const hookedGardens = createGardensService(hooked.repositories.gardens, { now: () => UPDATED });
+			await expect(hookedGardens.createFromDraftWithTemplate(
+				gardenInputFromDraftFields(saved.fields), FIRST_DRAFT, 'Tomato Plan',
+			)).rejects.toMatchObject({ code: 'STORAGE_OPERATION_FAILED' });
+			expect(failTemplate).toHaveBeenCalledOnce();
+			expect(await gardens.list()).toEqual([]);
+			expect(await drafts.getById(FIRST_DRAFT)).toEqual(saved);
+		} finally {
+			hooked.close();
+		}
 	});
 
 	it('preserves invalid drafts and rejects wrong-kind or repeated finalization', async () => {

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
 
 const harness = vi.hoisted(() => ({
 	index: 0,

@@ -9,7 +9,8 @@ function copyRecord(record) {
 }
 
 const GARDEN_DRAFT_FIELDS = Object.freeze([
-	'name', 'subtitle', 'description', 'locationId', 'typeIds', 'startDate', 'endDate',
+	'name', 'subtitle', 'icon', 'color', 'description', 'locationId', 'typeIds', 'startDate', 'endDate',
+	'status', 'saveAsTemplate',
 ]);
 const GARDEN_DRAFT_CONTEXT_FIELDS = Object.freeze([
 	'sourceTemplateId', 'preferredEditor', 'currentStepId',
@@ -34,13 +35,21 @@ function validateGardenDraftFields(fields) {
 	if (unsupported || GARDEN_DRAFT_FIELDS.some((field) => !Object.hasOwn(fields, field))) {
 		throw new ValidationError('INVALID_GARDEN_DRAFT_FIELDS', 'Garden draft fields do not match the creation form.', { field: unsupported ?? 'fields' });
 	}
-	for (const field of GARDEN_DRAFT_FIELDS.filter((field) => field !== 'typeIds')) {
+	for (const field of ['name', 'subtitle', 'description', 'locationId', 'startDate', 'endDate', 'status']) {
 		if (typeof fields[field] !== 'string') {
 			throw new ValidationError('INVALID_GARDEN_DRAFT_FIELD', `${field} must be text.`, { field });
 		}
 	}
 	if (!Array.isArray(fields.typeIds) || fields.typeIds.some((id) => typeof id !== 'string')) {
 		throw new ValidationError('INVALID_GARDEN_DRAFT_FIELD', 'Garden draft typeIds must be an array of strings.', { field: 'typeIds' });
+	}
+	for (const field of ['icon', 'color']) {
+		if (fields[field] !== null && typeof fields[field] !== 'string') {
+			throw new ValidationError('INVALID_GARDEN_DRAFT_FIELD', `${field} must be text or null.`, { field });
+		}
+	}
+	if (typeof fields.saveAsTemplate !== 'boolean') {
+		throw new ValidationError('INVALID_GARDEN_DRAFT_FIELD', 'saveAsTemplate must be a boolean.', { field: 'saveAsTemplate' });
 	}
 }
 

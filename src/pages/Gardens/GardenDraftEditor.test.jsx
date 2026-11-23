@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
 
 // Exercise editor event handlers with persistent hook slots, without a browser.
 const hooks = vi.hoisted(() => ({
@@ -27,10 +28,10 @@ vi.mock('preact/hooks', () => {
 	};
 });
 
-import { GardenDraftEditor } from './FullGardenCreation.jsx';
+import { GardenDraftEditor, GardenFinalizationTemplateDialog } from './FullGardenCreation.jsx';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
 import { GardenTemplateSelection } from './GardenTemplateSelection.jsx';
-import { GardenFields } from '../../components/GardenFields.jsx';
+import { GardenWizardIdentityStep } from './gardenWizardSteps.jsx';
 import { WizardStepper } from '../../components/WizardStepper.jsx';
 import { loadGardenDrafts } from './viewModel.js';
 
@@ -47,8 +48,9 @@ const template = {
 	configuration: { name: 'Original template name', locationId: 'home', typeIds: [] },
 };
 const fields = {
-	name: 'Edited after application', subtitle: 'Keep subtitle', description: 'Keep description',
-	locationId: 'home', typeIds: [], startDate: '2026-04-01', endDate: '',
+	name: 'Edited after application', subtitle: 'Keep subtitle', icon: null, color: null,
+	description: 'Keep description', locationId: 'home', typeIds: [], startDate: '2026-04-01',
+	endDate: '', status: 'planned', saveAsTemplate: false,
 };
 
 function editor({
@@ -57,8 +59,11 @@ function editor({
 	sourceTemplateId = template.id,
 	currentStepId = mode === 'wizard' ? 'identity' : null,
 	saveDraft,
+	fieldValues = fields,
+	createFromDraft = vi.fn(async () => ({ id: 'created-garden' })),
+	createFromDraftWithTemplate = vi.fn(async () => ({ garden: { id: 'created-garden' }, template: { id: 'template' } })),
 } = {}) {
-	let draft = { id: 'draft', createdAt: 'created', preferredEditor: mode, sourceTemplateId, currentStepId, fields };
+	let draft = { id: 'draft', createdAt: 'created', preferredEditor: mode, sourceTemplateId, currentStepId, fields: fieldValues };
 	let renderedDraft = draft;
 	const workspace = {
 		drafts: { save: vi.fn(async (record) => {
@@ -67,6 +72,20 @@ function editor({
 			return saved;
 		}) },
 		templates: { list: vi.fn(async () => templates), resolveConfiguration: vi.fn() },
+		locations: { list: vi.fn(async () => [{ id: 'home', name: 'Home' }]) },
+		types: { list: vi.fn(async () => []) },
+		gardens: {
+			validate: vi.fn((input) => {
+				if (!input.name.trim()) {
+					const error = new Error('Garden name must contain text.');
+					error.field = 'name';
+					throw error;
+				}
+				return input;
+			}),
+			createFromDraft,
+			createFromDraftWithTemplate,
+		},
 	};
 	const references = { locations: [{ id: 'home', name: 'Home' }], types: [] };
 	function render() {
@@ -90,6 +109,10 @@ function editor({
 		},
 	};
 }
+
+function creationForm(tree) {
+	return nodes(tree).find((node) => node.type === 'form' && node.props.class === 'garden-full-create__form');
+}
 function selector(tree) {
 	const node = nodes(tree).find((node) => node.type === GardenTemplateSelection);
 	return GardenTemplateSelection(node.props);
@@ -109,6 +132,35 @@ beforeEach(() => {
 });
 
 describe('Wizard applied Template progression', () => {
+	it('blocks Continue on the active invalid step, preserves fields, and focuses the invalid control', async () => {
+		const focus = vi.fn();
+		vi.stubGlobal('document', {
+			getElementById: vi.fn(() => ({ focus })),
+			querySelector: vi.fn(() => null),
+		});
+		try {
+			const view = editor({ fieldValues: { ...fields, name: ' ' } });
+			await view.mount();
+			await button(view.render(), 'Continue').props.onClick();
+			expect(hooks.route).not.toHaveBeenCalled();
+			expect(view.workspace.drafts.save).not.toHaveBeenCalled();
+			expect(focus).toHaveBeenCalledOnce();
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
+	it('allows Back without validating the current step', async () => {
+		hooks.query = { step: 'details' };
+		const view = editor({ currentStepId: 'details', fieldValues: { ...fields, locationId: 'missing' } });
+		await view.mount();
+		await button(view.render(), 'Back').props.onClick();
+		expect(hooks.route).toHaveBeenLastCalledWith('/gardens/new/wizard/draft?step=identity', false);
+		expect(view.workspace.drafts.save).toHaveBeenCalledWith(expect.objectContaining({
+			fields: expect.objectContaining({ locationId: 'missing' }),
+		}));
+	});
+
 	it('renders the five production steps with the URL-selected stable ID', async () => {
 		hooks.query = { step: 'types' };
 		const view = editor({ currentStepId: 'details' });
@@ -154,7 +206,7 @@ describe('Wizard applied Template progression', () => {
 		await button(view.render(), 'Continue').props.onClick();
 		expect(hooks.route).not.toHaveBeenCalled();
 
-		const gardenFields = nodes(view.render()).find(({ type }) => type === GardenFields);
+		const gardenFields = nodes(view.render()).find(({ type }) => type === GardenWizardIdentityStep);
 		gardenFields.props.onChange('name', 'Updated after failed navigation');
 		await vi.waitFor(() => expect(view.workspace.drafts.save).toHaveBeenCalledTimes(2));
 		expect(view.workspace.drafts.save).toHaveBeenLastCalledWith(expect.objectContaining({
@@ -220,7 +272,7 @@ describe('Wizard applied Template progression', () => {
 		const next = button(tree, 'Continue');
 		expect(next.props.disabled).toBe(false);
 		next.props.onClick();
-		expect(nodes(view.render()).find((node) => node.type === GardenFields).props.fields).toEqual(fields);
+		expect(nodes(view.render()).find((node) => node.type === GardenWizardIdentityStep).props.fields).toEqual(fields);
 		expect(view.workspace.templates.resolveConfiguration).not.toHaveBeenCalled();
 		expect(view.workspace.drafts.save).not.toHaveBeenCalled();
 	});
@@ -251,7 +303,7 @@ describe('Wizard applied Template progression', () => {
 		expect(nodes(selector(tree)).filter((node) => node.type === 'input')[1].props.checked).toBe(true);
 		expect(button(tree, 'Continue').props.disabled).toBe(false);
 		await button(tree, 'Continue').props.onClick();
-		expect(nodes(view.render()).find((node) => node.type === GardenFields).props.fields).toEqual(fields);
+		expect(nodes(view.render()).find((node) => node.type === GardenWizardIdentityStep).props.fields).toEqual(fields);
 		await button(view.render(), 'Switch to Advanced').props.onClick();
 		expect(view.draft).toMatchObject({ fields, sourceTemplateId: 'source', preferredEditor: 'advanced' });
 		expect(view.workspace.templates.resolveConfiguration).not.toHaveBeenCalled();
@@ -293,7 +345,90 @@ describe('Wizard applied Template progression', () => {
 		const tree = view.render();
 		expect(button(tree, 'Continue').props.disabled).toBe(false);
 		button(tree, 'Continue').props.onClick();
-		expect(nodes(view.render()).find((node) => node.type === GardenFields).props.fields).toEqual(fields);
+		expect(nodes(view.render()).find((node) => node.type === GardenWizardIdentityStep).props.fields).toEqual(fields);
 		expect(view.workspace.templates.resolveConfiguration).not.toHaveBeenCalled();
+	});
+});
+
+describe('Wizard finalization', () => {
+	it('returns to an earlier invalid step, preserves the draft, and does not create a Garden', async () => {
+		hooks.query = { step: 'options' };
+		const createFromDraft = vi.fn();
+		const view = editor({
+			currentStepId: 'options', createFromDraft,
+			fieldValues: { ...fields, name: ' ' },
+		});
+		await view.mount();
+		await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+
+		expect(createFromDraft).not.toHaveBeenCalled();
+		expect(view.workspace.drafts.save).toHaveBeenCalledWith(expect.objectContaining({
+			fields: expect.objectContaining({ name: ' ' }),
+		}));
+		expect(hooks.route).toHaveBeenLastCalledWith('/gardens/new/wizard/draft?step=identity', false);
+	});
+
+	it('creates the complete Garden, consumes the draft through the service, and opens its detail route', async () => {
+		hooks.query = { step: 'options' };
+		const createFromDraft = vi.fn(async () => ({ id: 'new-garden' }));
+		const view = editor({ currentStepId: 'options', createFromDraft });
+		await view.mount();
+		await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+
+		expect(createFromDraft).toHaveBeenCalledWith(expect.objectContaining({
+			name: fields.name, icon: null, color: null, status: 'planned',
+		}), 'draft');
+		expect(hooks.route).toHaveBeenLastCalledWith('/gardens/new-garden');
+	});
+
+	it('opens Template confirmation and cancellation creates neither record', async () => {
+		hooks.query = { step: 'options' };
+		const createFromDraftWithTemplate = vi.fn();
+		const view = editor({
+			currentStepId: 'options', createFromDraftWithTemplate,
+			fieldValues: { ...fields, saveAsTemplate: true },
+		});
+		await view.mount();
+		await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+		let dialog = nodes(view.render()).find((node) => node.type === GardenFinalizationTemplateDialog);
+		expect(dialog.props.open).toBe(true);
+		dialog.props.onCancel();
+		dialog = nodes(view.render()).find((node) => node.type === GardenFinalizationTemplateDialog);
+		expect(dialog.props.open).toBe(false);
+		expect(createFromDraftWithTemplate).not.toHaveBeenCalled();
+	});
+
+	it('confirms the editable Template name through coordinated finalization', async () => {
+		hooks.query = { step: 'options' };
+		const createFromDraftWithTemplate = vi.fn(async () => ({ garden: { id: 'new-garden' }, template: { id: 'new-template' } }));
+		const view = editor({
+			currentStepId: 'options', createFromDraftWithTemplate,
+			fieldValues: { ...fields, saveAsTemplate: true },
+		});
+		await view.mount();
+		await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+		const dialog = nodes(view.render()).find((node) => node.type === GardenFinalizationTemplateDialog);
+		dialog.props.onConfirm('My edited Template name');
+		await vi.waitFor(() => expect(createFromDraftWithTemplate).toHaveBeenCalledWith(
+			expect.objectContaining({ name: fields.name }), 'draft', 'My edited Template name',
+		));
+		expect(hooks.route).toHaveBeenLastCalledWith('/gardens/new-garden');
+	});
+
+	it('keeps the draft and confirmation dialog recoverable when coordinated creation fails', async () => {
+		hooks.query = { step: 'options' };
+		const createFromDraftWithTemplate = vi.fn(async () => { throw new Error('simulated failure'); });
+		const view = editor({
+			currentStepId: 'options', createFromDraftWithTemplate,
+			fieldValues: { ...fields, saveAsTemplate: true },
+		});
+		await view.mount();
+		await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+		nodes(view.render()).find((node) => node.type === GardenFinalizationTemplateDialog).props.onConfirm('Retryable Template');
+		await vi.waitFor(() => expect(nodes(view.render()).find(
+			(node) => node.type === GardenFinalizationTemplateDialog,
+		).props.error).toContain('could not be created'));
+		expect(hooks.route).not.toHaveBeenCalledWith('/gardens/created-garden');
+		expect(view.draft.fields).toEqual({ ...fields, saveAsTemplate: true });
 	});
 });

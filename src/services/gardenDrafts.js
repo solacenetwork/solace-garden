@@ -5,11 +5,15 @@ import { DEFAULT_LOCATION_ID } from './locations.js';
 export const EMPTY_GARDEN_DRAFT_FIELDS = Object.freeze({
 	name: '',
 	subtitle: '',
+	icon: null,
+	color: null,
 	description: '',
 	locationId: DEFAULT_LOCATION_ID,
 	typeIds: Object.freeze([]),
 	startDate: '',
 	endDate: '',
+	status: 'planned',
+	saveAsTemplate: false,
 });
 
 export function copyGardenDraftFields(fields = EMPTY_GARDEN_DRAFT_FIELDS) {
@@ -50,11 +54,14 @@ export function gardenInputFromDraftFields(fields) {
 	return {
 		name: fields.name,
 		subtitle: fields.subtitle,
+		icon: fields.icon,
+		color: fields.color,
 		description: fields.description,
 		locationId: fields.locationId,
 		typeIds: [...fields.typeIds],
 		startDate: fields.startDate || null,
 		endDate: fields.endDate || null,
+		status: fields.status,
 	};
 }
 

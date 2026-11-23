@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('bootstrap/js/dist/dialog.js', () => ({ default: class Dialog {} }));
 
 const TEMPLATE_ID = '550e8400-e29b-41d4-a716-446655440010';
 const DRAFT_ID = '550e8400-e29b-41d4-a716-446655440011';
