@@ -96,12 +96,13 @@ export function GardenDraftCard({ draft, onDiscard, discardingId = null }) {
 		<article class="garden-card garden-card--draft">
 			<a class="garden-draft-card__resume" href={draft.href}>
 				<GardenCardVisual src={GARDEN_CARD_PLACEHOLDERS.draft} />
-				<GardenCardContent title={draft.label} actionLabel="Continue draft" />
+				<GardenCardContent title={draft.label} subtitle={draft.subtitle} actionLabel="Continue draft" />
 			</a>
 			<button class="btn-text theme-danger garden-draft-card__discard" type="button" disabled={discardingId === draft.id} onClick={() => onDiscard(draft)}>
 				<i class="bi bi-trash3" aria-hidden="true"></i>
 				{discardingId === draft.id ? 'Discarding…' : 'Discard Draft'}
 			</button>
+			<div class="garden-draft-card__ribbon">{draft.creationMethodLabel}</div>
 		</article>
 	);
 }
@@ -184,7 +185,7 @@ function GardenDraftSection({ drafts = [], onDiscard, discardingId, error = '' }
 		<section class="gardens-section garden-drafts" aria-labelledby="garden-drafts-title">
 			<div class="garden-drafts__header">
 				<h2 id="garden-drafts-title">Draft Gardens</h2>
-				<a href="/gardens/drafts">View All</a>
+				{drafts.length > 0 && <a href="/gardens/drafts">View All</a>}
 			</div>
 			<p>Continue an unfinished Garden or discard one you no longer need.</p>
 			{error && <div class="garden-create__error" role="alert">{error}</div>}

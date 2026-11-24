@@ -104,7 +104,7 @@ describe('Garden browsing data', () => {
 		expect([...result.current, ...result.planned, ...result.previous].some(({ id }) => id === untitled.id)).toBe(false);
 	});
 
-	it('reopens unfinished drafts in their last-used editor in both directions', async () => {
+	it('reopens unfinished drafts in each editor with matching creation labels', async () => {
 		const draft = await readers.drafts.create();
 		await readers.drafts.save({
 			id: draft.id,
@@ -114,6 +114,7 @@ describe('Garden browsing data', () => {
 		let result = await loadGardenOverview(readers);
 		expect(result.drafts).toContainEqual(expect.objectContaining({
 			id: draft.id,
+			creationMethodLabel: 'Advanced',
 			href: `/gardens/new/advanced/${draft.id}`,
 		}));
 
@@ -125,6 +126,7 @@ describe('Garden browsing data', () => {
 		result = await loadGardenOverview(readers);
 		expect(result.drafts).toContainEqual(expect.objectContaining({
 			id: draft.id,
+			creationMethodLabel: 'Wizard',
 			href: `/gardens/new/wizard/${draft.id}`,
 		}));
 
@@ -137,7 +139,22 @@ describe('Garden browsing data', () => {
 		result = await loadGardenOverview(readers);
 		expect(result.drafts).toContainEqual(expect.objectContaining({
 			id: draft.id,
+			creationMethodLabel: 'Quick Start',
 			href: `/gardens/new/quickstart/${draft.id}`,
+		}));
+	});
+
+	it('preserves entered Draft names and subtitles in card data', async () => {
+		const draft = await readers.drafts.create();
+		await readers.drafts.save({
+			id: draft.id,
+			fields: { ...draft.fields, name: '  Patio Tomatoes  ', subtitle: '  South wall  ' },
+			preferredEditor: draft.preferredEditor,
+		});
+		expect((await loadGardenDrafts(readers)).drafts).toContainEqual(expect.objectContaining({
+			id: draft.id,
+			label: '  Patio Tomatoes  ',
+			subtitle: '  South wall  ',
 		}));
 	});
 

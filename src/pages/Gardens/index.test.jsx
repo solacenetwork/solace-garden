@@ -126,7 +126,10 @@ describe('Garden read-only views', () => {
 	});
 
 	it('uses the category-specific SVG placeholder for every saved and Draft card', () => {
-		const draft = { id: 'draft-id', label: 'Draft title', href: '/gardens/new/wizard/draft-id' };
+		const draft = {
+			id: 'draft-id', label: 'Draft title', creationMethodLabel: 'Wizard',
+			href: '/gardens/new/wizard/draft-id',
+		};
 		const tree = GardensOverviewView({
 			state: { status: 'ready', drafts: [draft], current: [garden], planned: [garden], previous: [garden] },
 		});
@@ -141,8 +144,8 @@ describe('Garden read-only views', () => {
 
 	it('renders all Hub drafts in the shared filmstrip with a View All destination', () => {
 		const drafts = [
-			{ id: 'wizard-draft', label: 'Wizard draft', href: '/gardens/new/wizard/wizard-draft' },
-			{ id: 'advanced-draft', label: 'Advanced draft', href: '/gardens/new/advanced/advanced-draft' },
+			{ id: 'wizard-draft', label: 'Wizard draft', creationMethodLabel: 'Wizard', href: '/gardens/new/wizard/wizard-draft' },
+			{ id: 'advanced-draft', label: 'Advanced draft', creationMethodLabel: 'Advanced', href: '/gardens/new/advanced/advanced-draft' },
 		];
 		const tree = GardensOverviewView({
 			state: { status: 'ready', drafts, current: [], planned: [], previous: [] },
@@ -154,6 +157,37 @@ describe('Garden read-only views', () => {
 		expect(carousel.props.children).toHaveLength(2);
 		expect(nodes(carousel.props.children).filter((node) => node.props?.class === 'garden-draft-card__resume').map(({ props }) => props.href)).toEqual(drafts.map(({ href }) => href));
 		expect(nodes(tree).find((node) => node.props?.href === '/gardens/drafts')).toBeTruthy();
+	});
+
+	it('hides the Hub Draft View All destination when the collection is empty', () => {
+		const tree = GardensOverviewView({
+			state: { status: 'ready', drafts: [], current: [], planned: [], previous: [] },
+		});
+		expect(text(tree)).toContain('Draft Gardens');
+		expect(text(tree)).toContain('No unfinished Garden drafts.');
+		expect(nodes(tree).some((node) => node.props?.href === '/gardens/drafts')).toBe(false);
+	});
+
+	it.each([
+		['quickstart', 'Quick Start'],
+		['wizard', 'Wizard'],
+		['advanced', 'Advanced'],
+	])('shows the %s creation-method ribbon on Draft cards only', (editor, label) => {
+		const draft = {
+			id: `${editor}-draft`, label: ` ${label} Garden `, subtitle: ` ${label} subtitle `,
+			creationMethodLabel: label, href: `/gardens/new/${editor}/${editor}-draft`,
+		};
+		const tree = GardensOverviewView({
+			state: { status: 'ready', drafts: [draft], current: [garden], planned: [], previous: [] },
+		});
+		const draftCard = nodes(tree).find((node) => node.props?.class === 'garden-card garden-card--draft');
+		const savedCard = nodes(tree).find((node) => node.props?.class === 'garden-card garden-card--saved');
+		expect(text(draftCard)).toContain(draft.label);
+		expect(text(draftCard)).toContain(draft.subtitle);
+		expect(nodes(draftCard).filter((node) => node.props?.class === 'garden-draft-card__ribbon').map(text)).toEqual([label]);
+		expect(nodes(savedCard).some((node) => node.props?.class === 'garden-draft-card__ribbon')).toBe(false);
+		expect(text(savedCard)).toContain(garden.name);
+		expect(text(savedCard)).toContain(garden.subtitle);
 	});
 
 	it('renders required and optional saved-Garden card content without Location or status', () => {
@@ -264,7 +298,10 @@ describe('Garden read-only views', () => {
 
 	it('offers resume and targeted discard actions for unfinished Garden drafts', () => {
 		const onDiscard = vi.fn();
-		const draft = { id: 'draft-id', label: 'Untitled Garden', href: '/gardens/new/wizard/draft-id' };
+		const draft = {
+			id: 'draft-id', label: 'Untitled Garden', creationMethodLabel: 'Wizard',
+			href: '/gardens/new/wizard/draft-id',
+		};
 		const tree = GardensOverviewView({
 			state: { status: 'ready', current: [], previous: [], drafts: [draft] },
 			onDiscard,
@@ -282,7 +319,10 @@ describe('Garden read-only views', () => {
 	});
 
 	it('keeps the Draft discard pending state on its separate action', () => {
-		const draft = { id: 'draft-id', label: 'Draft title', href: '/gardens/new/advanced/draft-id' };
+		const draft = {
+			id: 'draft-id', label: 'Draft title', creationMethodLabel: 'Advanced',
+			href: '/gardens/new/advanced/draft-id',
+		};
 		const tree = GardensOverviewView({
 			state: { status: 'ready', current: [], planned: [], previous: [], drafts: [draft] },
 			discardingId: draft.id,
@@ -295,8 +335,8 @@ describe('Garden read-only views', () => {
 
 	it('renders the dedicated Drafts page as a grid with both editor destinations', () => {
 		const drafts = [
-			{ id: 'wizard-draft', label: 'Wizard draft', href: '/gardens/new/wizard/wizard-draft' },
-			{ id: 'advanced-draft', label: 'Advanced draft', href: '/gardens/new/advanced/advanced-draft' },
+			{ id: 'wizard-draft', label: 'Wizard draft', creationMethodLabel: 'Wizard', href: '/gardens/new/wizard/wizard-draft' },
+			{ id: 'advanced-draft', label: 'Advanced draft', creationMethodLabel: 'Advanced', href: '/gardens/new/advanced/advanced-draft' },
 		];
 		const tree = GardenDraftsView({ state: { status: 'ready', drafts } });
 		expect(text(tree)).toContain('Draft Gardens');
@@ -305,6 +345,7 @@ describe('Garden read-only views', () => {
 		expect(nodes(tree).find((node) => node.props?.class === 'gardens-grid garden-drafts__grid')).toBeTruthy();
 		expect(nodes(tree).filter((node) => node.props?.class === 'garden-draft-card__resume').map(({ props }) => props.href)).toEqual(drafts.map(({ href }) => href));
 		expect(nodes(tree).filter((node) => node.props?.class?.includes('garden-draft-card__discard'))).toHaveLength(2);
+		expect(nodes(tree).filter((node) => node.props?.class === 'garden-draft-card__ribbon').map(text)).toEqual(['Wizard', 'Advanced']);
 	});
 
 	it('handles dedicated Draft loading, error, and empty states', () => {

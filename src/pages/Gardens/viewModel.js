@@ -10,6 +10,12 @@ const STATUS_LABELS = {
 	planned: 'Planned', active: 'Active', completed: 'Completed', archived: 'Archived',
 };
 
+const DRAFT_EDITOR_LABELS = Object.freeze({
+	quickstart: 'Quick Start',
+	wizard: 'Wizard',
+	advanced: 'Advanced',
+});
+
 export function createGardenReaders(repositories) {
 	return {
 		gardens: createGardensService(repositories.gardens),
@@ -34,7 +40,9 @@ function gardenView(record, locations, types = []) {
 function gardenDraftView(draft) {
 	return {
 		...draft,
-		label: draft.fields.name.trim() || 'Untitled Garden',
+		label: draft.fields.name.trim() ? draft.fields.name : 'Untitled Garden',
+		subtitle: draft.fields.subtitle,
+		creationMethodLabel: DRAFT_EDITOR_LABELS[draft.preferredEditor],
 		href: `/gardens/new/${draft.preferredEditor}/${draft.id}`,
 	};
 }

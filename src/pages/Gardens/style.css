@@ -633,6 +633,19 @@
 	align-self: flex-start;
 }
 
+.garden-draft-card__ribbon {
+	width: 100%;
+	padding: 0.4rem 1rem;
+	margin-block-start: auto;
+	color: var(--sg-color-text-muted);
+	font-size: 0.75rem;
+	font-weight: 700;
+	line-height: 1.35;
+	text-align: center;
+	background: color-mix(in srgb, var(--sg-color-primary-soft) 55%, var(--sg-color-surface));
+	border-block-start: 1px solid var(--sg-color-border);
+}
+
 .garden-full-create {
 	max-width: 54rem;
 }
