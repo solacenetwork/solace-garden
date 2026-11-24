@@ -151,6 +151,7 @@ export const applicationRoutes = [
 	{ path: '/notes/:id', view: 'note-edit' },
 	{ path: '/gardens/new/wizard/:draftId', view: 'garden-wizard' },
 	{ path: '/gardens/new/advanced/:draftId', view: 'garden-advanced' },
+	{ path: '/gardens/new/quickstart/:draftId', view: 'garden-quickstart' },
 	{ path: '/gardens/new/wizard', view: 'garden-wizard-new' },
 	{ path: '/gardens/new/advanced', view: 'garden-advanced-new' },
 	{ path: '/gardens/new/quickstart', view: 'garden-quickstart' },

@@ -72,8 +72,9 @@ function editor({
 	createFromDraftWithTemplate = vi.fn(async () => ({ garden: { id: 'created-garden' }, template: { id: 'template' } })),
 	advancedCreateFromDraft = createFromDraft,
 	advancedCreateFromDraftWithTemplate = createFromDraftWithTemplate,
+	draftId = 'draft',
 } = {}) {
-	let draft = { id: 'draft', createdAt: 'created', preferredEditor: mode, sourceTemplateId, currentStepId, fields: fieldValues };
+	let draft = { id: draftId, createdAt: draftId ? 'created' : null, preferredEditor: mode, sourceTemplateId, currentStepId, fields: fieldValues };
 	let renderedDraft = draft;
 	const workspace = {
 		drafts: { save: vi.fn(async (record) => {
@@ -249,6 +250,17 @@ describe('Garden draft editor progression', () => {
 			'/gardens/new/wizard/draft?step=identity',
 			true,
 		);
+	});
+
+	it('identifies a fresh editor as pristine and does not offer draft discard', async () => {
+		const view = editor({ mode: 'advanced', draftId: null, sourceTemplateId: null });
+		await view.mount();
+		const tree = view.render();
+
+		expect(nodeText(tree)).toContain('Your progress will be saved locally after your first change.');
+		expect(nodeText(tree)).toContain('Draft starts after your first change');
+		expect(button(tree, 'Discard Draft')).toBeUndefined();
+		expect(view.workspace.drafts.save).not.toHaveBeenCalled();
 	});
 
 	it.each([

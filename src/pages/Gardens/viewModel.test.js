@@ -127,6 +127,18 @@ describe('Garden browsing data', () => {
 			id: draft.id,
 			href: `/gardens/new/wizard/${draft.id}`,
 		}));
+
+		await readers.drafts.save({
+			id: draft.id,
+			fields: draft.fields,
+			preferredEditor: 'quickstart',
+			currentStepId: null,
+		});
+		result = await loadGardenOverview(readers);
+		expect(result.drafts).toContainEqual(expect.objectContaining({
+			id: draft.id,
+			href: `/gardens/new/quickstart/${draft.id}`,
+		}));
 	});
 
 	it('loads the dedicated Draft collection with the same labels, order, and editor links', async () => {

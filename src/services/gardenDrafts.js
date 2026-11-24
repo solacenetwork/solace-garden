@@ -21,6 +21,16 @@ export function copyGardenDraftFields(fields = EMPTY_GARDEN_DRAFT_FIELDS) {
 	return { ...fields, typeIds: [...fields.typeIds] };
 }
 
+export function gardenDraftFieldsEqual(left, right) {
+	if (!left || !right) return false;
+	return Object.keys(EMPTY_GARDEN_DRAFT_FIELDS).every((field) => (
+		field === 'typeIds'
+			? left.typeIds.length === right.typeIds.length
+				&& left.typeIds.every((id, index) => id === right.typeIds[index])
+			: Object.is(left[field], right[field])
+	));
+}
+
 export function gardenDraftFieldsFromTemplate(configuration, currentFields = EMPTY_GARDEN_DRAFT_FIELDS) {
 	return {
 		...copyGardenDraftFields(currentFields),
@@ -63,6 +73,7 @@ export function createGardenDraftsService(repository, {
 			preferredEditor = 'wizard',
 			initialFields = EMPTY_GARDEN_DRAFT_FIELDS,
 			sourceTemplateId = null,
+			currentStepId = preferredEditor === 'wizard' ? 'identity' : null,
 		} = {}) {
 			const timestamp = now();
 			return requireGardenDraft(await repository.add({
@@ -73,7 +84,7 @@ export function createGardenDraftsService(repository, {
 				fields: copyGardenDraftFields(initialFields),
 				sourceTemplateId,
 				preferredEditor,
-				currentStepId: preferredEditor === 'wizard' ? 'identity' : null,
+				currentStepId,
 				createdAt: timestamp,
 				updatedAt: timestamp,
 			}));
@@ -117,6 +128,85 @@ export function createGardenDraftsService(repository, {
 
 		remove(id) {
 			return repository.remove(id, 'garden');
+		},
+	});
+}
+
+export function createGardenDraftPersistence({
+	drafts,
+	initialDraft = null,
+	initialFields = initialDraft?.fields ?? EMPTY_GARDEN_DRAFT_FIELDS,
+	preferredEditor,
+	sourceTemplateId = initialDraft?.sourceTemplateId ?? null,
+	currentStepId = initialDraft?.currentStepId ?? (preferredEditor === 'wizard' ? 'identity' : null),
+	onEstablished = () => {},
+}) {
+	const baseline = copyGardenDraftFields(initialFields);
+	let record = initialDraft;
+	let savedSourceTemplateId = sourceTemplateId;
+	let savedPreferredEditor = preferredEditor;
+	let savedCurrentStepId = currentStepId;
+	let stopped = false;
+	let operationChain = Promise.resolve();
+
+	function enqueue(operation) {
+		const result = operationChain.catch(() => undefined).then(operation);
+		operationChain = result;
+		return result;
+	}
+
+	function persist(fields, context = {}) {
+		const snapshot = copyGardenDraftFields(fields);
+		const nextSourceTemplateId = Object.hasOwn(context, 'sourceTemplateId')
+			? context.sourceTemplateId
+			: savedSourceTemplateId;
+		const nextPreferredEditor = context.preferredEditor ?? savedPreferredEditor;
+		const nextCurrentStepId = context.currentStepId !== undefined
+			? context.currentStepId
+			: nextPreferredEditor === 'wizard' ? savedCurrentStepId : null;
+		return enqueue(async () => {
+			if (stopped) return record;
+			if (!record) {
+				if (gardenDraftFieldsEqual(snapshot, baseline) && !context.explicit) return null;
+				record = await drafts.create({
+					preferredEditor: nextPreferredEditor,
+					initialFields: snapshot,
+					sourceTemplateId: nextSourceTemplateId,
+					currentStepId: nextCurrentStepId,
+				});
+				savedSourceTemplateId = record.sourceTemplateId;
+				savedPreferredEditor = record.preferredEditor;
+				savedCurrentStepId = record.currentStepId;
+				onEstablished(record);
+				return record;
+			}
+			record = await drafts.save({
+				id: record.id,
+				fields: snapshot,
+				sourceTemplateId: nextSourceTemplateId,
+				preferredEditor: nextPreferredEditor,
+				currentStepId: nextCurrentStepId,
+				createdAt: record.createdAt,
+			});
+			savedSourceTemplateId = record.sourceTemplateId;
+			savedPreferredEditor = record.preferredEditor;
+			savedCurrentStepId = record.currentStepId;
+			return record;
+		});
+	}
+
+	return Object.freeze({
+		persist,
+		getRecord() { return record; },
+		async close() {
+			stopped = true;
+			await operationChain.catch(() => undefined);
+		},
+		async discard() {
+			stopped = true;
+			await operationChain.catch(() => undefined);
+			if (!record) return false;
+			return drafts.remove(record.id);
 		},
 	});
 }

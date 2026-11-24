@@ -97,8 +97,8 @@ function validateDraft(draft) {
 		if (!Object.hasOwn(draft, 'preferredEditor')) {
 			throw new ValidationError('INVALID_GARDEN_DRAFT_CONTEXT', 'Garden draft preferredEditor is required.', { field: 'preferredEditor' });
 		}
-		if (!['wizard', 'advanced'].includes(draft.preferredEditor)) {
-			throw new ValidationError('INVALID_GARDEN_DRAFT_EDITOR', 'Garden draft editor must be wizard or advanced.', { field: 'preferredEditor' });
+		if (!['quickstart', 'wizard', 'advanced'].includes(draft.preferredEditor)) {
+			throw new ValidationError('INVALID_GARDEN_DRAFT_EDITOR', 'Garden draft editor must be quickstart, wizard, or advanced.', { field: 'preferredEditor' });
 		}
 		if (!Object.hasOwn(draft, 'currentStepId')) {
 			throw new ValidationError('INVALID_GARDEN_DRAFT_CONTEXT', 'Garden draft currentStepId is required.', { field: 'currentStepId' });
@@ -108,7 +108,7 @@ function validateDraft(draft) {
 				throw new ValidationError('INVALID_GARDEN_DRAFT_STEP', 'Wizard drafts require a stable current step ID.', { field: 'currentStepId' });
 			}
 		} else if (draft.currentStepId !== null) {
-			throw new ValidationError('INVALID_GARDEN_DRAFT_STEP', 'Advanced drafts cannot retain a Wizard step ID.', { field: 'currentStepId' });
+			throw new ValidationError('INVALID_GARDEN_DRAFT_STEP', 'Quick Start and Advanced drafts cannot retain a Wizard step ID.', { field: 'currentStepId' });
 		}
 	}
 	for (const field of ['createdAt', 'updatedAt']) {

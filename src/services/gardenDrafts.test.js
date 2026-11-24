@@ -4,6 +4,7 @@ import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDraftAutosave } from './draftAutosave.js';
 import {
+	EMPTY_GARDEN_DRAFT_FIELDS, copyGardenDraftFields, createGardenDraftPersistence,
 	createGardenDraftsService, gardenInputFromDraftFields,
 } from './gardenDrafts.js';
 import { createGardensService } from './gardens.js';
@@ -84,6 +85,96 @@ describe('Recoverable Garden drafts', () => {
 			.rejects.toMatchObject({ code: 'WRONG_DRAFT_KIND' });
 		await expect(notes.remove(FIRST_DRAFT)).rejects.toMatchObject({ code: 'WRONG_DRAFT_KIND' });
 		expect(await drafts.getById(FIRST_DRAFT)).toEqual(gardenDraft);
+	});
+
+	it('keeps pristine snapshots in memory, then creates and updates exactly one draft', async () => {
+		const initialFields = copyGardenDraftFields(EMPTY_GARDEN_DRAFT_FIELDS);
+		const persistence = createGardenDraftPersistence({
+			drafts, initialFields, preferredEditor: 'advanced', currentStepId: null,
+		});
+
+		expect(await persistence.persist(initialFields)).toBeNull();
+		expect(await drafts.list()).toEqual([]);
+
+		const created = await persistence.persist({ ...initialFields, name: 'First change' });
+		const updated = await persistence.persist({ ...initialFields, name: 'Later change' });
+		expect(updated.id).toBe(created.id);
+		expect(await drafts.list()).toHaveLength(1);
+		expect((await drafts.getById(created.id)).fields.name).toBe('Later change');
+
+		await persistence.persist({ ...initialFields, startDate: 'temporarily invalid' });
+		expect((await drafts.getById(created.id)).fields.startDate).toBe('temporarily invalid');
+		await persistence.persist(initialFields);
+		expect(await drafts.getById(created.id)).toMatchObject({
+			id: created.id, preferredEditor: 'advanced', fields: { name: '' },
+		});
+	});
+
+	it('does not establish a Wizard draft for step navigation without Garden data changes', async () => {
+		const initialFields = copyGardenDraftFields(EMPTY_GARDEN_DRAFT_FIELDS);
+		const persistence = createGardenDraftPersistence({
+			drafts, initialFields, preferredEditor: 'wizard', currentStepId: 'identity',
+		});
+		expect(await persistence.persist(initialFields, { currentStepId: 'details' })).toBeNull();
+		expect(await persistence.persist(initialFields, { currentStepId: 'types' })).toBeNull();
+		expect(await drafts.list()).toEqual([]);
+	});
+
+	it('persists Quick Start editor metadata and keeps its hidden defaults recoverable', async () => {
+		const initialFields = { ...copyGardenDraftFields(EMPTY_GARDEN_DRAFT_FIELDS), typeIds: ['in-ground'] };
+		const persistence = createGardenDraftPersistence({
+			drafts, initialFields, preferredEditor: 'quickstart', currentStepId: null,
+		});
+		expect(await persistence.persist(initialFields)).toBeNull();
+		expect(await drafts.list()).toEqual([]);
+		const created = await persistence.persist({ ...initialFields, icon: 'flower1', color: '#287D46' });
+
+		expect(await drafts.getById(created.id)).toMatchObject({
+			preferredEditor: 'quickstart', currentStepId: null,
+			fields: { icon: 'flower1', color: '#287D46', locationId: DEFAULT_LOCATION_ID, typeIds: ['in-ground'] },
+		});
+	});
+
+	it('atomically consumes a Quick Start draft on success and preserves it on validation failure', async () => {
+		const quickStart = await drafts.create({
+			preferredEditor: 'quickstart',
+			currentStepId: null,
+			initialFields: fields({ name: 'Quick Garden', typeIds: ['in-ground'] }),
+		});
+		const invalidInput = gardenInputFromDraftFields({ ...quickStart.fields, status: 'archived' });
+		await expect(gardens.createFromDraft(invalidInput, quickStart.id))
+			.rejects.toMatchObject({ code: 'INVALID_GARDEN_STATUS' });
+		expect(await drafts.getById(quickStart.id)).toEqual(quickStart);
+
+		const created = await gardens.createFromDraft(gardenInputFromDraftFields(quickStart.fields), quickStart.id);
+		expect(created).not.toHaveProperty('preferredEditor');
+		expect(created).not.toHaveProperty('currentStepId');
+		expect(await drafts.getById(quickStart.id)).toBeNull();
+	});
+
+	it('waits for an in-flight first save before discarding and cannot recreate the draft', async () => {
+		let release;
+		let markStarted;
+		const gate = new Promise((resolve) => { release = resolve; });
+		const started = new Promise((resolve) => { markStarted = resolve; });
+		const slowDrafts = {
+			...drafts,
+			create: vi.fn(async (input) => { markStarted(); await gate; return drafts.create(input); }),
+		};
+		const initialFields = copyGardenDraftFields(EMPTY_GARDEN_DRAFT_FIELDS);
+		const persistence = createGardenDraftPersistence({
+			drafts: slowDrafts, initialFields, preferredEditor: 'wizard', currentStepId: 'identity',
+		});
+		const pending = persistence.persist({ ...initialFields, name: 'Pending' });
+		await started;
+		const discarded = persistence.discard();
+		release();
+
+		await pending;
+		expect(await discarded).toBe(true);
+		expect(await drafts.list()).toEqual([]);
+		expect(await persistence.persist({ ...initialFields, name: 'Too late' })).toBeTruthy();
+		expect(await drafts.list()).toEqual([]);
 	});
 
 	it('restores multiple independent structured drafts and returns defensive copies', async () => {

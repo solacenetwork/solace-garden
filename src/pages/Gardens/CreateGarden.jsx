@@ -5,6 +5,14 @@ import { GardenColorChoices, GardenIconChoices } from '../../components/GardenId
 import { useStorage } from '../../context/StorageContext.jsx';
 import { CURATED_GARDEN_ICONS, GARDEN_NUMBER_ICONS } from '../../gardenIdentity.js';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';
+import { createDraftAutosave } from '../../services/draftAutosave.js';
+import {
+	EMPTY_GARDEN_DRAFT_FIELDS,
+	copyGardenDraftFields,
+	createGardenDraftPersistence,
+	createGardenDraftsService,
+	gardenDraftFieldsEqual,
+} from '../../services/gardenDrafts.js';
 import { createGardensService } from '../../services/gardens.js';
 import { DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import {
@@ -65,6 +73,36 @@ export function createQuickStartSubmitter({
 const QUICK_START_INITIAL_VALUES = Object.freeze({
 	name: '', subtitle: '', icon: null, color: null, status: 'planned',
 });
+
+const QUICK_START_DRAFT_FIELDS = Object.freeze({
+	...EMPTY_GARDEN_DRAFT_FIELDS,
+	typeIds: QUICK_START_TYPE_IDS,
+});
+
+const QUICK_START_STATUS_TEXT = Object.freeze({
+	pristine: 'Draft starts after your first change',
+	'all-saved': 'All changes saved',
+	saving: 'Saving draft…',
+	'draft-saved': 'Draft saved locally',
+	error: 'Unable to save draft',
+});
+
+function quickStartValuesFromFields(fields) {
+	return {
+		name: fields.name,
+		subtitle: fields.subtitle,
+		icon: fields.icon,
+		color: fields.color,
+		status: fields.status,
+	};
+}
+
+function quickStartFieldsFromValues(values) {
+	return {
+		...copyGardenDraftFields(QUICK_START_DRAFT_FIELDS),
+		...values,
+	};
+}
 
 export async function loadCreateGardenTemplates(templates) {
 	try {
@@ -284,17 +322,22 @@ export function QuickStartGardenView({
 	errors = {},
 	saveError = '',
 	saving = false,
+	draftStatus = null,
 	onChange,
 	onSubmit,
+	onCancel,
+	onDiscard,
 }) {
 	return (
 		<section class="container gardens-page garden-quick-start" aria-labelledby="quick-start-garden-title">
-			<GardenCreationBreadcrumb current="Quick Start" disabled={saving} />
+			<GardenCreationBreadcrumb current="Quick Start" disabled={saving} onNavigate={onCancel} />
 			<header class="gardens-header">
 				<p class="garden-create__eyebrow">Quick Start</p>
 				<h1 id="quick-start-garden-title">Create Garden</h1>
 				<p>Set up the essentials now, then add growing details and plants later.</p>
+				{draftStatus && <p class={`garden-draft-status garden-draft-status--${draftStatus}`} role="status">{QUICK_START_STATUS_TEXT[draftStatus]}</p>}
 			</header>
+			{onDiscard && <div class="garden-full-create__toolbar garden-full-create__toolbar--discard"><button class="btn-text theme-danger" type="button" disabled={saving} onClick={onDiscard}><i class="bi bi-trash3" aria-hidden="true"></i> Discard Draft</button></div>}
 
 			<form class="garden-create__form" noValidate onSubmit={onSubmit}>
 				<div class="form-field">
@@ -384,7 +427,10 @@ export function QuickStartGardenView({
 						href="/gardens/new"
 						aria-disabled={saving ? 'true' : undefined}
 						tabIndex={saving ? -1 : undefined}
-						onClick={(event) => { if (saving) event.preventDefault(); }}
+						onClick={(event) => {
+							if (saving) event.preventDefault();
+							else if (onCancel) { event.preventDefault(); onCancel('/gardens/new'); }
+						}}
 					>
 						Cancel
 					</a>
@@ -428,24 +474,92 @@ export function revealInvalidField(field, {
 	return true;
 }
 
-export function QuickStartGarden() {
+export function QuickStartGarden({ params } = {}) {
 	const { repositories } = useStorage();
 	const { route } = useLocation();
-	const [values, setValues] = useState(QUICK_START_INITIAL_VALUES);
+	const drafts = useMemo(() => createGardenDraftsService(repositories.drafts), [repositories]);
+	const [loadState, setLoadState] = useState(params?.draftId ? { status: 'loading' } : { status: 'ready', draft: null });
+
+	useEffect(() => {
+		if (!params?.draftId) {
+			setLoadState((current) => current.status === 'ready' && current.draft === null
+				? current
+				: { status: 'ready', draft: null });
+			return undefined;
+		}
+		let active = true;
+		setLoadState({ status: 'loading' });
+		void drafts.getById(params.draftId).then((draft) => {
+			if (!active) return;
+			setLoadState(draft && draft.preferredEditor === 'quickstart'
+				? { status: 'ready', draft }
+				: { status: 'error', message: 'This Quick Start draft is no longer available.' });
+		}, () => active && setLoadState({ status: 'error', message: 'This Quick Start draft could not be opened.' }));
+		return () => { active = false; };
+	}, [drafts, params?.draftId]);
+
+	if (loadState.status === 'loading') return <div class="container gardens-page"><p class="gardens-state" role="status">Loading Garden draft…</p></div>;
+	if (loadState.status === 'error') return <div class="container gardens-page"><div class="gardens-state" role="alert"><h1>Garden draft could not be opened</h1><p>{loadState.message}</p><a class="btn-solid theme-primary" href="/gardens">Back to Gardens</a></div></div>;
+	return <QuickStartGardenEditor key={loadState.draft?.id ?? 'pristine'} draft={loadState.draft} drafts={drafts} repositories={repositories} route={route} />;
+}
+
+export function QuickStartGardenEditor({ draft, drafts, repositories, route }) {
+	const initialValues = draft ? quickStartValuesFromFields(draft.fields) : QUICK_START_INITIAL_VALUES;
+	const [values, setValues] = useState(initialValues);
 	const [errors, setErrors] = useState({});
 	const [saveError, setSaveError] = useState('');
 	const [saving, setSaving] = useState(false);
+	const [draftStatus, setDraftStatus] = useState(draft ? 'draft-saved' : 'pristine');
+	const [establishedId, setEstablishedId] = useState(draft?.id ?? null);
 	const gardens = useMemo(
 		() => createGardensService(repositories.gardens),
 		[repositories],
 	);
+	const persistence = useMemo(() => createGardenDraftPersistence({
+		drafts,
+		initialDraft: draft,
+		initialFields: draft?.fields ?? QUICK_START_DRAFT_FIELDS,
+		preferredEditor: 'quickstart',
+		currentStepId: null,
+		onEstablished: (record) => setEstablishedId(record.id),
+	}), [draft?.id, drafts]);
+	const autosave = useMemo(() => createDraftAutosave({
+		write: (nextValues) => persistence.persist(quickStartFieldsFromValues(nextValues), {
+			preferredEditor: 'quickstart', currentStepId: null,
+		}),
+		onStatus: (status, error) => {
+			setDraftStatus(status === 'draft-saved' && !persistence.getRecord() ? 'pristine' : status);
+			if (error) setSaveError('Your draft could not be saved. Your entries are still here, so you can try again.');
+		},
+	}), [persistence]);
 	const submit = useMemo(() => createQuickStartSubmitter({
-		createGarden: (input) => gardens.create(input),
+		createGarden: async (input) => {
+			await autosave.flush();
+			const activeDraftId = persistence.getRecord()?.id;
+			const created = activeDraftId
+				? await gardens.createFromDraft(input, activeDraftId)
+				: await gardens.create(input);
+			await persistence.close();
+			return created;
+		},
 		navigate: route,
 		onSaving: setSaving,
 		onFieldError: (field, message) => setErrors(field ? { [field]: message } : {}),
 		onSaveError: setSaveError,
-	}), [gardens, route]);
+	}), [autosave, gardens, persistence, route]);
+
+	useEffect(() => {
+		const flushBeforeReload = () => { void autosave.flush(); };
+		globalThis.addEventListener?.('beforeunload', flushBeforeReload);
+		return () => {
+			globalThis.removeEventListener?.('beforeunload', flushBeforeReload);
+			void autosave.flush();
+		};
+	}, [autosave]);
+	useEffect(() => {
+		if (draft || !establishedId || draftStatus !== 'draft-saved') return;
+		route(`/gardens/new/quickstart/${establishedId}`, true);
+	}, [draft, draftStatus, establishedId, route]);
 
 	useEffect(() => {
 		if (!Object.values(errors).some(Boolean)) return;
@@ -456,9 +570,42 @@ export function QuickStartGarden() {
 	}, [errors]);
 
 	function updateField(field, value) {
-		setValues((current) => ({ ...current, [field]: value }));
+		setValues((current) => {
+			if (Object.is(current[field], value)) return current;
+			const next = { ...current, [field]: value };
+			autosave.schedule(next);
+			return next;
+		});
 		setErrors((current) => ({ ...current, [field]: undefined }));
 		setSaveError('');
+	}
+
+	async function leave(path) {
+		if (saving) return;
+		setSaving(true);
+		await autosave.flush();
+		const desiredFields = quickStartFieldsFromValues(values);
+		const persisted = persistence.getRecord();
+		const stillPristine = gardenDraftFieldsEqual(desiredFields, QUICK_START_DRAFT_FIELDS);
+		if ((!persisted && !stillPristine) || (persisted && !gardenDraftFieldsEqual(persisted.fields, desiredFields))) {
+			setSaveError('Your latest changes could not be saved. Try again before leaving Quick Start.');
+			setSaving(false);
+			return;
+		}
+		route(path);
+	}
+
+	async function discard() {
+		if (!globalThis.confirm('Permanently discard this unfinished Garden draft?')) return;
+		setSaving(true);
+		await autosave.stop();
+		try {
+			await persistence.discard();
+			route('/gardens', true);
+		} catch {
+			setSaveError('This Garden draft could not be discarded. Please try again.');
+			setSaving(false);
+		}
 	}
 
 	function handleSubmit(event) {
@@ -472,5 +619,5 @@ export function QuickStartGarden() {
 		void submit(values);
 	}
 
-	return <QuickStartGardenView values={values} errors={errors} saveError={saveError} saving={saving} onChange={updateField} onSubmit={handleSubmit} />;
+	return <QuickStartGardenView values={values} errors={errors} saveError={saveError} saving={saving} draftStatus={draftStatus} onChange={updateField} onSubmit={handleSubmit} onCancel={leave} onDiscard={establishedId ? discard : null} />;
 }

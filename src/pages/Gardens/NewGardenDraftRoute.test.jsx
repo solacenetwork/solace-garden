@@ -71,8 +71,8 @@ beforeEach(() => {
 				locationResolution: { fallbackOccurred: false },
 			})),
 		},
-		gardenTypes: {},
-		locations: {},
+		gardenTypes: { list: vi.fn(async () => []) },
+		locations: { list: vi.fn(async () => []) },
 	};
 });
 
@@ -119,8 +119,11 @@ describe('new Garden draft route navigation', () => {
 		expect(text(errorView)).toContain('Back to Gardens');
 	});
 
-	it('keeps ordinary Advanced creation URLs unchanged', async () => {
-		await start('advanced');
-		expect(harness.route).toHaveBeenCalledWith(`/gardens/new/advanced/${DRAFT_ID}`, true);
+	it.each(['wizard', 'advanced'])('keeps a fresh %s editor pristine after reference loading', async (mode) => {
+		await start(mode);
+		expect(harness.repositories.locations.list).toHaveBeenCalledOnce();
+		expect(harness.repositories.gardenTypes.list).toHaveBeenCalledOnce();
+		expect(harness.repositories.drafts.add).not.toHaveBeenCalled();
+		expect(harness.route).not.toHaveBeenCalled();
 	});
 });
