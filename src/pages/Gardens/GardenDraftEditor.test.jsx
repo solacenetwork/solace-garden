@@ -252,14 +252,18 @@ describe('Garden draft editor progression', () => {
 		);
 	});
 
-	it('identifies a fresh editor as pristine and does not offer draft discard', async () => {
+	it('identifies a fresh editor as pristine and reserves the hidden draft toolbar', async () => {
 		const view = editor({ mode: 'advanced', draftId: null, sourceTemplateId: null });
 		await view.mount();
 		const tree = view.render();
 
 		expect(nodeText(tree)).toContain('Your progress will be saved locally after your first change.');
 		expect(nodeText(tree)).toContain('Draft starts after your first change');
-		expect(button(tree, 'Discard Draft')).toBeUndefined();
+		const discardButton = button(tree, 'Discard Draft');
+		expect(discardButton.props).toMatchObject({ disabled: true, tabIndex: -1 });
+		expect(discardButton.props.onClick).toBeTypeOf('function');
+		expect(nodes(tree).find(({ props }) => props.class?.includes('garden-full-create__toolbar--pending')))
+			.toBeDefined();
 		expect(view.workspace.drafts.save).not.toHaveBeenCalled();
 	});
 

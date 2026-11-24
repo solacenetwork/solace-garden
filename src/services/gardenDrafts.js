@@ -148,6 +148,7 @@ export function createGardenDraftPersistence({
 	let savedCurrentStepId = currentStepId;
 	let stopped = false;
 	let operationChain = Promise.resolve();
+	let discardPromise = null;
 
 	function enqueue(operation) {
 		const result = operationChain.catch(() => undefined).then(operation);
@@ -203,10 +204,23 @@ export function createGardenDraftPersistence({
 			await operationChain.catch(() => undefined);
 		},
 		async discard() {
-			stopped = true;
-			await operationChain.catch(() => undefined);
-			if (!record) return false;
-			return drafts.remove(record.id);
+			if (stopped) return false;
+			if (discardPromise) return discardPromise;
+			discardPromise = enqueue(async () => {
+				if (stopped) return false;
+				if (!record) {
+					stopped = true;
+					return false;
+				}
+				const removed = await drafts.remove(record.id);
+				stopped = true;
+				return removed;
+			});
+			try {
+				return await discardPromise;
+			} finally {
+				discardPromise = null;
+			}
 		},
 	});
 }

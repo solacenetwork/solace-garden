@@ -24,7 +24,7 @@ import {
 	GardenWizardDetailsStep, GardenWizardIdentityStep, GardenWizardTypesStep,
 	gardenWizardStepRegistration, validateAdvancedOptions,
 } from './gardenWizardSteps.jsx';
-import { templateSourceSearch } from './creationNavigation.js';
+import { replaceGardenDraftUrl, templateSourceSearch } from './creationNavigation.js';
 import {
 	createGardenWizardUrl,
 	loadGardenWizardSteps,
@@ -212,12 +212,15 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 	const [status, setStatus] = useState(draft.id ? 'draft-saved' : 'pristine');
 	const [errors, setErrors] = useState({});
 	const [message, setMessage] = useState('');
+	const [autosaveError, setAutosaveError] = useState('');
 	const [busy, setBusy] = useState(false);
 	const [templateNotice, setTemplateNotice] = useState('');
 	const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
 	const [templateDialogError, setTemplateDialogError] = useState('');
 	const [establishedId, setEstablishedId] = useState(draft.id ?? null);
-	const wizardPath = path ?? `/gardens/new/wizard/${draft.id}`;
+	const wizardPath = establishedId
+		? `/gardens/new/wizard/${establishedId}`
+		: path ?? '/gardens/new/wizard';
 	const stepResolution = mode === 'wizard'
 		? resolveGardenWizardLocation({
 			steps: resolvedWizardSteps,
@@ -255,7 +258,8 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		},
 		onStatus: (nextStatus, error) => {
 			setStatus(nextStatus === 'draft-saved' && !persistence.getRecord() ? 'pristine' : nextStatus);
-			if (error) setMessage(creationError(error, 'saved'));
+			if (error) setAutosaveError(creationError(error, 'saved'));
+			else if (nextStatus === 'draft-saved' || nextStatus === 'all-saved') setAutosaveError('');
 		},
 	}), [persistence]);
 
@@ -274,8 +278,8 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		const destination = mode === 'wizard'
 			? createGardenWizardUrl(editorPath, currentStepIdRef.current, query)
 			: editorPath;
-		route(destination, true);
-	}, [draft.id, establishedId, mode, query, route, status]);
+		replaceGardenDraftUrl(destination);
+	}, [draft.id, establishedId, mode, query, status]);
 
 	const requestedStepId = mode === 'wizard' ? requestedGardenWizardStep(query) : undefined;
 	useEffect(() => {
@@ -351,6 +355,7 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		});
 		setErrors((current) => ({ ...current, [field]: undefined }));
 		setMessage('');
+		setAutosaveError('');
 	}
 
 	async function persistCurrent({
@@ -369,6 +374,7 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		preferredEditorRef.current = saved.preferredEditor;
 		currentStepIdRef.current = saved.currentStepId;
 		setStatus('draft-saved');
+		setAutosaveError('');
 		return saved;
 	}
 
@@ -635,11 +641,14 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 				<div><p class="garden-create__eyebrow">{establishedId ? 'Recoverable draft' : 'New Garden'}</p><h1 id="full-create-title">{title}</h1><p>{establishedId ? 'Your progress is saved locally until you create or discard this Garden.' : 'Your progress will be saved locally after your first change.'}</p></div>
 				<p class={`garden-draft-status garden-draft-status--${status}`} role="status">{STATUS_TEXT[status]}</p>
 			</header>
-			{message && <div class="garden-create__error" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{message}</span></div>}
+			{(message || autosaveError) && <div class="garden-create__error" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{message || autosaveError}</span></div>}
 			{templateNotice && <div class="garden-template-notice" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i><span>{templateNotice}</span></div>}
-			{establishedId && <div class="garden-full-create__toolbar garden-full-create__toolbar--discard">
-				<button class="btn-text theme-danger" type="button" disabled={busy} onClick={discard}><i class="bi bi-trash3" aria-hidden="true"></i> Discard Draft</button>
-			</div>}
+			<div
+				class={`garden-full-create__toolbar garden-full-create__toolbar--discard${establishedId ? '' : ' garden-full-create__toolbar--pending'}`}
+				aria-hidden={establishedId ? undefined : 'true'}
+			>
+				<button class="btn-text theme-danger" type="button" disabled={busy || !establishedId} tabIndex={establishedId ? undefined : -1} onClick={discard}><i class="bi bi-trash3" aria-hidden="true"></i> Discard Draft</button>
+			</div>
 
 			<form class="garden-full-create__form" noValidate onSubmit={createGarden}>
 				{mode === 'wizard' ? <>

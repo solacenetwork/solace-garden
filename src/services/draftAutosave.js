@@ -7,6 +7,7 @@ export function createDraftAutosave({
 }) {
 	let timer = null;
 	let pendingValue;
+	let pendingNeedsRetry = false;
 	let generation = 0;
 	let writeChain = Promise.resolve();
 
@@ -22,6 +23,10 @@ export function createDraftAutosave({
 		const value = pendingValue;
 		const writeGeneration = generation;
 		pendingValue = undefined;
+		if (pendingNeedsRetry) {
+			pendingNeedsRetry = false;
+			onStatus('saving');
+		}
 		writeChain = writeChain.catch(() => undefined).then(async () => {
 			if (writeGeneration !== generation) {
 				return;
@@ -33,6 +38,10 @@ export function createDraftAutosave({
 				}
 			} catch (error) {
 				if (writeGeneration === generation) {
+					if (pendingValue === undefined) {
+						pendingValue = value;
+						pendingNeedsRetry = true;
+					}
 					onStatus('error', error);
 				}
 			}
@@ -44,6 +53,7 @@ export function createDraftAutosave({
 		schedule(value) {
 			generation += 1;
 			pendingValue = value;
+			pendingNeedsRetry = false;
 			onStatus('saving');
 			if (timer !== null) {
 				clearTimer(timer);
@@ -56,6 +66,7 @@ export function createDraftAutosave({
 		async stop() {
 			generation += 1;
 			pendingValue = undefined;
+			pendingNeedsRetry = false;
 			if (timer !== null) {
 				clearTimer(timer);
 				timer = null;

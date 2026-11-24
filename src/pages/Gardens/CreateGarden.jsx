@@ -17,6 +17,7 @@ import { createGardensService } from '../../services/gardens.js';
 import { DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import {
 	createTemplateDispatcherUrl,
+	replaceGardenDraftUrl,
 	resolveCreateGardenDispatch,
 } from './creationNavigation.js';
 
@@ -508,6 +509,7 @@ export function QuickStartGardenEditor({ draft, drafts, repositories, route }) {
 	const [values, setValues] = useState(initialValues);
 	const [errors, setErrors] = useState({});
 	const [saveError, setSaveError] = useState('');
+	const [autosaveError, setAutosaveError] = useState('');
 	const [saving, setSaving] = useState(false);
 	const [draftStatus, setDraftStatus] = useState(draft ? 'draft-saved' : 'pristine');
 	const [establishedId, setEstablishedId] = useState(draft?.id ?? null);
@@ -529,7 +531,8 @@ export function QuickStartGardenEditor({ draft, drafts, repositories, route }) {
 		}),
 		onStatus: (status, error) => {
 			setDraftStatus(status === 'draft-saved' && !persistence.getRecord() ? 'pristine' : status);
-			if (error) setSaveError('Your draft could not be saved. Your entries are still here, so you can try again.');
+			if (error) setAutosaveError('Your draft could not be saved. Your entries are still here, so you can try again.');
+			else if (status === 'draft-saved' || status === 'all-saved') setAutosaveError('');
 		},
 	}), [persistence]);
 	const submit = useMemo(() => createQuickStartSubmitter({
@@ -558,8 +561,8 @@ export function QuickStartGardenEditor({ draft, drafts, repositories, route }) {
 	}, [autosave]);
 	useEffect(() => {
 		if (draft || !establishedId || draftStatus !== 'draft-saved') return;
-		route(`/gardens/new/quickstart/${establishedId}`, true);
-	}, [draft, draftStatus, establishedId, route]);
+		replaceGardenDraftUrl(`/gardens/new/quickstart/${establishedId}`);
+	}, [draft, draftStatus, establishedId]);
 
 	useEffect(() => {
 		if (!Object.values(errors).some(Boolean)) return;
@@ -578,6 +581,7 @@ export function QuickStartGardenEditor({ draft, drafts, repositories, route }) {
 		});
 		setErrors((current) => ({ ...current, [field]: undefined }));
 		setSaveError('');
+		setAutosaveError('');
 	}
 
 	async function leave(path) {
@@ -619,5 +623,5 @@ export function QuickStartGardenEditor({ draft, drafts, repositories, route }) {
 		void submit(values);
 	}
 
-	return <QuickStartGardenView values={values} errors={errors} saveError={saveError} saving={saving} draftStatus={draftStatus} onChange={updateField} onSubmit={handleSubmit} onCancel={leave} onDiscard={establishedId ? discard : null} />;
+	return <QuickStartGardenView values={values} errors={errors} saveError={saveError || autosaveError} saving={saving} draftStatus={draftStatus} onChange={updateField} onSubmit={handleSubmit} onCancel={leave} onDiscard={establishedId ? discard : null} />;
 }

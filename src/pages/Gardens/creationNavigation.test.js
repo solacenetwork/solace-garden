@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
 	createTemplateDispatcherUrl,
+	replaceGardenDraftUrl,
 	resolveCreateGardenDispatch,
 	templateSourceSearch,
 } from './creationNavigation.js';
@@ -8,6 +9,15 @@ import {
 const TEMPLATE_ID = '550e8400-e29b-41d4-a716-446655440010';
 
 describe('Create Garden dispatcher', () => {
+	it('replaces an autosave-established draft URL without creating history', () => {
+		const historyObject = { state: { retained: true }, replaceState: vi.fn() };
+		replaceGardenDraftUrl('/gardens/new/advanced/draft-id', historyObject);
+		expect(historyObject.replaceState).toHaveBeenCalledWith(
+			historyObject.state,
+			'',
+			'/gardens/new/advanced/draft-id',
+		);
+	});
 	it('keeps the parameter-free URL on the landing page', () => {
 		expect(resolveCreateGardenDispatch({})).toEqual({ status: 'landing' });
 	});

@@ -28,6 +28,10 @@ export function createTemplateDispatcherUrl(mode, templateId) {
 	return `/gardens/new?${parameters}`;
 }
 
+export function replaceGardenDraftUrl(destination, historyObject = globalThis.history) {
+	historyObject?.replaceState?.(historyObject.state ?? null, '', destination);
+}
+
 export function templateSourceSearch(query) {
 	if (
 		!hasOnlyKeys(query, ['id', 'source'])

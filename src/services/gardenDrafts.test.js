@@ -135,6 +135,62 @@ describe('Recoverable Garden drafts', () => {
 		});
 	});
 
+	it('retries a failed first autosave without creating duplicate drafts', async () => {
+		const create = vi.fn()
+			.mockRejectedValueOnce(new Error('temporary create failure'))
+			.mockImplementationOnce((input) => drafts.create(input));
+		const established = vi.fn();
+		const persistence = createGardenDraftPersistence({
+			drafts: { ...drafts, create },
+			initialFields: EMPTY_GARDEN_DRAFT_FIELDS,
+			preferredEditor: 'advanced',
+			currentStepId: null,
+			onEstablished: established,
+		});
+		const autosave = createDraftAutosave({
+			write: (snapshot) => persistence.persist(snapshot),
+			onStatus() {},
+		});
+
+		autosave.schedule(fields({ name: 'Retry first save' }));
+		await autosave.flush();
+		expect(await drafts.list()).toEqual([]);
+		await autosave.flush();
+
+		expect(create).toHaveBeenCalledTimes(2);
+		expect(established).toHaveBeenCalledOnce();
+		expect(await drafts.list()).toHaveLength(1);
+		expect((await drafts.list())[0]).toMatchObject({ fields: { name: 'Retry first save' } });
+	});
+
+	it('retries a failed established-draft autosave without another edit', async () => {
+		const existing = await drafts.create({ initialFields: fields({ name: 'Original' }) });
+		const save = vi.fn()
+			.mockRejectedValueOnce(new Error('temporary update failure'))
+			.mockImplementationOnce((input) => drafts.save(input));
+		const persistence = createGardenDraftPersistence({
+			drafts: { ...drafts, save },
+			initialDraft: existing,
+			preferredEditor: 'wizard',
+			currentStepId: 'identity',
+		});
+		const autosave = createDraftAutosave({
+			write: (snapshot) => persistence.persist(snapshot),
+			onStatus() {},
+		});
+
+		autosave.schedule(fields({ name: 'Updated after retry' }));
+		await autosave.flush();
+		expect(await drafts.getById(existing.id)).toEqual(existing);
+		await autosave.flush();
+
+		expect(save).toHaveBeenCalledTimes(2);
+		expect(await drafts.getById(existing.id)).toMatchObject({
+			id: existing.id,
+			fields: { name: 'Updated after retry' },
+		});
+	});
+
 	it('atomically consumes a Quick Start draft on success and preserves it on validation failure', async () => {
 		const quickStart = await drafts.create({
 			preferredEditor: 'quickstart',
@@ -175,6 +231,59 @@ describe('Recoverable Garden drafts', () => {
 		expect(await drafts.list()).toEqual([]);
 		expect(await persistence.persist({ ...initialFields, name: 'Too late' })).toBeTruthy();
 		expect(await drafts.list()).toEqual([]);
+	});
+
+	it('recovers after a failed discard, persists later edits, and permits discard retry', async () => {
+		const existing = await drafts.create({
+			preferredEditor: 'advanced',
+			initialFields: fields({ name: 'Before discard' }),
+		});
+		const remove = vi.fn()
+			.mockRejectedValueOnce(new Error('simulated delete failure'))
+			.mockImplementationOnce((id) => drafts.remove(id));
+		const persistence = createGardenDraftPersistence({
+			drafts: { ...drafts, remove },
+			initialDraft: existing,
+			preferredEditor: 'advanced',
+			currentStepId: null,
+		});
+
+		await expect(persistence.discard()).rejects.toThrow('simulated delete failure');
+		expect(await drafts.getById(existing.id)).toEqual(existing);
+
+		await persistence.persist(fields({ name: 'After failed discard' }));
+		expect(await drafts.getById(existing.id)).toMatchObject({
+			fields: { name: 'After failed discard' },
+		});
+
+		await expect(persistence.discard()).resolves.toBe(true);
+		expect(await drafts.getById(existing.id)).toBeNull();
+		await persistence.persist(fields({ name: 'Late write' }));
+		expect(await drafts.getById(existing.id)).toBeNull();
+	});
+
+	it('queues edits made during a failed discard and saves them after deletion fails', async () => {
+		const existing = await drafts.create({ initialFields: fields({ name: 'Original' }) });
+		let rejectRemove;
+		const remove = vi.fn(() => new Promise((resolve, reject) => { rejectRemove = reject; }));
+		const wrappedDrafts = { ...drafts, remove };
+		const persistence = createGardenDraftPersistence({
+			drafts: wrappedDrafts,
+			initialDraft: existing,
+			preferredEditor: 'wizard',
+			currentStepId: 'identity',
+		});
+
+		const discarding = persistence.discard();
+		await vi.waitFor(() => expect(remove).toHaveBeenCalledOnce());
+		const editing = persistence.persist(fields({ name: 'Typed during discard' }));
+		rejectRemove(new Error('delete failed'));
+		await expect(discarding).rejects.toThrow('delete failed');
+		await editing;
+
+		expect(await drafts.getById(existing.id)).toMatchObject({
+			fields: { name: 'Typed during discard' },
+		});
 	});
 
 	it('restores multiple independent structured drafts and returns defensive copies', async () => {
