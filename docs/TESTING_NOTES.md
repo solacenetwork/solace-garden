@@ -191,3 +191,7 @@ When a test is added or its behavior changes:
 3. Add npm shortcuts only for frequently used groups; file paths and `--grep` already support narrower selection.
 4. Preserve failure evidence in Codex handoffs and distinguish test failures, inspected code changes, and manual acceptance.
 5. Prioritize **reliable, selective local execution** over test count. The goal is to save development time and Codex tokens, not to create a second large project maintaining tests.
+
+## Planned incremental ZIP verification (November 24, 2026)
+
+8H1–8H4 introduce the isolated backup test bench, shared archive definition, validator/sandbox round trip, UX prototype and production current-data backup/restore. Verify read-only source snapshot, sandbox isolation, manifest/record/reference validation, empty and populated datasets, stable IDs, invalid archive/failed writes, staging/pointer rollback and offline laptop/phone transfer. Prototype cannot switch real active pointers. Preserve existing synthetic direct IndexedDB Playwright fixture path independently of ZIP; add synthetic ZIP fixtures for dedicated restore and portability coverage. In 8J–8L and 8O–8Q, each new persistent dataset requires tested backup/validation/restore coverage. 8N integrates corruption, quota, interruption, rollback and realistic mobile/media stress checks; 8U is final offline readiness. No obsolete-alpha fixture/backup migration requirement. No implementation or execution claimed by this planning note.

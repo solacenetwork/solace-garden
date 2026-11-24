@@ -52,9 +52,9 @@ Keep development tooling out of the distributed production PWA, regardless of it
 - **Live palette/typography comparison (Step 10 development aid):** Consider a small, temporary preview/harness that applies the preserved Original Garden and Natural Earth palette candidates and font treatments to representative *real* Garden elements: buttons, links, breadcrumb states, navigation, cards, forms, headings, and labels. Inspect contrast, interactive states, responsive layouts, and outdoor readability before selecting the V1 default. This is a visual comparison tool, not a V1 user-facing theme picker.
 - **Future appearance preferences (V2+):** Explore a restrained built-in choice of approximately 2–3 color themes and seven fonts. Later, potentially support schema-validated drop-in third-party themes/fonts, initially for the hosted web deployment and eventually offline PWA use if feasible. Keep the full theme architecture, validation/fallback concept, and version boundaries in `UI_CONVENTIONS.md`, rather than duplicating them here.
 
-## Media/Gallery encoder candidates and benchmark research (8G.5 / 8H; November 21–23, 2026)
+## Media/Gallery encoder candidates and benchmark research (8I / 8J; November 21–23, 2026)
 
-**Status (November 23, 2026):** The isolated encoder benchmark has been **promoted to planned roadmap milestone GARDEN-V1-8G.5**, after 8G and before 8H; see [ROADMAP.md](ROADMAP.md) and [TECH_SPEC.md](TECH_SPEC.md) for its approved execution scope, acceptance and exact-version dependency prerequisite. This section preserves the research and alternatives, not a competing implementation specification. Keep the original development sample photographs for benchmark testing; production asset cleanup belongs to later release preparation. `@jsquash/webp` is not installed yet.
+**Status (approved November 23, 2026; renumbered November 24):** The isolated encoder benchmark has been **promoted to planned roadmap milestone GARDEN-V1-8I**, after 8H and before 8J; see [ROADMAP.md](ROADMAP.md) and [TECH_SPEC.md](TECH_SPEC.md) for its approved execution scope, acceptance and exact-version dependency prerequisite. This section preserves the research and alternatives, not a competing implementation specification. Keep the original development sample photographs for benchmark testing; production asset cleanup belongs to later release preparation. `@jsquash/webp` is not installed yet.
 
 - **Primary comparison:** Native browser Canvas WebP encoding versus `@jsquash/webp` (libwebp compiled to WASM, browser/Web Worker target, Apache-2.0). Compare file size/visual quality, encoding time, memory, alpha support, WASM delivery in Vite/PWA precache, and offline operation using identical JPEG/PNG samples.
 - **Not preferred for browser runtime:** `imagemin-webp` is a Node/native-`cwebp` build-time option. `@stacksjs/ts-webp` (pure TypeScript, MIT, early 0.x) is an interesting portable fallback, but its simplified lossy encoder is explicitly not as compression-efficient as `cwebp`, and the source's preferred system-binary pathway is not available in an installed browser PWA.
@@ -71,6 +71,10 @@ Keep development tooling out of the distributed production PWA, regardless of it
 - **Wizard configuration integrity:** V1's production JSON includes every active step, with stable IDs and explicit ordering; no `showInWizard` or production test-configuration URL override. Future engine/test-harness work can expand development-only step/form testing without exposing incomplete steps to users.
 
 **Architecture boundary update (November 21, 2026):** Read-only Codex reviews established that UI redesign **8A4** will implement the reusable *definition and navigation foundation* (strict step JSON validation, stable-ID resolution, Garden URL/history adapter and draft viewed-step persistence); **8A5** will add Garden-specific step-form registration and validation. This is incremental delivery of useful pieces, **not** authorization to build the fully configurable engine/test host. V1 only needs clear recoverable navigation errors, failed-configuration messages and basic privacy-conscious console diagnostics; a centralized Wizard error handler and diagnostic codes remain candidates here for later evaluation. See `TECH_SPEC.md` and `UI_REDESIGN.md` for approved V1 scope.
+
+## Portable backup test bench — promoted to V1 8H (November 24, 2026)
+
+The isolated backup prototype and production current-data foundation are now planned in 8H1–8H4; see ROADMAP and TECH_SPEC. Future synthetic portable fixtures can support repeated desktop/phone acceptance and isolated Wizard testing. Keep fixture data synthetic and retain existing direct IndexedDB Playwright fixtures; do not make all tests depend on ZIP restore. The full Wizard test host remains deferred.
 
 ## Future development tooling: Configurable Wizard Engine and isolated full-Wizard test harness
 
@@ -467,7 +471,7 @@ A reusable physical-space definition is created initially and normally changes o
 
 - Earlier Garden Archive Fabric.js prototype: canvas with separate drawing and plant-picker toolbars, example vegetable selector, shape controls, and a simple PNG export experiment. Keep as historical reference rather than code to port directly.
 - Mondrian-like rectangular CSS compositions: https://www.mondriangenerator.io/ and https://getmondrian.com/
-- **Scope boundary:** Garden V1 uses the gardener's uploaded JPG/PNG map as reference media and implements PlantDB lookup/selection and real plant-group creation in 8M/8N. It does not implement an interactive Maps editor. Avoid speculative diagram/geometry fields in V1 storage.
+- **Scope boundary:** Garden V1 uses the gardener's uploaded JPG/PNG map as reference media and implements PlantDB lookup/selection and real plant-group creation in 8O/8P. It does not implement an interactive Maps editor. Avoid speculative diagram/geometry fields in V1 storage.
 
 ## Future idea: Subscribe to Garden Tasks via iCalendar (VTODO)
 
