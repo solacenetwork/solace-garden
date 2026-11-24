@@ -206,6 +206,13 @@ These are the **recorded candidate swatches**, not a complete mapping of semanti
 - **Non-disruptive autosave:** Automatic persistence must not steal focus, reset caret or selection, move the viewport, dismiss the virtual keyboard, interrupt typing, unnecessarily remount active controls, or lose newer edits. Internal draft identity URL updates must not behave like intentional page navigation. Preserve accurate save/error feedback and retry the latest failed snapshot without requiring another edit; failed discard must leave persistence usable. Normal navigation retains its intended behavior.
 - Accepted for all three Garden creation editors in 8B1. Review Notes against these conventions in 8B5; do not imply Notes already implements lazy creation.
 
+## Visible submission-validation feedback (approved November 24, 2026)
+
+- Explicit failed form submissions must make failure apparent and bring actionable feedback into view. Preserve entered values and existing records/drafts. Prefer the relevant invalid field and its associated message, or the general error alert if no field can be identified.
+- In multi-step forms, navigate to the relevant step when necessary. Reveal and focus feedback only after the destination and errors render and controls are enabled. Scroll only as needed, account for the application header, respect reduced-motion preferences, and avoid a second focus-induced scroll.
+- Handle each explicit failure once; ordinary autosave must never trigger this behavior or replay a stale request. Reuse existing viewport-aware behavior rather than introducing global scroll handlers or arbitrary timing delays.
+- Accepted for Garden creation finalization in 8B3; apply this convention to future form work without implying all existing forms have already been audited.
+
 ## Garden creation identity and Draft card conventions (approved post-8A9, pending implementation)
 
 - Creation forms (Quick Start, Wizard Identity, Advanced Identity) use independent, accessible Bootstrap collapsible **Icon (optional)** and **Ring Color (optional)** palettes. Both are closed by default on first use, both may be open simultaneously, and headers summarize current selections. **Ring Color** means the circular identity ring only, not the icon or background. Reuse the same option and selection behavior across forms; editing dialog may retain tabs.
