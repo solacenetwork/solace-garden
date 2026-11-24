@@ -69,7 +69,7 @@ describe('Create Garden method landing page', () => {
 			'/gardens',
 			'/gardens/new/quickstart',
 			'/gardens/new/wizard',
-			'/templates',
+			'/gardens',
 			'/gardens/new/advanced',
 		]);
 	});
@@ -86,8 +86,10 @@ describe('Create Garden method landing page', () => {
 		expect(onRetry).toHaveBeenCalledOnce();
 
 		const empty = TemplateMethodContents({ state: { status: 'ready', items: [] } });
-		expect(visibleText(empty)).toContain('No saved Templates');
-		expect(nodes(empty).find(({ type }) => type === 'a').props.href).toBe('/templates');
+		expect(visibleText(empty)).toContain('Save a reusable Template');
+		expect(visibleText(empty)).not.toContain('Choose a Template');
+		expect(nodes(empty).some(({ type }) => type === 'select')).toBe(false);
+		expect(nodes(empty).find(({ type }) => type === 'a').props.href).toBe('/gardens');
 
 		const onSelect = vi.fn();
 		const ready = TemplateMethodContents({

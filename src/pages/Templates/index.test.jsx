@@ -102,6 +102,7 @@ describe('Templates management page', () => {
 
 	it('loads saved configuration with current Location and Garden Type labels after reopen', async () => {
 		const { template } = await createTemplate();
+		await locations.update(DEFAULT_LOCATION_ID, { name: 'Home Base' });
 		storage.close();
 		storage = await initializeDexieStorage({ dependencies });
 		templates = createGardenTemplatesService(storage.repositories.gardenTemplates);
@@ -114,16 +115,40 @@ describe('Templates management page', () => {
 			items: [{
 				id: template.id,
 				name: 'Favorite',
-				locationName: 'Default',
+				locationName: 'Home Base',
 				locationAvailable: true,
+				locationFallbackAvailable: false,
 				typeNames: ['Outdoor', 'Raised Bed'],
 			}],
 		});
 		const view = TemplatesPageView({ state, onRequestDelete: vi.fn() });
-		for (const value of ['Favorite', 'Kitchen Garden', 'Default', 'Outdoor, Raised Bed', 'Reusable details']) {
+		for (const value of ['Favorite', 'Kitchen Garden', 'Home Base', 'Outdoor, Raised Bed', 'Reusable details']) {
 			expect(text(view)).toContain(value);
 		}
 		expect(text(view)).not.toContain('Gallery');
+	});
+
+	it('links each Template to the existing Wizard and Advanced dispatchers and hides its ID by default', async () => {
+		const { template } = await createTemplate();
+		const state = await loadTemplatesPage(readers());
+		const view = TemplatesPageView({ state, onRequestDelete: vi.fn() });
+		const links = nodes(view).filter((node) => node.type === 'a');
+		const details = nodes(view).find((node) => node.type === 'details');
+
+		expect(links.map(({ props }) => props.href)).toContain(
+			`/gardens/new?type=wizard&source=template&id=${template.id}`,
+		);
+		expect(links.map(({ props }) => props.href)).toContain(
+			`/gardens/new?type=advanced&source=template&id=${template.id}`,
+		);
+		expect(links.filter(({ props }) => props.href?.includes(template.id)).map(({ props }) => props['aria-label']))
+			.toEqual([
+				'Guided Wizard — Create Garden from Template Favorite, suggested Garden Kitchen Garden',
+				'Advanced Form — Create Garden from Template Favorite, suggested Garden Kitchen Garden',
+			]);
+		expect(details.props.open).toBeUndefined();
+		expect(text(details)).toContain('Technical details');
+		expect(text(details)).toContain(template.id);
 	});
 
 	it('keeps duplicate names as independent UUID-keyed cards and deletion targets', async () => {
@@ -143,19 +168,41 @@ describe('Templates management page', () => {
 		);
 	});
 
-	it('shows a missing saved Location without resolving or mutating the Template', async () => {
+	it('shows the renamed effective Default when the saved Location is missing without mutating the Template', async () => {
 		const custom = await locations.create({ name: 'Temporary allotment' });
 		const { garden, template } = await createTemplate({ locationId: custom.id });
 		await gardens.update(garden.id, { locationId: DEFAULT_LOCATION_ID });
 		await locations.remove(custom.id);
+		await locations.update(DEFAULT_LOCATION_ID, { name: 'Home Base' });
 
 		const state = await loadTemplatesPage(readers());
 		expect(state.items[0]).toMatchObject({
-			locationName: 'Saved Location unavailable',
+			locationName: 'Home Base',
 			locationAvailable: false,
+			locationFallbackAvailable: true,
+		});
+		const copy = text(TemplatesPageView({ state, onRequestDelete: vi.fn() }));
+		expect(copy).toContain('Home Base');
+		expect(copy).toContain('Original Location unavailable. This Location will be used instead.');
+		expect((await templates.getById(template.id)).configuration.locationId).toBe(custom.id);
+	});
+
+	it('reports honestly when neither the saved nor Default Location is available', async () => {
+		const custom = await locations.create({ name: 'Temporary allotment' });
+		const { template } = await createTemplate({ locationId: custom.id });
+		const state = await loadTemplatesPage({
+			templates,
+			locations: { list: async () => [] },
+			types,
+		});
+
+		expect(state.items[0]).toMatchObject({
+			locationName: 'Location unavailable',
+			locationAvailable: false,
+			locationFallbackAvailable: false,
 		});
 		expect(text(TemplatesPageView({ state, onRequestDelete: vi.fn() })))
-			.toContain('Saved Location unavailable');
+			.toContain('Original Location unavailable. No valid Default Location is available.');
 		expect((await templates.getById(template.id)).configuration.locationId).toBe(custom.id);
 	});
 
@@ -172,9 +219,10 @@ describe('Templates management page', () => {
 		const copy = text(tree);
 		expect(nodes(tree).find((node) => node.type === 'dialog').props['aria-describedby'])
 			.toBe('template-deletion-description');
-		for (const value of [template.name, template.configuration.name, template.id, 'Existing Gardens are unaffected', 'source Garden and other records will not be deleted']) {
+		for (const value of [template.name, template.configuration.name, 'Existing Gardens are unaffected', 'source Garden and other records will not be deleted']) {
 			expect(copy).toContain(value);
 		}
+		expect(copy).not.toContain(template.id);
 		nodes(tree).find((node) => node.props?.class === 'btn-outline').props.onClick();
 		expect(onCancel).toHaveBeenCalledOnce();
 	});

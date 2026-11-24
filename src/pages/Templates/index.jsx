@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';
 import { createGardenTypesService } from '../../services/gardenTypes.js';
-import { createLocationsService } from '../../services/locations.js';
+import { createLocationsService, DEFAULT_LOCATION_ID } from '../../services/locations.js';
+import { createTemplateDispatcherUrl } from '../Gardens/creationNavigation.js';
 import './style.css';
 
 export async function loadTemplatesPage({ templates, locations, types }) {
@@ -11,16 +12,19 @@ export async function loadTemplatesPage({ templates, locations, types }) {
 		const [records, sites, definitions] = await Promise.all([
 			templates.list(), locations.list(), types.list(),
 		]);
+		const defaultLocation = sites.find(({ id }) => id === DEFAULT_LOCATION_ID);
 		return {
 			status: 'ready',
 			items: [...records].sort((first, second) =>
 				second.updatedAt.localeCompare(first.updatedAt) || first.id.localeCompare(second.id),
 			).map((template) => {
 				const location = sites.find(({ id }) => id === template.configuration.locationId);
+				const effectiveLocation = location ?? defaultLocation;
 				return {
 					...template,
-					locationName: location?.name ?? 'Saved Location unavailable',
+					locationName: effectiveLocation?.name ?? 'Location unavailable',
 					locationAvailable: Boolean(location),
+					locationFallbackAvailable: !location && Boolean(defaultLocation),
 					typeNames: template.configuration.typeIds.map((id) =>
 						definitions.find((type) => type.id === id)?.name ?? 'Type unavailable',
 					),
@@ -71,7 +75,6 @@ export function TemplateDeletionDialog({
 					<>
 						<p><strong>{template.name}</strong> will be permanently removed.</p>
 						<p>Suggested Garden: <strong>{template.configuration.name}</strong></p>
-						<p class="template-record-id">Template ID: <code>{template.id}</code></p>
 						<ul>
 							<li>Existing Gardens are unaffected.</li>
 							<li>The source Garden and other records will not be deleted.</li>
@@ -103,7 +106,7 @@ export function TemplatesPageView({ state, message = '', onRetry, onRequestDelet
 			<header class="templates-page__header">
 				<p class="templates-page__eyebrow">Reusable Garden setup</p>
 				<h1 id="templates-title">Templates</h1>
-				<p>Save reusable Garden configuration without copying Notes, dates, plants, or activity history.</p>
+				<p><strong>Save as Template</strong> preserves reusable configuration from a Garden. <strong>Create Garden from Template</strong> uses that configuration to start another Garden without copying Notes, dates, plants, or activity history.</p>
 			</header>
 			{message && <p class="templates-message" role="status" aria-live="polite">{message}</p>}
 			{state.status === 'loading' ? (
@@ -117,29 +120,62 @@ export function TemplatesPageView({ state, message = '', onRetry, onRequestDelet
 				<div class="templates-state templates-empty">
 					<i class="bi bi-copy" aria-hidden="true"></i>
 					<h2>No Templates saved yet</h2>
-					<p>Open an existing Garden and choose <strong>Save as Template</strong> to create one.</p>
+					<p>Open an existing Garden and choose <strong>Save as Template</strong>. You can then <strong>Create Garden from Template</strong> here.</p>
 					<a class="btn-solid theme-primary" href="/gardens">Browse Gardens</a>
 				</div>
 			) : (
 				<ul class="templates-list" aria-label="Saved Templates">
 					{state.items.map((template) => (
-						<li class="template-card" key={template.id}>
+						<li class="template-card" key={template.id} aria-labelledby={`template-title-${template.id}`}>
 							<div class="template-card__header">
-								<div>
-									<p class="template-card__label">Template</p>
-									<h2>{template.name}</h2>
-								</div>
-								<button class="btn-outline theme-danger" type="button" onClick={(event) => onRequestDelete(template, event.currentTarget)}>
-									<i class="bi bi-trash3" aria-hidden="true"></i> Delete Template
-								</button>
+								<p class="template-card__label">Template</p>
+								<h2 id={`template-title-${template.id}`}>{template.name}</h2>
 							</div>
 							<dl class="template-card__facts">
 								<div><dt>Suggested Garden name</dt><dd>{template.configuration.name}</dd></div>
-								<div><dt>Location</dt><dd class={template.locationAvailable ? undefined : 'template-card__unavailable'}>{template.locationName}</dd></div>
+								<div>
+									<dt>Location</dt>
+									<dd class={!template.locationAvailable && !template.locationFallbackAvailable ? 'template-card__unavailable' : undefined}>{template.locationName}</dd>
+									{!template.locationAvailable && (
+										<p class={template.locationFallbackAvailable ? 'template-card__fallback' : 'template-card__unavailable'}>
+											{template.locationFallbackAvailable
+												? 'Original Location unavailable. This Location will be used instead.'
+												: 'Original Location unavailable. No valid Default Location is available.'}
+										</p>
+									)}
+								</div>
 								<div><dt>Garden Types</dt><dd>{template.typeNames.length ? template.typeNames.join(', ') : 'No types selected'}</dd></div>
 							</dl>
 							{template.configuration.description && <p class="template-card__description">{template.configuration.description}</p>}
-							<p class="template-record-id">Template ID: <code>{template.id}</code></p>
+							<div class="template-card__create-actions" role="group" aria-label={`Create Garden from Template ${template.name}`}>
+								<h3>Create Garden from Template</h3>
+								<div>
+									<a
+										class="btn-solid theme-primary"
+										href={createTemplateDispatcherUrl('wizard', template.id)}
+										aria-label={`Guided Wizard — Create Garden from Template ${template.name}, suggested Garden ${template.configuration.name}`}
+									>
+										<i class="bi bi-signpost-split" aria-hidden="true"></i> Guided Wizard
+									</a>
+									<a
+										class="btn-outline theme-primary"
+										href={createTemplateDispatcherUrl('advanced', template.id)}
+										aria-label={`Advanced Form — Create Garden from Template ${template.name}, suggested Garden ${template.configuration.name}`}
+									>
+										<i class="bi bi-sliders" aria-hidden="true"></i> Advanced Form
+									</a>
+								</div>
+							</div>
+							<div class="template-card__secondary-actions">
+								<details class="template-card__technical-details">
+									<summary>Technical details</summary>
+									<p>Template ID</p>
+									<code>{template.id}</code>
+								</details>
+								<button class="btn-text theme-danger" type="button" onClick={(event) => onRequestDelete(template, event.currentTarget)}>
+									<i class="bi bi-trash3" aria-hidden="true"></i> Delete Template
+								</button>
+							</div>
 						</li>
 					))}
 				</ul>

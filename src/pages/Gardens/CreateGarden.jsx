@@ -188,8 +188,8 @@ export function TemplateMethodContents({ state, selectedId, onSelect, onRetry })
 	if (state.items.length === 0) {
 		return (
 			<div class="garden-create-method__state garden-create-method__state--empty">
-				<p>No saved Templates are available yet.</p>
-				<a class="btn-text" href="/templates">Manage Templates</a>
+				<p>Save a reusable Template from an existing Garden to use this creation method.</p>
+				<a class="btn-text" href="/gardens">Browse Gardens</a>
 			</div>
 		);
 	}
