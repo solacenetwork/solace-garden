@@ -10,7 +10,7 @@ export function Home() {
 	return (
 		<div class={`container home-page home-page--${effectiveMode}`}>
 			<header class="home-intro">
-				<h1>{isSimple ? 'Where would you like to go?' : 'Your Garden'}</h1>
+				<h1>{isSimple ? 'Where would you like to go?' : 'Your Gardens'}</h1>
 				{!isSimple && <p>Recent activity and Gardens at a glance.</p>}
 			</header>
 
