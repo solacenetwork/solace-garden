@@ -24,11 +24,26 @@ vi.mock('preact/hooks', () => {
 		},
 		useRef: (initial) => hooks.slots[slot(() => ({ current: initial }))],
 		useMemo: (factory) => hooks.slots[slot(factory)],
-		useEffect(effect) { slot(() => { hooks.effects.push(effect); return true; }); },
+		useEffect(effect, dependencies) {
+			const index = hooks.index++;
+			const previous = hooks.slots[index];
+			const changed = !previous || dependencies === undefined || previous.dependencies === undefined
+				|| dependencies.length !== previous.dependencies.length
+				|| dependencies.some((value, dependencyIndex) => !Object.is(value, previous.dependencies[dependencyIndex]));
+			hooks.slots[index] = { ...previous, dependencies };
+			if (changed) {
+				hooks.effects.push(() => {
+					previous?.cleanup?.();
+					const cleanup = effect();
+					hooks.slots[index] = { dependencies, cleanup };
+					return cleanup;
+				});
+			}
+		},
 	};
 });
 
-import { GardenDraftEditor, GardenFinalizationTemplateDialog } from './FullGardenCreation.jsx';
+import { GardenDraftEditor, GardenFinalizationTemplateDialog, revealGardenCreationFeedback } from './FullGardenCreation.jsx';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
 import { DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import {
@@ -140,12 +155,44 @@ function creationBreadcrumb(tree) {
 	return { node, tree: GardenCreationBreadcrumb(node.props) };
 }
 
+async function flushEffects(view) {
+	view.render();
+	for (const effect of hooks.effects.splice(0)) effect();
+	await Promise.resolve();
+}
+
 beforeEach(() => {
 	hooks.slots = [];
 	hooks.effects = [];
 	hooks.route.mockReset();
 	hooks.path = '/gardens/new/wizard/draft';
 	hooks.query = { step: 'identity' };
+});
+
+describe('Garden creation validation feedback', () => {
+	it('reveals a field and its validation message using the established viewport-aware behavior', () => {
+		const focus = vi.fn();
+		const scrollIntoView = vi.fn();
+		const field = {
+			getAttribute: () => 'create-garden-location-error',
+			getBoundingClientRect: () => ({ top: 900, bottom: 940 }),
+			focus,
+			scrollIntoView,
+		};
+		const documentObject = {
+			getElementById: (id) => id === 'create-garden-location'
+				? field
+				: { getBoundingClientRect: () => ({ top: 942, bottom: 966 }) },
+			querySelector: () => ({ getBoundingClientRect: () => ({ bottom: 72 }) }),
+		};
+
+		expect(revealGardenCreationFeedback('locationId', {
+			documentObject,
+			viewport: { innerHeight: 800, matchMedia: () => ({ matches: true }) },
+		})).toBe(true);
+		expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'center', inline: 'nearest' });
+		expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+	});
 });
 
 describe('Garden draft editor progression', () => {
@@ -388,20 +435,62 @@ describe('Garden draft editor progression', () => {
 
 describe('Wizard finalization', () => {
 	it('returns to an earlier invalid step, preserves the draft, and does not create a Garden', async () => {
+		const focus = vi.fn();
+		vi.stubGlobal('document', {
+			getElementById: vi.fn((id) => id === 'create-garden-name' ? { focus } : null),
+			querySelector: vi.fn(() => null),
+		});
 		hooks.query = { step: 'options' };
 		const createFromDraft = vi.fn();
-		const view = editor({
-			currentStepId: 'options', createFromDraft,
-			fieldValues: { ...fields, name: ' ' },
-		});
-		await view.mount();
-		await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+		try {
+			const view = editor({
+				currentStepId: 'options', createFromDraft,
+				fieldValues: { ...fields, name: ' ' },
+			});
+			await view.mount();
+			await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
 
-		expect(createFromDraft).not.toHaveBeenCalled();
-		expect(view.workspace.drafts.save).toHaveBeenCalledWith(expect.objectContaining({
-			fields: expect.objectContaining({ name: ' ' }),
-		}));
-		expect(hooks.route).toHaveBeenLastCalledWith('/gardens/new/wizard/draft?step=identity', false);
+			expect(createFromDraft).not.toHaveBeenCalled();
+			expect(view.workspace.drafts.save).toHaveBeenCalledWith(expect.objectContaining({
+				fields: expect.objectContaining({ name: ' ' }),
+			}));
+			expect(hooks.route).toHaveBeenLastCalledWith('/gardens/new/wizard/draft?step=identity', false);
+			await flushEffects(view);
+			expect(focus).not.toHaveBeenCalled();
+
+			hooks.query = { step: 'identity' };
+			await flushEffects(view);
+			expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+			expect(view.draft.id).toBe('draft');
+			expect(view.draft.fields.name).toBe(' ');
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
+	it('reveals a same-step final validation error without unnecessary Wizard navigation', async () => {
+		const focus = vi.fn();
+		vi.stubGlobal('document', {
+			getElementById: vi.fn((id) => id === 'create-garden-location' ? { focus } : null),
+			querySelector: vi.fn(() => null),
+		});
+		try {
+			hooks.query = { step: 'details' };
+			const view = editor({
+				currentStepId: 'details', sourceTemplateId: null,
+				fieldValues: { ...fields, locationId: 'deleted-location' },
+				locations: [{ id: DEFAULT_LOCATION_ID, name: 'Default' }],
+			});
+			await view.mount();
+			await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+			await flushEffects(view);
+
+			expect(hooks.route).not.toHaveBeenCalled();
+			expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+			expect(view.workspace.gardens.createFromDraft).not.toHaveBeenCalled();
+		} finally {
+			vi.unstubAllGlobals();
+		}
 	});
 
 	it('creates the complete Garden, consumes the draft through the service, and opens its detail route', async () => {
@@ -472,7 +561,10 @@ describe('Wizard finalization', () => {
 describe('Advanced finalization', () => {
 	it('identifies an invalid Archived closed-state combination and preserves the draft', async () => {
 		const focus = vi.fn();
-		vi.stubGlobal('document', { getElementById: vi.fn(() => ({ focus })) });
+		vi.stubGlobal('document', {
+			getElementById: vi.fn((id) => id === 'create-garden-isClosed' ? { focus } : null),
+			querySelector: vi.fn(() => null),
+		});
 		try {
 			const advancedCreate = vi.fn();
 			const invalid = { ...fields, status: 'archived', isClosed: false };
@@ -485,7 +577,84 @@ describe('Advanced finalization', () => {
 			expect(advancedCreate).not.toHaveBeenCalled();
 			expect(JSON.stringify(view.render())).toContain('Archived Gardens must be closed.');
 			expect(view.draft.fields).toEqual(invalid);
-			expect(focus).toHaveBeenCalledOnce();
+			expect(focus).not.toHaveBeenCalled();
+			await flushEffects(view);
+			expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
+	it('preserves an unavailable-Location draft, reveals recovery, and finalizes after correction', async () => {
+		const focus = vi.fn();
+		vi.stubGlobal('document', {
+			getElementById: vi.fn((id) => id === 'create-garden-location' ? { focus } : null),
+			querySelector: vi.fn(() => null),
+		});
+		try {
+			const advancedCreate = vi.fn(async () => ({ id: 'recovered-garden' }));
+			const staleFields = { ...fields, locationId: 'deleted-location', description: 'Preserve me' };
+			const view = editor({
+				mode: 'advanced', sourceTemplateId: null, fieldValues: staleFields,
+				locations: [{ id: DEFAULT_LOCATION_ID, name: 'Default' }],
+				advancedCreateFromDraft: advancedCreate,
+			});
+			await view.mount();
+			await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+			await flushEffects(view);
+
+			expect(advancedCreate).not.toHaveBeenCalled();
+			expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+			expect(view.draft).toMatchObject({ id: 'draft', fields: staleFields });
+
+			const details = nodes(view.render()).find(({ type }) => type === GardenWizardDetailsStep);
+			details.props.onChange('locationId', DEFAULT_LOCATION_ID);
+			await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+
+			expect(advancedCreate).toHaveBeenCalledWith(expect.objectContaining({
+				locationId: DEFAULT_LOCATION_ID,
+				description: 'Preserve me',
+			}), 'draft');
+			expect(hooks.route).toHaveBeenLastCalledWith('/gardens/recovered-garden');
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
+	it('reveals the general error message after a fieldless explicit submission failure', async () => {
+		const focus = vi.fn();
+		vi.stubGlobal('document', {
+			getElementById: vi.fn((id) => id === 'garden-create-error' ? { focus } : null),
+			querySelector: vi.fn(() => null),
+		});
+		try {
+			const view = editor({
+				mode: 'advanced',
+				advancedCreateFromDraft: vi.fn(async () => { throw new Error('simulated write failure'); }),
+			});
+			await view.mount();
+			await creationForm(view.render()).props.onSubmit({ preventDefault: vi.fn() });
+			await flushEffects(view);
+
+			expect(nodeText(view.render())).toContain('Something unexpected prevented your Garden from being created.');
+			expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
+	it('does not invoke submission feedback behavior during ordinary autosave', async () => {
+		const getElementById = vi.fn();
+		vi.stubGlobal('document', { getElementById, querySelector: vi.fn(() => null) });
+		try {
+			const view = editor({ mode: 'advanced' });
+			await view.mount();
+			const details = nodes(view.render()).find(({ type }) => type === GardenWizardDetailsStep);
+			details.props.onChange('description', 'Autosaved only');
+			await vi.waitFor(() => expect(view.workspace.drafts.save).toHaveBeenCalled());
+			await flushEffects(view);
+
+			expect(getElementById).not.toHaveBeenCalled();
 		} finally {
 			vi.unstubAllGlobals();
 		}
