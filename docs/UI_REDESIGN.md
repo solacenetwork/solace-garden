@@ -545,8 +545,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 | Slice | Scope | Status |
 | --- | --- | --- |
 | 8B1 | Garden Draft Persistence and Creation Lifecycle: Quick Start parity, lazy draft creation and non-disruptive autosave across all Garden editors | Accepted |
-| 8B2 | Draft-only creation-method ribbons and hide View All when no drafts exist | Next |
-| 8B3 | Conditional Geographic Location selector in Wizard and Advanced | Pending |
+| 8B2 | Draft-only creation-method ribbons and hide View All when no drafts exist | Accepted |
+| 8B3 | Conditional Geographic Location selector in Wizard and Advanced | Next |
 | 8B4 | Templates management and entry-point refinements | Pending |
 | 8B5 | Notes browsing, linked-Garden context and review of autosave conventions | Pending |
 | 8B6 | Tasks and Wish List consistency review | Pending |
@@ -557,6 +557,8 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 Secondary page layouts remain subject to inspection and focused approval; do not expand into new feature functionality or Step 10 polish.
 
 **8B1 accepted November 24, 2026.** Implementation [`c5f2006`](https://github.com/solacenetwork/solace-garden/commit/c5f200635485659fa9624a2f3df47ec3f41e9d64); corrective implementation [`5e9d0c5`](https://github.com/solacenetwork/solace-garden/commit/5e9d0c502d9904d1ab2fae98a696b25a5cd41a90). Quick Start now participates in shared Garden draft persistence and atomic consumption; all three editors establish drafts only after meaningful data changes (including explicit Template application). First-save URL replacement preserves the mounted editor; failed autosaves retain the latest snapshot for retry and failed discard leaves persistence usable. Developer confirmed all corrective and remaining functional manual checks passed, including reduced-height desktop and Galaxy S22 editing continuity, explicit resume, fresh flows, Template workflows and draft management. Codex reported 628/628 full Vitest (65 files), 88/88 focused (8 files), successful production PWA build and diff check; no Playwright run or changes in this slice. Test commands were not independently rerun by the documentation editor. Abrupt termination can recover only committed autosaves. No alpha migration or schema version change. **Next: 8B2.**
+
+**8B2 accepted November 24, 2026.** Implementation [`5c5402c`](https://github.com/solacenetwork/solace-garden/commit/5c5402c49b55f43edbe83e75d6b42de3f616b589). Draft-only bottom creation-method ribbons (Quick Start, Wizard, Advanced) use persisted editor metadata and the shared card presentation on the Gardens Hub and dedicated Drafts page. Names/subtitles are preserved, saved cards unchanged, Resume and Discard remain separate, and the Hub View All link is hidden for zero drafts. Codex reported 39/39 focused Vitest tests across two files, successful diff check and clean worktree; no full suite, Playwright or build was run in this slice. Developer confirmed all manual acceptance checks passed. Test commands were not independently rerun by the documentation editor. **Next: 8B3 — Conditional Geographic Location.**
 
 **Purpose:** Finish the remaining page-level navigation and presentation work without expanding feature scope.
 
@@ -589,6 +591,8 @@ Secondary page layouts remain subject to inspection and focused approval; do not
 **Acceptance:** All approved layouts and navigation paths pass manual and automated checks; existing accepted workflows remain intact. Record any focused UI polish findings for Step 10 before final redesign sign-off.
 
 ### Step 10 — UI polish and usability corrections
+
+**Post-8B2 presentation observation (November 24, 2026; proposed Step 10 polish):** The developer suggested replacing repetitive visible “Continue draft” text on each Draft card with shared section guidance. Suggested wording: “Select a draft to continue working on your Garden, or discard one you no longer need.” Preserve accessible resume-link names and separate Discard actions on both Hub and dedicated Drafts page. This is a nonblocking suggestion, not an implemented change; final wording/presentation to be confirmed during Step 10.
 
 **Status (updated November 21, 2026):** Planned. The original correction list and subsequent visual-design hypotheses remain pending; a read-only theme-readiness audit was completed November 21 and is summarized below. No implementation or acceptance is claimed. Handle after the remaining page redesign and integrated review. Preserve existing routes, working features, and data integrity; verify changes with focused automated tests and real-device acceptance.
 
