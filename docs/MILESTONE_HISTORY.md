@@ -344,6 +344,12 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 
 **Boundary:** This closes **8A8 automated regression testing**, not 8A9 final real-device/manual acceptance, production build or full Step 8A completion. 8A9 is next; 8B and Steps 9–10 follow. The source-code slices 8A7-A/B/C were reviewed separately.
 
+#### GARDEN-UI-8A9 — Final Garden creation acceptance
+
+**Accepted November 23, 2026.** The developer reported that the production build completed successfully, deployed the build to the production-like test server [`garden.solace.network`](https://garden.solace.network), and passed **desktop browser**, **Galaxy S22**, and **installed-PWA** manual acceptance; no blocking behavior was observed. This follows the accepted 8A8 clean **56/56 Playwright** verification and 8A7 implementation reviews. The developer captured additional screenshots and notes for later UI review; their details are not yet triaged and should not be invented here.
+
+**Outcome:** **8A9 accepted; entire Step 8A Garden creation redesign (8A1–8A9) closed.** Remaining post-8F UI work: Step 8B, Step 9, Step 10. Original feature milestone 8G is not yet complete.
+
 ## Future archive entries
 
 When additional milestones are accepted, copy the factual acceptance outcome, verified tests, implementation commits, caveats and original milestone ID here; link the concise roadmap status to the entry. Use the current GitHub documentation as the implementation contract and do not confuse earlier test counts with the latest suite.
