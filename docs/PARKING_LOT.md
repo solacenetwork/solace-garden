@@ -11,6 +11,12 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future idea: Linking Gardens Back to Notes — contextual creation
+
+**Status (November 24, 2026):** Parked; no assigned milestone or release commitment. Explicitly outside 8B5-A.
+
+From an existing Garden detail workspace, consider a **+ Add Note** action that opens the normal new Note editor with that Garden preselected in the existing association selector. This complements the existing Note-to-Garden association workflow, analogous to the two-way Template creation entry points. Candidate URL concept: `/notes?type=garden&id=UUID`; actual dispatcher/new-editor route and query contract to be designed when scoped. Use the stable Garden UUID, validate the target, handle missing/deleted Gardens visibly, and apply context only once without overwriting resumed draft edits. Keep association optional and editable. Create an ordinary independent Note, not embedded Garden Notes, and retain explicit Save and lazy draft establishment. Do not create a saved Note merely by following the shortcut. Consider return navigation and lifecycle rules during design; no automatic reassociation, new record type or storage change is implied.
+
 ## Future idea: Actionable Location deletion restrictions
 
 **Status (November 24, 2026):** Parked usability enhancement discovered during UI 8B3 manual acceptance. No assigned milestone or release commitment; not an 8B3 blocker.
