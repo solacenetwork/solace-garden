@@ -5,10 +5,12 @@ test.use({ storageState: 'tests/fixtures/sample-garden.json' });
 async function openAdvanced(page) {
   await page.goto('/gardens/new/advanced');
   await expect(page.getByRole('heading', { name: 'Advanced Garden Creation', level: 1 })).toBeVisible();
+  await expect(page).toHaveURL(/\/gardens\/new\/advanced$/);
 }
 
-async function waitForDraftSaved(page) {
+async function waitForDraftEstablished(page, editor = 'advanced') {
   await expect(page.getByRole('status').filter({ hasText: 'Draft saved locally' })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/gardens/new/${editor}/[0-9a-f-]{36}(?:\\?step=identity)?$`, 'i'));
 }
 
 async function readStoredRecords(page, storeNames) {
@@ -53,7 +55,7 @@ test('Advanced creates an Active Garden that is independently locked', async ({ 
   await expect(locked).toBeChecked();
   await expect(locked).toBeEnabled();
 
-  await waitForDraftSaved(page);
+  await waitForDraftEstablished(page);
   await page.getByRole('button', { name: 'Create Garden' }).click();
   await expect(page.getByRole('heading', { name: gardenName, level: 1 })).toBeVisible();
 
@@ -67,7 +69,11 @@ test('Advanced creates an Active Garden that is independently locked', async ({ 
 });
 
 test('Advanced creation sections are visible in the expected order', async ({ page }) => {
+  await page.goto('/gardens');
+  const { drafts: draftsBefore } = await readStoredRecords(page, ['drafts']);
   await openAdvanced(page);
+  const { drafts: draftsAfter } = await readStoredRecords(page, ['drafts']);
+  expect(draftsAfter.map(({ id }) => id).sort()).toEqual(draftsBefore.map(({ id }) => id).sort());
 
   const headings = page.getByRole('heading', { level: 2 });
   await expect(headings).toHaveText([
@@ -87,7 +93,7 @@ test('Advanced creates a Completed Garden with the expected open state', async (
   await openAdvanced(page);
   await page.getByRole('textbox', { name: 'Garden name' }).fill(gardenName);
   await page.getByRole('radio', { name: 'Completed' }).check();
-  await waitForDraftSaved(page);
+  await waitForDraftEstablished(page);
   await page.getByRole('button', { name: 'Create Garden' }).click();
 
   await expect(page.getByRole('heading', { name: gardenName, level: 1 })).toBeVisible();
@@ -111,7 +117,7 @@ test('Advanced Archived selection locks the Garden and persists it as closed', a
   await expect(locked).toBeChecked();
   await expect(locked).toBeDisabled();
 
-  await waitForDraftSaved(page);
+  await waitForDraftEstablished(page);
   await page.getByRole('button', { name: 'Create Garden' }).click();
   await expect(page.getByRole('heading', { name: gardenName, level: 1 })).toBeVisible();
 
@@ -128,12 +134,12 @@ test('Advanced draft recovery restores lifecycle and field edits after reload an
   const gardenName = `Playwright Recovered Advanced ${Date.now()}`;
   const description = 'Recovered Advanced draft description.';
   await openAdvanced(page);
-  const draftId = new URL(page.url()).pathname.split('/').at(-1);
 
   await page.getByRole('textbox', { name: 'Garden name' }).fill(gardenName);
   await page.getByRole('textbox', { name: 'Description (optional)' }).fill(description);
   await page.getByRole('radio', { name: 'Completed' }).check();
-  await waitForDraftSaved(page);
+  await waitForDraftEstablished(page);
+  const draftId = new URL(page.url()).pathname.split('/').at(-1);
 
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Advanced Garden Creation', level: 1 })).toBeVisible();
@@ -173,11 +179,11 @@ test('Advanced Save as Template cancellation preserves the draft and confirmatio
   const gardenName = `Playwright Advanced Template ${Date.now()}`;
   const templateName = `Playwright Advanced Snapshot ${Date.now()}`;
   await openAdvanced(page);
-  const draftId = new URL(page.url()).pathname.split('/').at(-1);
 
   await page.getByRole('textbox', { name: 'Garden name' }).fill(gardenName);
   await page.getByRole('checkbox', { name: 'Save as Template' }).check();
-  await waitForDraftSaved(page);
+  await waitForDraftEstablished(page);
+  const draftId = new URL(page.url()).pathname.split('/').at(-1);
   await page.getByRole('button', { name: 'Create Garden' }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Save as Template' });
@@ -224,7 +230,7 @@ test('Wizard exposes only open statuses and both editors resume without editor-s
   await page.goto('/gardens/new/wizard');
   await expect(page.getByRole('heading', { name: 'Create Garden Wizard', level: 1 })).toBeVisible();
   await page.getByRole('textbox', { name: 'Garden name' }).fill(wizardName);
-  await waitForDraftSaved(page);
+  await waitForDraftEstablished(page, 'wizard');
   for (const heading of ['Details', 'Garden Type', 'Dates', 'Additional Options']) {
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { name: heading, level: 2 })).toBeVisible();

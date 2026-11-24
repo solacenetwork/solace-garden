@@ -6,7 +6,9 @@ async function openWizard(page) {
   await page.goto('/gardens/new/wizard');
   await expect(page.getByRole('heading', { name: 'Create Garden Wizard', level: 1 })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Identity', level: 2 })).toBeVisible();
-  await expect(page).toHaveURL(/\/gardens\/new\/wizard\/[0-9a-f-]+\?step=identity$/);
+  await expect(page).toHaveURL(/\/gardens\/new\/wizard\?step=identity$/);
+  const { drafts } = await readDraftData(page, { gardenId: null, draftId: null });
+  expect(drafts).toEqual([]);
 }
 
 async function continueTo(page, heading) {
@@ -16,6 +18,11 @@ async function continueTo(page, heading) {
 
 async function waitForDraftSaved(page) {
   await expect(page.getByRole('status').filter({ hasText: 'Draft saved locally' })).toBeVisible();
+}
+
+async function waitForDraftEstablished(page) {
+  await waitForDraftSaved(page);
+  await expect(page).toHaveURL(/\/gardens\/new\/wizard\/[0-9a-f-]{36}\?step=identity$/i);
 }
 
 async function readDraftData(page, { gardenId, draftId }) {
@@ -45,6 +52,7 @@ async function readDraftData(page, { gardenId, draftId }) {
         garden: gardens.find(({ id }) => id === gardenId) ?? null,
         draft: drafts.find(({ id }) => id === draftId) ?? null,
         gardens,
+        drafts,
         templates,
       };
     } finally {
@@ -75,9 +83,10 @@ test('renders five organized steps, validates Continue, and supports Back and br
   await expect(page).toHaveURL(/step=identity$/);
 
   await page.getByRole('textbox', { name: 'Garden name' }).fill('Wizard Navigation Garden');
+  await waitForDraftEstablished(page);
   await continueTo(page, 'Details');
   await expect(page.getByRole('textbox', { name: 'Description (optional)' })).toBeVisible();
-  await expect(page.getByLabel('Geographic Location')).toBeVisible();
+  await expect(page.getByLabel('Geographic Location')).toHaveCount(0);
   await continueTo(page, 'Garden Type');
   await expect(page.getByRole('group', { name: 'Garden Types' })).toBeVisible();
   await expect(page.getByRole('checkbox', { name: /Container/ })).toBeVisible();
@@ -113,9 +122,10 @@ test('renders five organized steps, validates Continue, and supports Back and br
 
 test('autosaves and restores Wizard fields, selections, and the current step after reload', async ({ page }) => {
   await openWizard(page);
-  const draftId = new URL(page.url()).pathname.split('/').at(-1);
 
   await page.getByRole('textbox', { name: 'Garden name' }).fill('Recovered Wizard Garden');
+  await waitForDraftEstablished(page);
+  const draftId = new URL(page.url()).pathname.split('/').at(-1);
   await page.getByRole('button', { name: 'Use flower1 icon' }).click();
   await page.getByRole('button', { name: 'Forest, #287D46' }).click();
   await waitForDraftSaved(page);
@@ -176,15 +186,18 @@ test('whole-Garden validation returns to an invalid earlier step without losing 
   await expect(page.getByRole('textbox', { name: 'Garden name' })).toBeFocused();
   await expect(page.getByRole('textbox', { name: 'Garden name' })).toHaveValue('');
   await expect(page).toHaveURL(/step=identity$/);
+  const { drafts } = await readDraftData(page, { gardenId: null, draftId: null });
+  expect(drafts).toEqual([]);
 });
 
 test('confirms or cancels Template finalization and atomically persists the Garden and Template', async ({ page }) => {
   const gardenName = 'Wizard Finalization Garden';
   const templateName = 'Wizard Finalization Snapshot';
   await openWizard(page);
-  const draftId = new URL(page.url()).pathname.split('/').at(-1);
 
   await page.getByRole('textbox', { name: 'Garden name' }).fill(gardenName);
+  await waitForDraftEstablished(page);
+  const draftId = new URL(page.url()).pathname.split('/').at(-1);
   await continueTo(page, 'Details');
   await continueTo(page, 'Garden Type');
   await continueTo(page, 'Dates');
