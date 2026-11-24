@@ -200,6 +200,13 @@ These are the **recorded candidate swatches**, not a complete mapping of semanti
 - Gardens is the featured first card and spans the complete grid. The remaining cards use two columns below `md` and three columns at/above `md`; retain DOM order as visual and keyboard order. Center and cap the overall content width instead of adding more desktop columns.
 - Cards have a minimum 48px target, visible `:focus-visible` treatment using `--sg-color-focus`, legible wrapping at narrow widths, and no information available only on hover. Disable decorative movement for reduced-motion preferences.
 
+## Garden creation identity and Draft card conventions (approved post-8A9, pending implementation)
+
+- Creation forms (Quick Start, Wizard Identity, Advanced Identity) use independent, accessible Bootstrap collapsible **Icon (optional)** and **Ring Color (optional)** palettes. Both are closed by default on first use, both may be open simultaneously, and headers summarize current selections. **Ring Color** means the circular identity ring only, not the icon or background. Reuse the same option and selection behavior across forms; editing dialog may retain tabs.
+- Keep each palette's expanded/collapsed **UI preference** in localStorage, restored per browser across creation workflows. Use existing UI preference conventions where available; do not store selected Garden/draft identity values in localStorage. Selection remains persisted through Garden/draft Dexie records, independent of whether its palette is collapsed.
+- Garden Hub cards use a smaller upper-right identity badge, secondary to their primary illustration and content. A **Quick Start / Wizard / Advanced** bottom ribbon is shown **on draft cards only** to identify the editor used when resuming; saved Gardens display no creation-method ribbon. Do not append editor labels to the gardener's chosen name.
+- Show a lock icon and **Locked** terminology only for locked Gardens; keep lock state distinct from Planned/Active/Completed/Archived lifecycle status. Retain the details-page **Save as Template** action; Templates are independent snapshots and are not one-to-one with Gardens.
+- Paired form controls should align at the **top**; accessible validation messages appear beneath their own fields with stable surrounding layout where practicable. Geographic Location selection is shown when multiple usable choices exist, with sole Default applied without a redundant select.
 ## Card carousels
 
 - Use the shared `CardCarousel` for horizontally scrolling card collections. Its public contract is `children`, an accessible `label`, and optional `id` and `className`. Do not add record-specific behavior to the shared component.
