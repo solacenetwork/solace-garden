@@ -147,20 +147,20 @@ export function TemplatesPageView({ state, message = '', onRetry, onRequestDelet
 								<div><dt>Garden Types</dt><dd>{template.typeNames.length ? template.typeNames.join(', ') : 'No types selected'}</dd></div>
 							</dl>
 							{template.configuration.description && <p class="template-card__description">{template.configuration.description}</p>}
-							<div class="template-card__create-actions" role="group" aria-label={`Create Garden from Template ${template.name}`}>
-								<h3>Create Garden from Template</h3>
+							<div class="template-card__create-actions" role="group" aria-label={`Create a Garden from this Template ${template.name}`}>
+								<h3>Create a Garden from this Template</h3>
 								<div>
 									<a
 										class="btn-solid theme-primary"
 										href={createTemplateDispatcherUrl('wizard', template.id)}
-										aria-label={`Guided Wizard — Create Garden from Template ${template.name}, suggested Garden ${template.configuration.name}`}
+										aria-label={`Guided Wizard — Create a Garden from this Template ${template.name}, suggested Garden ${template.configuration.name}`}
 									>
 										<i class="bi bi-signpost-split" aria-hidden="true"></i> Guided Wizard
 									</a>
 									<a
 										class="btn-outline theme-primary"
 										href={createTemplateDispatcherUrl('advanced', template.id)}
-										aria-label={`Advanced Form — Create Garden from Template ${template.name}, suggested Garden ${template.configuration.name}`}
+										aria-label={`Advanced Form — Create a Garden from this Template ${template.name}, suggested Garden ${template.configuration.name}`}
 									>
 										<i class="bi bi-sliders" aria-hidden="true"></i> Advanced Form
 									</a>
