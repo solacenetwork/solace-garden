@@ -1,7 +1,7 @@
 # SOLACE Garden — Milestone History
 
 **Created:** 2026-11-21  
-**Updated:** 2026-11-23  
+**Updated:** 2026-11-24  
 **Purpose:** Durable evidence for accepted milestones, whether or not their monday.com items are currently retained.
 
 ## Policy
@@ -349,6 +349,10 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 **Accepted November 23, 2026.** The developer reported that the production build completed successfully, deployed the build to the production-like test server [`garden.solace.network`](https://garden.solace.network), and passed **desktop browser**, **Galaxy S22**, and **installed-PWA** manual acceptance; no blocking behavior was observed. This follows the accepted 8A8 clean **56/56 Playwright** verification and 8A7 implementation reviews. The developer captured additional screenshots and notes for later UI review; their details are not yet triaged and should not be invented here.
 
 **Outcome:** **8A9 accepted; entire Step 8A Garden creation redesign (8A1–8A9) closed.** Remaining post-8F UI work: Step 8B, Step 9, Step 10. Original feature milestone 8G is not yet complete.
+
+#### GARDEN-UI-8B1 — Garden Draft Persistence and Creation Lifecycle
+
+**8B1 accepted November 24, 2026.** Implementation [`c5f2006`](https://github.com/solacenetwork/solace-garden/commit/c5f200635485659fa9624a2f3df47ec3f41e9d64); corrective implementation [`5e9d0c5`](https://github.com/solacenetwork/solace-garden/commit/5e9d0c502d9904d1ab2fae98a696b25a5cd41a90). Quick Start now participates in shared Garden draft persistence and atomic consumption; all three editors establish drafts only after meaningful data changes (including explicit Template application). First-save URL replacement preserves the mounted editor; failed autosaves retain the latest snapshot for retry and failed discard leaves persistence usable. Developer confirmed all corrective and remaining functional manual checks passed, including reduced-height desktop and Galaxy S22 editing continuity, explicit resume, fresh flows, Template workflows and draft management. Codex reported 628/628 full Vitest (65 files), 88/88 focused (8 files), successful production PWA build and diff check; no Playwright run or changes in this slice. Test commands were not independently rerun by the documentation editor. Abrupt termination can recover only committed autosaves. No alpha migration or schema version change. **Next: 8B2.**
 
 ## Future archive entries
 

@@ -200,6 +200,12 @@ These are the **recorded candidate swatches**, not a complete mapping of semanti
 - Gardens is the featured first card and spans the complete grid. The remaining cards use two columns below `md` and three columns at/above `md`; retain DOM order as visual and keyboard order. Center and cap the overall content width instead of adding more desktop columns.
 - Cards have a minimum 48px target, visible `:focus-visible` treatment using `--sg-color-focus`, legible wrapping at narrow widths, and no information available only on hover. Disable decorative movement for reduced-motion preferences.
 
+## Autosaving creation forms (approved November 24, 2026)
+
+- **Lazy draft creation:** Opening, focusing, or navigating an untouched creation form must not persist a draft. Default initialization, reference loading and unchanged selections are not edits. Start persistence after the first meaningful user data change; explicit Template application counts. Established drafts remain recoverable even when fields are cleared, until explicit discard or successful finalization.
+- **Non-disruptive autosave:** Automatic persistence must not steal focus, reset caret or selection, move the viewport, dismiss the virtual keyboard, interrupt typing, unnecessarily remount active controls, or lose newer edits. Internal draft identity URL updates must not behave like intentional page navigation. Preserve accurate save/error feedback and retry the latest failed snapshot without requiring another edit; failed discard must leave persistence usable. Normal navigation retains its intended behavior.
+- Accepted for all three Garden creation editors in 8B1. Review Notes against these conventions in 8B5; do not imply Notes already implements lazy creation.
+
 ## Garden creation identity and Draft card conventions (approved post-8A9, pending implementation)
 
 - Creation forms (Quick Start, Wizard Identity, Advanced Identity) use independent, accessible Bootstrap collapsible **Icon (optional)** and **Ring Color (optional)** palettes. Both are closed by default on first use, both may be open simultaneously, and headers summarize current selections. **Ring Color** means the circular identity ring only, not the icon or background. Reuse the same option and selection behavior across forms; editing dialog may retain tabs.

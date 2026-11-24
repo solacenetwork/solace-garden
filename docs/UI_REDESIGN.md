@@ -540,6 +540,24 @@ Remove scaffolding copy (“Simple Mode preview,” “workspace placeholders,�
 
 ### Step 8B — Contextual and secondary page refinements
 
+**Approved execution sequence (November 24, 2026):**
+
+| Slice | Scope | Status |
+| --- | --- | --- |
+| 8B1 | Garden Draft Persistence and Creation Lifecycle: Quick Start parity, lazy draft creation and non-disruptive autosave across all Garden editors | Accepted |
+| 8B2 | Draft-only creation-method ribbons and hide View All when no drafts exist | Next |
+| 8B3 | Conditional Geographic Location selector in Wizard and Advanced | Pending |
+| 8B4 | Templates management and entry-point refinements | Pending |
+| 8B5 | Notes browsing, linked-Garden context and review of autosave conventions | Pending |
+| 8B6 | Tasks and Wish List consistency review | Pending |
+| 8B7 | Help/About, Settings, Locations, Harvest and Welcome navigation | Pending |
+| 8B8 | Safe Search placeholder/navigation | Pending |
+| 8B9 | Integrated focused acceptance, full Vitest/Playwright and production build; comprehensive responsive/offline/PWA matrix remains Step 9 | Pending |
+
+Secondary page layouts remain subject to inspection and focused approval; do not expand into new feature functionality or Step 10 polish.
+
+**8B1 accepted November 24, 2026.** Implementation [`c5f2006`](https://github.com/solacenetwork/solace-garden/commit/c5f200635485659fa9624a2f3df47ec3f41e9d64); corrective implementation [`5e9d0c5`](https://github.com/solacenetwork/solace-garden/commit/5e9d0c502d9904d1ab2fae98a696b25a5cd41a90). Quick Start now participates in shared Garden draft persistence and atomic consumption; all three editors establish drafts only after meaningful data changes (including explicit Template application). First-save URL replacement preserves the mounted editor; failed autosaves retain the latest snapshot for retry and failed discard leaves persistence usable. Developer confirmed all corrective and remaining functional manual checks passed, including reduced-height desktop and Galaxy S22 editing continuity, explicit resume, fresh flows, Template workflows and draft management. Codex reported 628/628 full Vitest (65 files), 88/88 focused (8 files), successful production PWA build and diff check; no Playwright run or changes in this slice. Test commands were not independently rerun by the documentation editor. Abrupt termination can recover only committed autosaves. No alpha migration or schema version change. **Next: 8B2.**
+
 **Purpose:** Finish the remaining page-level navigation and presentation work without expanding feature scope.
 
 - Refine Templates entry points and management presentation.
