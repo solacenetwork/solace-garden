@@ -143,8 +143,8 @@ describe('Templates management page', () => {
 		);
 		expect(links.filter(({ props }) => props.href?.includes(template.id)).map(({ props }) => props['aria-label']))
 			.toEqual([
-				'Guided Wizard — Create Garden from Template Favorite, suggested Garden Kitchen Garden',
-				'Advanced Form — Create Garden from Template Favorite, suggested Garden Kitchen Garden',
+				'Guided Wizard — Create a Garden from this Template Favorite, suggested Garden Kitchen Garden',
+				'Advanced Form — Create a Garden from this Template Favorite, suggested Garden Kitchen Garden',
 			]);
 		expect(details.props.open).toBeUndefined();
 		expect(text(details)).toContain('Technical details');
