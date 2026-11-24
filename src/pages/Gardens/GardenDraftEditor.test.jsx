@@ -30,6 +30,7 @@ vi.mock('preact/hooks', () => {
 
 import { GardenDraftEditor, GardenFinalizationTemplateDialog } from './FullGardenCreation.jsx';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
+import { DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import {
 	GardenAdvancedOptionsStep, GardenWizardDatesStep, GardenWizardDetailsStep,
 	GardenWizardIdentityStep, GardenWizardTypesStep,
@@ -73,6 +74,7 @@ function editor({
 	advancedCreateFromDraft = createFromDraft,
 	advancedCreateFromDraftWithTemplate = createFromDraftWithTemplate,
 	draftId = 'draft',
+	locations = [{ id: 'home', name: 'Home' }],
 } = {}) {
 	let draft = { id: draftId, createdAt: draftId ? 'created' : null, preferredEditor: mode, sourceTemplateId, currentStepId, fields: fieldValues };
 	let renderedDraft = draft;
@@ -87,7 +89,7 @@ function editor({
 			list: vi.fn(async () => templates),
 			resolveConfiguration: vi.fn(),
 		},
-		locations: { list: vi.fn(async () => [{ id: 'home', name: 'Home' }]) },
+		locations: { list: vi.fn(async () => locations) },
 		types: { list: vi.fn(async () => []) },
 		gardens: {
 			validate: vi.fn((input) => {
@@ -107,7 +109,7 @@ function editor({
 			},
 		},
 	};
-	const references = { locations: [{ id: 'home', name: 'Home' }], types: [] };
+	const references = { locations, types: [] };
 	function render() {
 		hooks.index = 0;
 		return GardenDraftEditor({ draft: renderedDraft, references, workspace, mode });
@@ -320,6 +322,24 @@ describe('Garden draft editor progression', () => {
 				GardenWizardIdentityStep, GardenWizardDetailsStep, GardenWizardTypesStep,
 				GardenWizardDatesStep, GardenAdvancedOptionsStep,
 			]);
+	});
+
+	it.each(['wizard', 'advanced'])('uses the shared conditional Details presentation in %s without saving the unchanged Default', async (mode) => {
+		if (mode === 'wizard') hooks.query = { step: 'details' };
+		const view = editor({
+			mode,
+			currentStepId: mode === 'wizard' ? 'details' : null,
+			templates: [],
+			sourceTemplateId: null,
+			fieldValues: { ...fields, locationId: DEFAULT_LOCATION_ID },
+			locations: [{ id: DEFAULT_LOCATION_ID, name: 'Renamed Default' }],
+		});
+		await view.mount();
+		const details = nodes(view.render()).find(({ type }) => type === GardenWizardDetailsStep);
+		const renderedDetails = GardenWizardDetailsStep(details.props);
+
+		expect(nodes(renderedDetails).find(({ type }) => type === 'select')).toBeUndefined();
+		expect(view.workspace.drafts.save).not.toHaveBeenCalled();
 	});
 
 	it('preserves a missing-source notice without restoring Template controls', async () => {

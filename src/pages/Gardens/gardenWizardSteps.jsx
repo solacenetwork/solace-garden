@@ -1,6 +1,7 @@
 import { GardenColorChoices, GardenIconChoices } from '../../components/GardenIdentityChoices.jsx';
 import { GardenTypeSelector } from '../../components/GardenTypeSelector.jsx';
 import { CURATED_GARDEN_ICONS, GARDEN_NUMBER_ICONS, validateBootstrapIconName, validateGardenColor } from '../../gardenIdentity.js';
+import { DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import { normalizeGardenFields, validateGardenDateOrder } from '../../storage/gardenValidation.js';
 import { SaveAsTemplateField } from './SaveAsTemplateField.jsx';
 
@@ -44,20 +45,23 @@ export function GardenWizardIdentityStep({ fields, errors, onChange, disabled, i
 
 export function GardenWizardDetailsStep({ fields, errors, locations, onChange, disabled, idPrefix }) {
 	const locationAvailable = locations.some(({ id }) => id === fields.locationId);
+	const hideLocation = locationAvailable
+		&& fields.locationId === DEFAULT_LOCATION_ID
+		&& locations.length === 1;
 	return (
 		<div class="garden-fields">
 			<div class="form-field garden-fields__wide">
 				<label class="form-label" for={`${idPrefix}-description`}>Description <span>(optional)</span></label>
 				<textarea id={`${idPrefix}-description`} class="form-control" rows="5" value={fields.description} disabled={disabled} onInput={(event) => onChange('description', event.currentTarget.value)}></textarea>
 			</div>
-			<div class="form-field garden-fields__wide">
+			{!hideLocation && <div class="form-field garden-fields__wide">
 				<label class="form-label" for={`${idPrefix}-location`}>Geographic Location</label>
 				<select id={`${idPrefix}-location`} class={`form-control${errors.locationId ? ' is-invalid' : ''}`} required value={fields.locationId} disabled={disabled} aria-invalid={errors.locationId ? 'true' : undefined} aria-describedby={errors.locationId ? `${idPrefix}-location-error` : undefined} onChange={(event) => onChange('locationId', event.currentTarget.value)}>
 					{!locationAvailable && fields.locationId && <option value={fields.locationId}>Unavailable Location (select another)</option>}
 					{locations.map((location) => <option value={location.id} key={location.id}>{location.name}</option>)}
 				</select>
 				<FieldError id={`${idPrefix}-location-error`} message={errors.locationId} />
-			</div>
+			</div>}
 		</div>
 	);
 }

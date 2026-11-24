@@ -19,6 +19,13 @@ function nodes(node) {
 	return [node, ...nodes(node.props?.children)];
 }
 
+function text(node) {
+	if (node === null || node === undefined || typeof node === 'boolean') return '';
+	if (typeof node !== 'object') return String(node);
+	if (Array.isArray(node)) return node.map(text).join('');
+	return text(node.props?.children);
+}
+
 const fields = {
 	name: '', subtitle: '', icon: null, color: null, description: '',
 	locationId: DEFAULT_LOCATION_ID, typeIds: [], startDate: '', endDate: '',
@@ -67,6 +74,55 @@ describe('Garden Wizard step-form registry', () => {
 		expect(GARDEN_WIZARD_STEP_FORMS.types.validate({ ...fields, typeIds: ['deleted'] }, references).errors).toHaveProperty('typeIds');
 		expect(GARDEN_WIZARD_STEP_FORMS.dates.validate({ ...fields, startDate: '2027-05-02', endDate: '2027-05-01' }, references).errors).toHaveProperty('endDate');
 		expect(GARDEN_WIZARD_STEP_FORMS.options.validate({ ...fields, status: 'archived' }, references).errors).toHaveProperty('status');
+	});
+
+	it('hides the redundant Location field when the renamed system Default is the sole valid choice', () => {
+		const onChange = vi.fn();
+		const tree = GardenWizardDetailsStep({
+			fields, errors: {}, onChange, disabled: false, idPrefix: 'details',
+			locations: [{ id: DEFAULT_LOCATION_ID, name: 'Back Yard' }],
+		});
+
+		expect(text(tree)).not.toContain('Geographic Location');
+		expect(nodes(tree).find(({ type }) => type === 'select')).toBeUndefined();
+		expect(onChange).not.toHaveBeenCalled();
+		expect(fields.locationId).toBe(DEFAULT_LOCATION_ID);
+	});
+
+	it('shows the Location field when custom choices exist and preserves a recovered custom selection', () => {
+		const customId = 'custom-location';
+		const tree = GardenWizardDetailsStep({
+			fields: { ...fields, locationId: customId }, errors: {}, onChange: vi.fn(),
+			disabled: false, idPrefix: 'details', locations: [
+				{ id: DEFAULT_LOCATION_ID, name: 'Default' },
+				{ id: customId, name: 'Community Plot' },
+			],
+		});
+		const select = nodes(tree).find(({ type }) => type === 'select');
+
+		expect(text(tree)).toContain('Geographic Location');
+		expect(select.props.value).toBe(customId);
+	});
+
+	it('keeps an unavailable Location visible with an actionable Default recovery choice', () => {
+		const onChange = vi.fn();
+		const tree = GardenWizardDetailsStep({
+			fields: { ...fields, locationId: 'deleted-location' },
+			errors: { locationId: 'Select an available Location.' },
+			onChange, disabled: false, idPrefix: 'details',
+			locations: [{ id: DEFAULT_LOCATION_ID, name: 'Default' }],
+		});
+		const select = nodes(tree).find(({ type }) => type === 'select');
+
+		expect(text(tree)).toContain('Unavailable Location (select another)');
+		expect(text(tree)).toContain('Default');
+		expect(select.props).toMatchObject({
+			'aria-invalid': 'true',
+			'aria-describedby': 'details-location-error',
+		});
+		expect(nodes(tree).find(({ props }) => props?.message === 'Select an available Location.')).toBeDefined();
+		select.props.onChange({ currentTarget: { value: DEFAULT_LOCATION_ID } });
+		expect(onChange).toHaveBeenCalledWith('locationId', DEFAULT_LOCATION_ID);
 	});
 
 	it('keeps Wizard status choices restricted and uses the shared Template field', () => {
