@@ -11,6 +11,16 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future idea: Actionable Location deletion restrictions
+
+**Status (November 24, 2026):** Parked usability enhancement discovered during UI 8B3 manual acceptance. No assigned milestone or release commitment; not an 8B3 blocker.
+
+- The existing Location deletion protection correctly refuses deletion when saved Gardens reference the Location. The current repository query counts matching Gardens, and the error asks the gardener to reassign every referencing Garden.
+- Instead of requiring the gardener to find those Gardens manually, consider displaying a list of the blocking saved Gardens by name, optionally with subtitle or lifecycle status to distinguish similar names. Each entry should link to its existing `/gardens/:id` details route, using the stable Garden UUID rather than its name.
+- Retrieve the matching records or a minimal summary using the existing `locationId` index; decide the service/error-details and accessible dialog or inline feedback presentation at implementation time. Keep the transactional deletion check authoritative and recheck on retry.
+- Preserve all existing deletion rules: do not silently reassign or delete Gardens, do not make drafts or Template snapshots block deletion, and retain their current missing-Location recovery/fallback behavior. Consider how locked or archived Gardens can be handled under existing lifecycle rules; do not bypass those protections.
+- Consider reusing the actionable dependency-list pattern for other deletion restrictions (e.g. Garden Types) where the existing data contract warrants it. No new data store, automatic bulk reassignment or compatibility migration is required by this idea.
+
 ## V4+ candidate: Optional AI assistance and agent interoperability
 
 **Status (November 23, 2026):** Long-term exploration only, **not before approximately V4** and not a committed release target. **Prerequisites:** Server-side user accounts, authenticated APIs, suitable authorization and permissions, and a defined offline-first synchronization/conflict model. Do not expand V1 UI redesign or current server plans to implement this.
