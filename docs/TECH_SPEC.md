@@ -32,7 +32,7 @@
 | --- | --- | --- |
 | Preact 11 | Selected / smoke tested | UI and hooks |
 | Vite 8 | Selected / smoke tested | Dev/build tooling |
-| Bootstrap 6.0.0-alpha.1 | Selected / smoke tested | Pin exact prerelease; audit breaking changes before upgrades |
+| Bootstrap 6.0.0-alpha.2 | Accepted November 24, 2026 | Pin exact prerelease; isolate authorized upgrades, review release/security/migration guidance, verify full regression suite, build and focused manual acceptance. See [TESTING_NOTES.md](TESTING_NOTES.md). |
 | Dexie 4 | Selected / smoke tested | IndexedDB access |
 | dexie-react-hooks | Selected / smoke tested | Reactive queries through Preact compatibility |
 | preact-iso | In scaffold | Routing |
