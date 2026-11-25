@@ -371,3 +371,7 @@ Only developer-accepted work belongs here. An acceptance date is recorded only w
 ## Future archive entries
 
 When additional milestones are accepted, copy the factual acceptance outcome, verified tests, implementation commits, caveats and original milestone ID here; link the concise roadmap status to the entry. Use the current GitHub documentation as the implementation contract and do not confuse earlier test counts with the latest suite.
+
+#### GARDEN-UI-8B5-A — Notes browsing
+
+**8B5-A accepted November 24, 2026.** Implementation [`dc170cb`](https://github.com/solacenetwork/solace-garden/commit/dc170cb21e784a355ed1d8cdbe2b852699bc84be). Native independent Bootstrap 6 details/summary accordions group saved Notes by stable Garden UUID across lifecycle statuses; application-level Notes defaults open, Garden groups default closed, live text/name filtering reveals matches without overwriting local expansion preferences. Separate unfinished drafts retain resume links. Codex reported focused Vitest 11/11, related Notes 30/30, full Vitest 656/656 (68 files), production PWA build and diff check passed. Developer confirmed all 13 manual checks passed, including a separate device with an empty collection. Actual commit reviewed; automated tests not independently rerun; Playwright not run. No domain data contract or schema changes. **Next: 8B5-B** (Note editor/draft recovery and autosave consistency, plus approved compact drafts refinement).
