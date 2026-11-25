@@ -48,5 +48,11 @@ test('Notes page renders saved Notes', async ({ page }) => {
   await page.goto('/notes');
 
   await expect(page.getByRole('heading', { name: 'Notes', exact: true, level: 1 })).toBeVisible();
-  await expect(page.locator('[aria-label="Saved Notes"] .note-card').first()).toBeVisible();
+  const applicationNotes = page.locator('[data-notes-group="notes"]');
+  const details = applicationNotes.locator('details');
+  if (!await details.evaluate(element => element.open)) {
+    await applicationNotes.locator('summary').click();
+    await expect(details).toHaveJSProperty('open', true);
+  }
+  await expect(applicationNotes.locator('.note-card').first()).toBeVisible();
 });

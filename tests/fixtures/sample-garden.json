@@ -71,6 +71,7 @@
                     "subjectId": null,
                     "isNew": true,
                     "text": "The flower garden in the back yard needs to be mowed and weeded. Next year we should ",
+                    "gardenId": null,
                     "createdAt": "2026-11-16T13:39:15.618Z",
                     "updatedAt": "2026-11-16T13:39:34.225Z"
                   }
@@ -82,6 +83,7 @@
                     "subjectId": null,
                     "isNew": true,
                     "text": "Mulch around the plants in the center island in front yard. I need to ",
+                    "gardenId": null,
                     "createdAt": "2026-11-16T13:38:02.942Z",
                     "updatedAt": "2026-11-16T13:38:32.425Z"
                   }
@@ -123,6 +125,7 @@
                     "subjectId": null,
                     "isNew": true,
                     "text": "Need to buy a tune up kit for the tractor before next season. Change the oil and air filters, the spark plugs and the fuel filter.  Inspect the belts and sharpen the blades. They might need to be replaced (depending on condition). Log tractor hours in the maintenance log book. ",
+                    "gardenId": null,
                     "createdAt": "2026-11-16T15:33:53.484Z",
                     "updatedAt": "2026-11-16T15:35:58.901Z"
                   }

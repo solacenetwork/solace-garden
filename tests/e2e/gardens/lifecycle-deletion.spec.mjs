@@ -63,6 +63,15 @@ async function readGardenData(page) {
   });
 }
 
+async function expandNotesAccordion(page, groupId) {
+  const accordion = page.locator(`[data-notes-group="${groupId}"]`);
+  const details = accordion.locator('details');
+  if (!await details.evaluate(element => element.open)) {
+    await accordion.locator('summary').click();
+    await expect(details).toHaveJSProperty('open', true);
+  }
+}
+
 test('Garden status changes persist; Closed and Archived Gardens require explicit reopening', async ({ page }) => {
   const gardenId = gardens.find(({ name }) => name === 'Fruit trees')?.id;
   expect(gardenId).toBeTruthy();
@@ -185,8 +194,10 @@ test('canceling and confirming permanent deletion preserves associated records a
     }) => ({ id, kind, text, completed, quantity, notes: itemNotes, url, gardenId: null })));
 
   await page.goto('/notes');
+  await expandNotesAccordion(page, 'notes');
   for (const note of associatedNotes) {
-    await expect(page.locator(`[aria-label="Saved Notes"] a[href="/notes/${note.id}"]`)).toBeVisible();
+    await expect(page.locator('[data-notes-group="notes"]')
+      .locator(`a[href="/notes/${note.id}"]`)).toBeVisible();
   }
   await page.goto('/tasks');
   for (const item of associatedListItems.filter(({ kind }) => kind === 'task')) {

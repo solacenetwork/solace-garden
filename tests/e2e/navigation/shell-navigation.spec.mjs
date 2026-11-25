@@ -18,6 +18,19 @@ if (!garden || !note) {
 
 test.use({ storageState });
 
+function notesAccordion(page, note) {
+  const groupId = note.gardenId ?? 'notes';
+  return page.locator(`[data-notes-group="${groupId}"]`);
+}
+
+async function expandNotesAccordion(accordion) {
+  const details = accordion.locator('details');
+  if (!await details.evaluate(element => element.open)) {
+    await accordion.locator('summary').click();
+    await expect(details).toHaveJSProperty('open', true);
+  }
+}
+
 const simpleDestinations = [
   { label: 'Gardens', href: '/gardens', heading: 'Gardens' },
   { label: 'Tasks', href: '/tasks', heading: 'Tasks' },
@@ -185,10 +198,15 @@ test('More menu supports keyboard dismissal and exposes Help, About, and Setting
   await page.getByRole('link', { name: 'Close', exact: true }).click();
   await expect(page).toHaveURL('/notes');
   await expect(page.getByRole('heading', { name: 'Notes', level: 1 })).toBeVisible();
-  await expect(page.locator('[aria-label="Saved Notes"] a[href="/notes/' + note.id + '"]')).toBeVisible();
+  const savedNoteGroup = notesAccordion(page, note);
+  await expandNotesAccordion(savedNoteGroup);
+  const savedNoteLink = savedNoteGroup.locator(`a[href="/notes/${note.id}"]`);
+  await expect(savedNoteLink).toBeVisible();
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('.app-shell')).toHaveAttribute('data-interface-mode', 'standard');
-  await expect(page.locator('[aria-label="Saved Notes"] a[href="/notes/' + note.id + '"]')).toBeVisible();
+  const reloadedNoteGroup = notesAccordion(page, note);
+  await expandNotesAccordion(reloadedNoteGroup);
+  await expect(reloadedNoteGroup.locator(`a[href="/notes/${note.id}"]`)).toBeVisible();
 });
 
 test('Standard phone and medium navigation Drawer stays in the viewport and restores focus', async ({ page }) => {

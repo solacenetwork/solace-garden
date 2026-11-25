@@ -21,8 +21,9 @@ const pages = [
   },
   {
     route: '/notes',
-    ready: '[aria-label="Saved Notes"] .note-card',
-    bottomTarget: '[aria-label="Saved Notes"] .note-card:last-child button.note-card__delete',
+    accordion: 'notes',
+    ready: '[data-notes-group="notes"] .note-card',
+    bottomTarget: '[data-notes-group="notes"] .note-card:last-child button.note-card__delete',
   },
 ];
 
@@ -43,6 +44,15 @@ async function openPage(page, route, mode, firstPage) {
 }
 
 async function scrollToBottomTarget(page, entry, viewport) {
+  if (entry.accordion) {
+    const accordion = page.locator(`[data-notes-group="${entry.accordion}"]`);
+    const details = accordion.locator('details');
+    const summary = accordion.locator('summary');
+    if (!await details.evaluate(element => element.open)) {
+      await summary.click();
+      await expect(details).toHaveJSProperty('open', true);
+    }
+  }
   await expect(page.locator(entry.ready).first()).toBeVisible();
   let target = page.locator(entry.bottomTarget).last();
   if (entry.overflowTarget) {
