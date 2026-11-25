@@ -20,8 +20,6 @@ export function GardenAssociationSelector({
 	disabled = false,
 	label = 'Garden association',
 }) {
-	const associationUnavailable = value !== null && !gardens.some((garden) => garden.id === value);
-	const unavailableHelpId = `${id}-unavailable-help`;
 	return (
 		<div class="form-field">
 			<label class="form-label" for={id}>{label}</label>
@@ -30,23 +28,16 @@ export function GardenAssociationSelector({
 				class="form-control"
 				value={value ?? ''}
 				disabled={disabled}
-				aria-describedby={associationUnavailable ? unavailableHelpId : undefined}
 				onChange={(event) => onChange(event.currentTarget.value || null)}
 			>
 				<option value="">No Garden</option>
-				{associationUnavailable && (
-					<option value={value}>Unavailable Garden — selection preserved</option>
-				)}
 				{gardens.map((garden) => (
 					<option value={garden.id} key={garden.id}>
 						{gardenAssociationLabel(garden, locations)}
 					</option>
 				))}
 			</select>
-			{associationUnavailable && (
-				<p class="form-text" id={unavailableHelpId}>This Garden association is no longer available. Choose another Garden or No Garden before saving.</p>
-			)}
-			{gardens.length === 0 && !associationUnavailable && (
+			{gardens.length === 0 && (
 				<p class="form-text">No Gardens are available. This item will remain unlinked.</p>
 			)}
 		</div>

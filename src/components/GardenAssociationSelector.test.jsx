@@ -28,13 +28,4 @@ describe('GardenAssociationSelector', () => {
 		expect(nodes(tree).filter((node) => typeof node === 'string').join(' ')).toContain('No Garden');
 		expect(nodes(tree).filter((node) => typeof node === 'string').join(' ')).toContain('No Gardens are available');
 	});
-
-	it('preserves and explains an unavailable recovered association', () => {
-		const tree = GardenAssociationSelector({ id: 'garden', value: 'missing-garden', gardens: [], onChange: vi.fn() });
-		const select = nodes(tree).find((node) => node.type === 'select');
-		expect(select.props.value).toBe('missing-garden');
-		expect(select.props['aria-describedby']).toBe('garden-unavailable-help');
-		expect(nodes(tree).filter((node) => typeof node === 'string').join(' ')).toContain('selection preserved');
-		expect(nodes(tree).filter((node) => typeof node === 'string').join(' ')).toContain('Choose another Garden or No Garden');
-	});
 });

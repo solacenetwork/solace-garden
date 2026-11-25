@@ -29,6 +29,7 @@ import { NoteEditor, revealNoteFeedback } from './index.jsx';
 const DRAFT_ID = '38c2bed1-0e03-4187-aefd-233ca7b037c2';
 const NOTE_ID = 'ad4a4e9a-1db0-4e87-8fe1-f197a9d52c01';
 const GARDEN_ID = '210b8b0f-030c-4220-9374-8b78f461b474';
+const MISSING_GARDEN_ID = '7f5e4b36-3b6e-4d4d-9abf-31e035330001';
 
 function nodes(node) {
 	if (!node || typeof node !== 'object') return [];
@@ -75,15 +76,21 @@ function editor({
 	drafts = createDrafts(draft),
 	notes = { create: vi.fn(async () => ({ id: NOTE_ID })), update: vi.fn(async () => ({})) },
 	isFreshRoute = false,
+	gardens = [{ id: GARDEN_ID, name: 'Garden', status: 'active' }],
 } = {}) {
 	const props = {
 		record, draft, requestedDraftId: DRAFT_ID, isFreshRoute, notes, drafts,
-		gardens: [{ id: GARDEN_ID, name: 'Garden', status: 'active' }], locations: [],
+		gardens, locations: [],
 	};
 	return {
 		drafts, notes,
 		render() { hooks.index = 0; return NoteEditor(props); },
 	};
+}
+
+async function runEffects() {
+	for (const effect of hooks.effects.splice(0)) effect();
+	await Promise.resolve();
 }
 
 beforeEach(() => {
@@ -159,6 +166,43 @@ describe('Note editor draft lifecycle', () => {
 		expect(view.drafts.remove).toHaveBeenCalledWith(DRAFT_ID);
 	});
 
+	it('repairs a missing draft Garden to No Garden and persists the scoped recovery', async () => {
+		const draft = {
+			id: DRAFT_ID, kind: 'note', subjectId: null, isNew: true,
+			text: 'Preserve this Note text', gardenId: MISSING_GARDEN_ID,
+			createdAt: 'created', updatedAt: 'updated',
+		};
+		const view = editor({ draft, gardens: [] });
+		const tree = view.render();
+		expect(nodes(tree).find((node) => node.type === GardenAssociationSelector).props.value).toBeNull();
+		expect(nodeText(tree)).toContain('The Garden previously associated with this draft no longer exists. You can select another Garden or leave this Note unlinked.');
+
+		await runEffects();
+		await button(tree, 'Back to Notes').props.onClick();
+		expect(view.drafts.stored).toMatchObject({
+			id: DRAFT_ID, text: 'Preserve this Note text', gardenId: null,
+		});
+		expect(consumeNoteDraftReturnContext()).toEqual({ draftId: DRAFT_ID });
+	});
+
+	it('disables both editable fields while an asynchronous operation is underway', async () => {
+		let resolveUpdate;
+		const notes = { update: vi.fn(() => new Promise((resolve) => { resolveUpdate = resolve; })) };
+		const record = { id: NOTE_ID, text: 'Saved text', gardenId: null };
+		const view = editor({ record, notes });
+		let tree = view.render();
+		const textarea = nodes(tree).find((node) => node.type === 'textarea');
+		textarea.props.onInput({ currentTarget: { value: 'Changed text', setCustomValidity: vi.fn() } });
+		tree = view.render();
+		const submission = nodes(tree).find((node) => node.type === 'form').props.onSubmit({ preventDefault: vi.fn() });
+		tree = view.render();
+		expect(nodes(tree).find((node) => node.type === 'textarea').props.disabled).toBe(true);
+		expect(nodes(tree).find((node) => node.type === GardenAssociationSelector).props.disabled).toBe(true);
+		await vi.waitFor(() => expect(notes.update).toHaveBeenCalled());
+		resolveUpdate({});
+		await submission;
+	});
+
 	it('blocks navigation and does not claim recovery when persistence fails', async () => {
 		const drafts = createDrafts(null, { failSave: true });
 		const view = editor({ drafts });
@@ -216,6 +260,7 @@ describe('Note editor draft lifecycle', () => {
 		await vi.waitFor(() => expect(view.drafts.stored).toMatchObject({
 			text: 'Saved text', gardenId: GARDEN_ID,
 		}));
+		expect(nodes(view.render()).find((node) => node.type === 'textarea').props.disabled).toBe(false);
 	});
 });
 

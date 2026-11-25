@@ -67,9 +67,12 @@ export function revealNoteFeedback(field, {
 export function NoteEditor({ record, draft, requestedDraftId, isFreshRoute = false, notes, drafts, gardens, locations }) {
 	const { route } = useLocation();
 	const textarea = useRef(null);
+	const recoveredGardenUnavailable = Boolean(
+		draft?.gardenId && !gardens.some(({ id }) => id === draft.gardenId),
+	);
 	const baseline = useRef({ text: record?.text ?? '', gardenId: record?.gardenId ?? null }).current;
 	const initialFields = useRef(draft
-		? { text: draft.text, gardenId: draft.gardenId }
+		? { text: draft.text, gardenId: recoveredGardenUnavailable ? null : draft.gardenId }
 		: { ...baseline }).current;
 	const draftId = useRef(draft?.id ?? requestedDraftId ?? createUUID()).current;
 	const fieldsRef = useRef(initialFields);
@@ -110,6 +113,11 @@ export function NoteEditor({ record, draft, requestedDraftId, isFreshRoute = fal
 			else if (nextStatus === 'draft-saved' || nextStatus === 'all-saved') setAutosaveError('');
 		},
 	}), [persistence]);
+
+	useEffect(() => {
+		if (!recoveredGardenUnavailable) return;
+		autosave.schedule(noteDraftFieldsEqual(initialFields, baseline) ? null : initialFields);
+	}, [autosave, recoveredGardenUnavailable]);
 
 	useEffect(() => {
 		textarea.current?.focus();
@@ -232,8 +240,9 @@ export function NoteEditor({ record, draft, requestedDraftId, isFreshRoute = fal
 		{error && <div id="note-save-error" class="notes-message notes-message--error" role="alert" tabIndex="-1"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{error}</span></div>}
 		{autosaveError && <div class="notes-message notes-message--error" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{autosaveError}</span></div>}
 		<form class="note-editor__form" onSubmit={save}>
-			<div class="form-field"><label class="form-label" for="note-text">Note</label><textarea id="note-text" class="form-control note-editor__textarea" ref={textarea} rows="12" required value={text} onInvalid={(event) => { event.currentTarget.setCustomValidity('Enter Note text before saving.'); showSaveError('Enter Note text before saving.', 'text'); }} onInput={(event) => { const value = event.currentTarget.value; event.currentTarget.setCustomValidity(''); setText(value); setError(''); scheduleFields({ ...fieldsRef.current, text: value }); }} aria-describedby="note-text-help note-draft-help"></textarea><p class="form-text" id="note-text-help">Plain text only. Line breaks and spacing are preserved.</p><p class="form-text" id="note-draft-help">Drafts stay local until you explicitly save the Note.</p></div>
+			<div class="form-field"><label class="form-label" for="note-text">Note</label><textarea id="note-text" class="form-control note-editor__textarea" ref={textarea} rows="12" required disabled={saving} value={text} onInvalid={(event) => { event.currentTarget.setCustomValidity('Enter Note text before saving.'); showSaveError('Enter Note text before saving.', 'text'); }} onInput={(event) => { const value = event.currentTarget.value; event.currentTarget.setCustomValidity(''); setText(value); setError(''); scheduleFields({ ...fieldsRef.current, text: value }); }} aria-describedby="note-text-help note-draft-help"></textarea><p class="form-text" id="note-text-help">Plain text only. Line breaks and spacing are preserved.</p><p class="form-text" id="note-draft-help">Drafts stay local until you explicitly save the Note.</p></div>
 			<GardenAssociationSelector id="note-garden" value={gardenId} gardens={gardens} locations={locations} onChange={(value) => { setGardenId(value); setError(''); scheduleFields({ ...fieldsRef.current, gardenId: value }); }} disabled={saving} />
+			{recoveredGardenUnavailable && <p class="form-text note-editor__association-recovery" role="status">The Garden previously associated with this draft no longer exists. You can select another Garden or leave this Note unlinked.</p>}
 			<div class="note-editor__actions note-editor__actions--split"><button class="btn-text theme-danger note-editor__button" type="button" onClick={discard} disabled={saving}>{establishedId ? 'Discard draft' : 'Discard'}</button><div class="note-editor__primary-actions"><button class="btn-outline note-editor__button" type="button" onClick={leave} disabled={saving}>Back to Notes</button><button class="btn-solid theme-primary note-editor__button" type="submit" disabled={!canSave}><i class="bi bi-check2" aria-hidden="true"></i>{saving ? 'Saving…' : 'Save Note'}</button></div></div>
 		</form>
 	</section></div>;
@@ -306,10 +315,16 @@ export function NotesAccordion({ label, notes, expanded, emptyMessage, groupId, 
 	</div>;
 }
 
-export function DraftsAccordion({ drafts, expanded, highlightedDraftId, onToggle }) {
+export function DraftsAccordion({ drafts, expanded, highlightedDraftId, expansionLocked, onUserToggle }) {
 	return <div class="accordion notes-accordion notes-drafts" data-notes-group="drafts">
-		<details class="accordion-item" open={expanded} onToggle={(event) => onToggle(event.currentTarget.open)}>
-			<summary class="accordion-header"><span class="notes-accordion__label">Unfinished drafts</span><span class="notes-accordion__count" aria-label={`${drafts.length} ${drafts.length === 1 ? 'draft' : 'drafts'}`}>{drafts.length}</span><AccordionIcon /></summary>
+		<details class="accordion-item" open={expanded}>
+			<summary class="accordion-header" onClick={(event) => {
+				event.preventDefault();
+				if (expansionLocked) {
+					return;
+				}
+				onUserToggle(!event.currentTarget.parentElement.open);
+			}}><span class="notes-accordion__label">Unfinished drafts</span><span class="notes-accordion__count" aria-label={`${drafts.length} ${drafts.length === 1 ? 'draft' : 'drafts'}`}>{drafts.length}</span><AccordionIcon /></summary>
 			<div class="accordion-body notes-drafts__body"><div class="notes-drafts__list">{drafts.map((draft) => {
 				const highlighted = draft.id === highlightedDraftId;
 				return <a class={`notes-draft-row${highlighted ? ' notes-draft-row--highlighted' : ''}`} href={draft.isNew ? `/notes/new/${draft.id}` : `/notes/${draft.subjectId}`} key={draft.id} data-draft-id={draft.id}>
@@ -321,7 +336,7 @@ export function DraftsAccordion({ drafts, expanded, highlightedDraftId, onToggle
 	</div>;
 }
 
-export function NotesWorkspaceView({ state, filter, filterRef, preference, highlightedDraftId, deletingId, onDelete, onFilter, onClearFilter, onToggleDrafts, onToggleNotes, onToggleGarden }) {
+export function NotesWorkspaceView({ state, filter, filterRef, preference, highlightedDraftId, contextualExpansionActive, deletingId, onDelete, onFilter, onClearFilter, onDraftsUserToggle, onToggleNotes, onToggleGarden }) {
 	const workspace = prepareNotesWorkspace(state.notes, state.drafts, state.gardens, filter);
 	const noResults = workspace.filtering && !workspace.hasResults;
 	const contextualDraftExists = Boolean(highlightedDraftId && state.drafts.some(({ id }) => id === highlightedDraftId));
@@ -329,8 +344,9 @@ export function NotesWorkspaceView({ state, filter, filterRef, preference, highl
 		<div class="notes-filter"><label class="form-label" for="notes-filter">Filter Notes</label><div class="notes-filter__controls"><input id="notes-filter" class="form-control" type="search" ref={filterRef} value={filter} onInput={(event) => onFilter(event.currentTarget.value)} placeholder="Search Note text or Garden name" />{workspace.filtering && <button class="btn-outline notes-filter__clear" type="button" onClick={onClearFilter}>Clear filter</button>}</div></div>
 		{state.drafts.length > 0 && workspace.drafts.length > 0 && <DraftsAccordion
 			drafts={workspace.drafts} highlightedDraftId={contextualDraftExists ? highlightedDraftId : null}
-			expanded={(workspace.filtering && workspace.drafts.length > 0) || contextualDraftExists || preference.drafts}
-			onToggle={(expanded) => { if (!workspace.filtering && !contextualDraftExists) onToggleDrafts(expanded); }}
+			expanded={(workspace.filtering && workspace.drafts.length > 0) || (contextualDraftExists && contextualExpansionActive) || preference.drafts}
+			expansionLocked={workspace.filtering}
+			onUserToggle={onDraftsUserToggle}
 		/>}
 		{noResults ? <div class="notes-state notes-state--no-results"><i class="bi bi-search notes-state__icon" aria-hidden="true"></i><h2>No matching Notes</h2><p>No saved Notes or unfinished drafts match “{filter.trim()}”.</p><button class="btn-outline notes-state__action" type="button" onClick={onClearFilter}>Clear filter</button></div> : <div class="notes-groups" aria-label="Saved Notes">
 			<NotesAccordion
@@ -354,6 +370,7 @@ export function Notes() {
 	const { drafts, notes, gardens } = useNotesWorkspace();
 	const filterInput = useRef(null);
 	const returnContext = useRef(consumeNoteDraftReturnContext()).current;
+	const [contextualExpansionActive, setContextualExpansionActive] = useState(Boolean(returnContext?.draftId));
 	const [state, setState] = useState({ status: 'loading', notes: [], drafts: [], gardens: [] });
 	const [deletingId, setDeletingId] = useState(null);
 	const [filter, setFilter] = useState('');
@@ -386,9 +403,12 @@ export function Notes() {
 	return <section class="container notes-page" aria-labelledby="notes-title"><header class="notes-page__header"><div><p class="notes-page__eyebrow">Garden observations</p><h1 id="notes-title">Notes</h1><p>Keep plain-text observations together, whether linked to a garden or not.</p></div><a class="btn-solid theme-primary notes-page__new" href="/notes/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>New Note</a></header>
 		{state.status === 'error' && <div class="notes-message notes-message--error" role="alert"><span>{state.message}</span><button class="btn-outline" type="button" onClick={load}>Retry</button></div>}
 		{state.status === 'loading' ? <div class="notes-state" role="status"><p>Loading Notes…</p></div> : <div><NotesWorkspaceView
-			state={state} filter={filter} filterRef={filterInput} preference={preference} highlightedDraftId={returnContext?.draftId} deletingId={deletingId}
+			state={state} filter={filter} filterRef={filterInput} preference={preference} highlightedDraftId={returnContext?.draftId} contextualExpansionActive={contextualExpansionActive} deletingId={deletingId}
 			onDelete={deleteNote} onFilter={setFilter} onClearFilter={clearFilter}
-			onToggleDrafts={(expanded) => updatePreference((current) => ({ ...current, drafts: expanded }))}
+			onDraftsUserToggle={(expanded) => {
+				setContextualExpansionActive(false);
+				updatePreference((current) => ({ ...current, drafts: expanded }));
+			}}
 			onToggleNotes={(expanded) => updatePreference((current) => ({ ...current, notes: expanded }))}
 			onToggleGarden={(gardenId, expanded) => updatePreference((current) => ({ ...current, gardens: { ...current.gardens, [gardenId]: expanded } }))}
 		/></div>}
