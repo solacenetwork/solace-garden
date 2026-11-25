@@ -173,7 +173,7 @@ test('autosaves and restores Wizard fields, selections, and the current step aft
   });
 });
 
-test('whole-Garden validation returns to an invalid earlier step without losing the draft', async ({ page }) => {
+test('whole-Garden validation does not create a draft for an untouched form', async ({ page }) => {
   await openWizard(page);
   const wizardPath = new URL(page.url()).pathname;
 
@@ -188,6 +188,54 @@ test('whole-Garden validation returns to an invalid earlier step without losing 
   await expect(page).toHaveURL(/step=identity$/);
   const { drafts } = await readDraftData(page, { gardenId: null, draftId: null });
   expect(drafts).toEqual([]);
+});
+
+test('whole-Garden validation preserves an established draft and its meaningful fields', async ({ page }) => {
+  const gardenName = 'Persisted Validation Draft';
+  const description = 'Meaningful content must survive whole-Garden validation.';
+  await openWizard(page);
+  await page.getByRole('textbox', { name: 'Garden name' }).fill(gardenName);
+  await waitForDraftEstablished(page);
+  const draftId = new URL(page.url()).pathname.split('/').at(-1);
+
+  await continueTo(page, 'Details');
+  await page.getByRole('textbox', { name: 'Description (optional)' }).fill(description);
+  await waitForDraftSaved(page);
+  await continueTo(page, 'Garden Type');
+  await continueTo(page, 'Dates');
+  await page.getByLabel('Start date (optional)').fill('2028-03-01');
+  await page.getByLabel('End date (optional)').fill('2027-02-01');
+  await waitForDraftSaved(page);
+  const wizardPath = new URL(page.url()).pathname;
+  await page.goto(`${wizardPath}?step=options`);
+  await expect(page.getByRole('heading', { name: 'Additional Options', level: 2 })).toBeVisible();
+  const { draft: savedDraft } = await readDraftData(page, { gardenId: null, draftId });
+  expect(savedDraft).toMatchObject({
+    fields: {
+      name: gardenName,
+      description,
+      startDate: '2028-03-01',
+      endDate: '2027-02-01',
+    },
+  });
+
+  await page.getByRole('button', { name: 'Finish & Create Garden' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Dates', level: 2 })).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('End date');
+  await expect(page.getByLabel('Start date (optional)')).toHaveValue('2028-03-01');
+  await expect(page.getByLabel('End date (optional)')).toHaveValue('2027-02-01');
+  await expect(page).toHaveURL(/step=dates$/);
+  const { draft } = await readDraftData(page, { gardenId: null, draftId });
+  expect(draft).toMatchObject({
+    preferredEditor: 'wizard',
+    fields: {
+      name: gardenName,
+      description,
+      startDate: '2028-03-01',
+      endDate: '2027-02-01',
+    },
+  });
 });
 
 test('confirms or cancels Template finalization and atomically persists the Garden and Template', async ({ page }) => {

@@ -11,13 +11,15 @@ const pages = [
   },
   {
     route: '/tasks',
-    ready: '.lists-list [data-list-item]',
-    bottomTarget: '.lists-list [data-list-item]:last-child button.theme-danger',
+    accordion: 'task',
+    ready: '.lists-list[aria-label="Outstanding Tasks"] [data-list-item]',
+    bottomTarget: '[data-lists-group="task"] .lists-list[aria-label="Completed"] [data-list-item]:last-child button.theme-danger',
   },
   {
     route: '/wishlist',
-    ready: '.lists-list [data-list-item]',
-    bottomTarget: '.lists-list [data-list-item]:last-child button.theme-danger',
+    accordion: 'wishlist',
+    ready: '.lists-list[aria-label="Outstanding Wish List"] [data-list-item]',
+    bottomTarget: '[data-lists-group="wishlist"] .lists-list[aria-label="Purchased"] [data-list-item]:last-child button.theme-danger',
   },
   {
     route: '/notes',
@@ -44,8 +46,15 @@ async function openPage(page, route, mode, firstPage) {
 }
 
 async function scrollToBottomTarget(page, entry, viewport) {
+  const accordion = entry.accordion
+    ? page.locator(`[data-${entry.accordion === 'notes' ? 'notes' : 'lists'}-group="${entry.accordion}"]`)
+    : null;
+  if (entry.accordion === 'notes') {
+    await expect(accordion).toBeVisible();
+  } else {
+    await expect(page.locator(entry.ready).first()).toBeVisible();
+  }
   if (entry.accordion) {
-    const accordion = page.locator(`[data-notes-group="${entry.accordion}"]`);
     const details = accordion.locator('details');
     const summary = accordion.locator('summary');
     if (!await details.evaluate(element => element.open)) {
@@ -63,10 +72,19 @@ async function scrollToBottomTarget(page, entry, viewport) {
 
   const main = await page.locator('#main-content').boundingBox();
   expect(main, 'Main workspace should have a measurable layout').not.toBeNull();
-  await page.mouse.move(
-    Math.min(viewport.width - 10, main.x + main.width / 2),
-    Math.min(viewport.height - 10, Math.max(10, main.y + Math.min(main.height / 2, 250))),
+  const header = await page.locator('.app-header').boundingBox();
+  expect(header, 'Sticky header should have a measurable layout').not.toBeNull();
+  const wheelX = Math.min(viewport.width - 10, main.x + main.width / 2);
+  const wheelY = Math.min(
+    viewport.height - 10,
+    Math.max(header.y + header.height + 8, main.y + Math.min(main.height / 2, 250)),
   );
+  await page.mouse.move(wheelX, wheelY);
+  await page.mouse.wheel(0, -12000);
+  await expect.poll(
+    () => page.evaluate(() => document.documentElement.scrollTop),
+    { message: 'Route should begin at the top before measuring bottom reachability' },
+  ).toBe(0);
   await page.mouse.wheel(0, 12000);
 
   const measure = () => target.evaluate(element => {

@@ -181,7 +181,7 @@ test('More menu supports keyboard dismissal and exposes Help, About, and Setting
   await page.getByRole('button', { name: 'More' }).click();
   await page.locator('#header-more-menu').getByRole('link', { name: 'About' }).click();
   await expect(page).toHaveURL('/about');
-  await expect(page.getByRole('heading', { name: 'About', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'SOLACE Garden', level: 1 })).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL('/notes');
 

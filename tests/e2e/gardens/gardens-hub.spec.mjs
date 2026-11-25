@@ -233,7 +233,7 @@ test('Garden management links appear in order and Templates stays reachable outs
   const managementNav = page.getByRole('navigation', { name: 'Garden management' });
   const managementLinks = managementNav.getByRole('link');
   await expect(managementLinks).toHaveText(['Locations', 'Templates', 'Create Garden']);
-  await expect(managementLinks.nth(0)).toHaveAttribute('href', '/locations');
+  await expect(managementLinks.nth(0)).toHaveAttribute('href', '/locations?ref=gardens');
   await expect(managementLinks.nth(1)).toHaveAttribute('href', '/templates');
   await expect(managementLinks.nth(2)).toHaveAttribute('href', '/gardens/new');
 
