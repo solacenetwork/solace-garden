@@ -1,7 +1,7 @@
 # SOLACE Garden — Milestone History
 
 **Created:** 2026-11-21  
-**Updated:** 2026-11-24  
+**Updated:** 2026-11-25  
 **Purpose:** Durable evidence for accepted milestones, whether or not their monday.com items are currently retained.
 
 ## Policy
@@ -383,3 +383,7 @@ When additional milestones are accepted, copy the factual acceptance outcome, ve
 #### GARDEN-UI-8B7 — Secondary pages and contextual navigation
 
 **8B7 accepted November 25, 2026.** Implementation [`55b42b1`](https://github.com/solacenetwork/solace-garden/commit/55b42b11fc88dbf45057ef6ddea474e489037f69). Help has provisional Getting Started, Documentation and Support sections; About is wired to its dedicated branded view; Settings uses Automatic, Simple Mode and Standard Mode; Harvest has a nonfunctional contextual placeholder with Back to Gardens. Geographic Locations provides validated Settings/Gardens return references, preserving nested Settings origin through refresh (`ref=settings&settingsRef=notes`, for example); direct or invalid origin returns to Settings. Field-scoped validation, local focus handling and persistence busy guards were added without changing domain/storage rules. Welcome and global route focus remain unchanged. Codex reported focused Vitest **180/180 (11 files)** and full **693/693 (74 files)** before weekly quota exhaustion interrupted its final report; the actual committed implementation was reviewed. Developer confirmed desktop browser and phone manual acceptance passed. Production build and committed diff-check results for this slice were not supplied; Playwright was not reported run after 8B7. Retain these checks for integration; no independent rerun claimed. Nonblocking review notes: confirm About project URL (`solacenetwork.com` versus `solace.network`), Retry control busy-state edge case, and investigate More-menu route-transition focus only if reproduced. No dependency or schema changes. **8B7 closed; next 8B8, then 8B6, then 8B9.**
+
+#### GARDEN-UI-8B8 — Safe Search placeholder
+
+**8B8 accepted November 25, 2026.** Implementation [`0be9ef5`](https://github.com/solacenetwork/solace-garden/commit/0be9ef5a0cac7de9a2bd22d59e8106060b29863d), merged into main at [`e3c0f82`](https://github.com/solacenetwork/solace-garden/commit/e3c0f8227729b84f420d8277a8693ad1e5eded48). ChatGPT prepared the isolated implementation branch without Codex or Copilot. The dedicated `/search` view accurately states that global Search is not yet available, provides Back to Home, and ignores arbitrary query input. Route metadata and registration were updated; existing responsive navbar Search submission, focus and dismissal behavior remains unchanged. Three new placeholder Vitest tests and strengthened existing HeaderSearch safety assertions cover the interim contract. Developer reported all Vitest tests and all nine manual acceptance checks passed, merged the PR and synchronized the local repository. Exact test count, explicit build output and post-change Playwright/diff-check results were not supplied; retain those checks for integration. No independent test execution claimed. No dependency, storage, schema, global CSS or production navbar component changes. Search engine and query-to-results workflow remain 8M; approved navbar wording, Go button and ordering refinements remain Step 10. **8B8 closed; next 8B6, then 8B9.**
