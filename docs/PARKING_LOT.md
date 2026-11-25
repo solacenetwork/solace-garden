@@ -11,6 +11,12 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future test maintenance: Shared Playwright accordion expansion helper
+
+**Status:** Parked November 24, 2026; no assigned milestone. Identified during post-8B5 Playwright maintenance ([`097a133`](https://github.com/solacenetwork/solace-garden/commit/097a133d4420df877109f34e6adcd1a3fdf04f3e)).
+
+Accordion expansion logic is duplicated across several Playwright specs (Garden lifecycle deletion, viewport scrolling, shell navigation, Notes persistence and populated navigation). During a future test-maintenance pass, consolidate this into a small shared test helper that accepts a scoped accordion locator, checks whether its native `details` is open, clicks `summary` only when necessary, and waits for the open state. Preserve actual user interaction, visibility assertions and each test's original intent. Avoid production code changes or unnecessary test abstractions. Verify affected specs and the full Playwright suite after consolidation. Current 56/56 suite is passing; this is a nonblocking maintainability improvement, not an immediate assignment.
+
 ## Future idea: Linking Gardens Back to Notes — contextual creation
 
 **Status (November 24, 2026):** Parked; no assigned milestone or release commitment. Explicitly outside 8B5-A.
