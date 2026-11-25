@@ -74,14 +74,14 @@ describe('Recoverable Garden drafts', () => {
 	});
 
 	it('keeps Note and Garden contracts isolated in the shared store', async () => {
-		await notes.save({ id: NOTE_DRAFT, text: 'Note work' });
+		await notes.save({ id: NOTE_DRAFT, text: 'Note work', gardenId: null });
 		const gardenDraft = await drafts.create();
 
 		expect((await notes.list()).map(({ id }) => id)).toEqual([NOTE_DRAFT]);
 		expect((await drafts.list()).map(({ id }) => id)).toEqual([FIRST_DRAFT]);
 		await expect(drafts.getById(NOTE_DRAFT)).rejects.toMatchObject({ code: 'WRONG_DRAFT_KIND' });
 		await expect(notes.getById(FIRST_DRAFT)).rejects.toMatchObject({ code: 'WRONG_DRAFT_KIND' });
-		await expect(notes.save({ id: FIRST_DRAFT, text: 'Must not overwrite' }))
+		await expect(notes.save({ id: FIRST_DRAFT, text: 'Must not overwrite', gardenId: null }))
 			.rejects.toMatchObject({ code: 'WRONG_DRAFT_KIND' });
 		await expect(notes.remove(FIRST_DRAFT)).rejects.toMatchObject({ code: 'WRONG_DRAFT_KIND' });
 		expect(await drafts.getById(FIRST_DRAFT)).toEqual(gardenDraft);
@@ -387,8 +387,8 @@ describe('Recoverable Garden drafts', () => {
 		}
 	});
 
-	it('keeps Note draft records and validation unchanged', async () => {
-		const note = await notes.save({ id: NOTE_DRAFT, text: 'Note work' });
+	it('keeps Note draft records separate from Garden draft context', async () => {
+		const note = await notes.save({ id: NOTE_DRAFT, text: 'Note work', gardenId: null });
 		expect(note).not.toHaveProperty('sourceTemplateId');
 		expect(note).not.toHaveProperty('preferredEditor');
 		await expect(storage.repositories.drafts.save({ ...note, preferredEditor: 'advanced' }))
@@ -447,7 +447,7 @@ describe('Recoverable Garden drafts', () => {
 			now: () => CREATED, randomUUID: () => SECOND_DRAFT,
 		});
 		const retained = await secondDrafts.create();
-		await notes.save({ id: NOTE_DRAFT, text: 'Keep Note draft' });
+		await notes.save({ id: NOTE_DRAFT, text: 'Keep Note draft', gardenId: null });
 
 		expect(await drafts.remove(FIRST_DRAFT)).toBe(true);
 		expect(await drafts.getById(FIRST_DRAFT)).toBeNull();
@@ -461,7 +461,7 @@ describe('Recoverable Garden drafts', () => {
 			id: FIRST_DRAFT,
 			fields: fields({ name: '  Kitchen Garden  ', subtitle: ' South ', typeIds: ['indoor', 'container'] }),
 		});
-		await notes.save({ id: NOTE_DRAFT, text: 'Keep this Note draft' });
+		await notes.save({ id: NOTE_DRAFT, text: 'Keep this Note draft', gardenId: null });
 		const retainedService = createGardenDraftsService(storage.repositories.drafts, {
 			now: () => CREATED, randomUUID: () => SECOND_DRAFT,
 		});
@@ -558,7 +558,7 @@ describe('Recoverable Garden drafts', () => {
 		await expect(gardens.createFromDraft(gardenInputFromDraftFields(blank.fields), FIRST_DRAFT))
 			.rejects.toMatchObject({ code: 'INVALID_GARDEN_NAME' });
 		expect(await drafts.getById(FIRST_DRAFT)).toEqual(blank);
-		await notes.save({ id: NOTE_DRAFT, text: 'Not a Garden draft' });
+		await notes.save({ id: NOTE_DRAFT, text: 'Not a Garden draft', gardenId: null });
 		await expect(gardens.createFromDraft(gardenInputFromDraftFields(fields()), NOTE_DRAFT))
 			.rejects.toMatchObject({ code: 'WRONG_DRAFT_KIND' });
 

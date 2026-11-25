@@ -48,23 +48,32 @@ describe('Recoverable Note drafts', () => {
 		const first = await open([NOTE_ID]);
 		const { notes, drafts } = services(first);
 		await notes.create({ text: 'Saved text' });
-		await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: 'Existing draft' });
-		await drafts.save({ id: OTHER_DRAFT_ID, text: 'Independent new draft' });
+		await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: 'Existing draft', gardenId: GARDEN_ID });
+		await drafts.save({ id: OTHER_DRAFT_ID, text: 'Independent new draft', gardenId: null });
 		first.close();
 
 		const reopened = await initializeDexieStorage({ dependencies });
 		const reopenedDrafts = services(reopened).drafts;
-		expect(await reopenedDrafts.getForNote(NOTE_ID)).toMatchObject({ id: DRAFT_ID, text: 'Existing draft', isNew: false });
+		expect(await reopenedDrafts.getForNote(NOTE_ID)).toMatchObject({ id: DRAFT_ID, text: 'Existing draft', gardenId: GARDEN_ID, isNew: false });
 		expect(await reopenedDrafts.getById(OTHER_DRAFT_ID)).toMatchObject({ text: 'Independent new draft', isNew: true });
 		expect(await reopenedDrafts.list()).toHaveLength(2);
 		reopened.close();
+	});
+
+	it('requires the current complete Note draft contract without a legacy fallback', async () => {
+		const storage = await open();
+		await expect(storage.repositories.drafts.save({
+			id: DRAFT_ID, kind: 'note', subjectId: null, isNew: true,
+			text: 'Legacy text-only draft', createdAt: TIME, updatedAt: TIME,
+		})).rejects.toMatchObject({ code: 'INVALID_NOTE_DRAFT_GARDEN', field: 'gardenId' });
+		storage.close();
 	});
 
 	it('atomically saves authoritative content and removes its draft', async () => {
 		const storage = await open([NOTE_ID]);
 		const { notes, drafts } = services(storage);
 		await notes.create({ text: 'Saved text' });
-		await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: 'Draft text' });
+		await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: 'Draft text', gardenId: null });
 
 		await notes.update(NOTE_ID, { text: 'Committed text' }, { draftId: DRAFT_ID });
 		expect(await notes.getById(NOTE_ID)).toMatchObject({ text: 'Committed text' });
@@ -75,8 +84,8 @@ describe('Recoverable Note drafts', () => {
 	it('creates a new authoritative Note and clears only its temporary draft', async () => {
 		const storage = await open([NOTE_ID]);
 		const { notes, drafts } = services(storage);
-		await drafts.save({ id: DRAFT_ID, text: 'New recoverable draft' });
-		const retained = await drafts.save({ id: OTHER_DRAFT_ID, text: 'Another draft' });
+		await drafts.save({ id: DRAFT_ID, text: 'New recoverable draft', gardenId: null });
+		const retained = await drafts.save({ id: OTHER_DRAFT_ID, text: 'Another draft', gardenId: null });
 
 		const created = await notes.create({ text: 'New recoverable draft' }, { draftId: DRAFT_ID });
 		expect(created).toMatchObject({ id: NOTE_ID, text: 'New recoverable draft' });
@@ -89,7 +98,7 @@ describe('Recoverable Note drafts', () => {
 		const storage = await open([NOTE_ID]);
 		const { notes, drafts } = services(storage);
 		await notes.create({ text: 'Saved text' });
-		const draft = await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: '   ' });
+		const draft = await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: '   ', gardenId: null });
 
 		await expect(notes.update(NOTE_ID, { text: '   ' }, { draftId: DRAFT_ID })).rejects.toMatchObject({ code: 'INVALID_NOTE_TEXT' });
 		expect(await drafts.getById(DRAFT_ID)).toEqual(draft);
@@ -97,18 +106,52 @@ describe('Recoverable Note drafts', () => {
 		storage.close();
 	});
 
-	it('keeps a recoverable text draft when only the saved Note association changes', async () => {
+	it('recovers and atomically saves an association-only edit without changing the Note early', async () => {
 		const storage = await open([NOTE_ID]);
 		const { notes, drafts } = services(storage);
 		await notes.create({ text: 'Saved text' });
-		const draft = await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: 'Unsaved text' });
 		const database = createGardenDatabase(storage.databaseName, { indexedDB, IDBKeyRange });
 		await database.open();
 		await database.table('gardens').add({ id: GARDEN_ID, name: 'Garden', status: 'active' });
 		database.close();
+		const draft = await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: 'Saved text', gardenId: GARDEN_ID });
+		expect(await notes.getById(NOTE_ID)).toMatchObject({ text: 'Saved text', gardenId: null });
+		expect(await drafts.getById(DRAFT_ID)).toEqual(draft);
 
-		await notes.update(NOTE_ID, { gardenId: GARDEN_ID });
+		await notes.update(NOTE_ID, { gardenId: GARDEN_ID }, { draftId: DRAFT_ID });
 		expect(await notes.getById(NOTE_ID)).toMatchObject({ text: 'Saved text', gardenId: GARDEN_ID });
+		expect(await drafts.getById(DRAFT_ID)).toBeNull();
+		storage.close();
+	});
+
+	it('recovers an explicitly cleared association independently from unchanged text', async () => {
+		const storage = await open([NOTE_ID]);
+		const database = createGardenDatabase(storage.databaseName, { indexedDB, IDBKeyRange });
+		await database.open();
+		await database.table('gardens').add({ id: GARDEN_ID, name: 'Garden', status: 'active' });
+		database.close();
+		const { notes, drafts } = services(storage);
+		await notes.create({ text: 'Linked text', gardenId: GARDEN_ID });
+		await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: 'Linked text', gardenId: null });
+
+		expect(await drafts.getForNote(NOTE_ID)).toMatchObject({ text: 'Linked text', gardenId: null });
+		expect(await notes.getById(NOTE_ID)).toMatchObject({ gardenId: GARDEN_ID });
+		await notes.update(NOTE_ID, { gardenId: null }, { draftId: DRAFT_ID });
+		expect(await notes.getById(NOTE_ID)).toMatchObject({ gardenId: null });
+		expect(await drafts.getById(DRAFT_ID)).toBeNull();
+		storage.close();
+	});
+
+	it('retains an unavailable Garden in a draft but rejects it for the authoritative Note', async () => {
+		const storage = await open([NOTE_ID]);
+		const { notes, drafts } = services(storage);
+		await notes.create({ text: 'Saved text' });
+		const draft = await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: 'Saved text', gardenId: GARDEN_ID });
+		expect(await drafts.getById(DRAFT_ID)).toEqual(draft);
+
+		await expect(notes.update(NOTE_ID, { gardenId: GARDEN_ID }, { draftId: DRAFT_ID }))
+			.rejects.toMatchObject({ code: 'GARDEN_NOT_FOUND', field: 'gardenId' });
+		expect(await notes.getById(NOTE_ID)).toMatchObject({ gardenId: null });
 		expect(await drafts.getById(DRAFT_ID)).toEqual(draft);
 		storage.close();
 	});
@@ -116,8 +159,8 @@ describe('Recoverable Note drafts', () => {
 	it('discard removes only the selected draft', async () => {
 		const storage = await open();
 		const { drafts } = services(storage);
-		await drafts.save({ id: DRAFT_ID, text: 'Discard me' });
-		const retained = await drafts.save({ id: OTHER_DRAFT_ID, text: 'Keep me' });
+		await drafts.save({ id: DRAFT_ID, text: 'Discard me', gardenId: null });
+		const retained = await drafts.save({ id: OTHER_DRAFT_ID, text: 'Keep me', gardenId: null });
 
 		expect(await drafts.remove(DRAFT_ID)).toBe(true);
 		expect(await drafts.getById(DRAFT_ID)).toBeNull();
@@ -130,8 +173,8 @@ describe('Recoverable Note drafts', () => {
 		const { notes, drafts } = services(storage);
 		await notes.create({ text: 'Delete me' });
 		await notes.create({ text: 'Keep me' });
-		await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: 'Delete draft' });
-		const retained = await drafts.save({ id: OTHER_DRAFT_ID, noteId: OTHER_NOTE_ID, text: 'Keep draft' });
+		await drafts.save({ id: DRAFT_ID, noteId: NOTE_ID, text: 'Delete draft', gardenId: null });
+		const retained = await drafts.save({ id: OTHER_DRAFT_ID, noteId: OTHER_NOTE_ID, text: 'Keep draft', gardenId: null });
 
 		await notes.remove(NOTE_ID);
 		expect(await drafts.getById(DRAFT_ID)).toBeNull();

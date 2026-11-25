@@ -1,13 +1,14 @@
 export const NOTES_ACCORDION_STORAGE_KEY = 'solace-garden.notes.accordion-state';
 
 export const DEFAULT_NOTES_ACCORDION_STATE = Object.freeze({
+	drafts: false,
 	notes: true,
 	gardens: Object.freeze({}),
 });
 
 function normalizePreference(value) {
 	if (!value || Object.getPrototypeOf(value) !== Object.prototype) {
-		return { notes: true, gardens: {} };
+		return { drafts: false, notes: true, gardens: {} };
 	}
 
 	const gardens = value.gardens && Object.getPrototypeOf(value.gardens) === Object.prototype
@@ -15,6 +16,7 @@ function normalizePreference(value) {
 		: {};
 
 	return {
+		drafts: typeof value.drafts === 'boolean' ? value.drafts : false,
 		notes: typeof value.notes === 'boolean' ? value.notes : true,
 		gardens,
 	};
@@ -24,9 +26,9 @@ export function readNotesAccordionPreference(storage) {
 	try {
 		const availableStorage = storage ?? globalThis.localStorage;
 		const stored = availableStorage?.getItem(NOTES_ACCORDION_STORAGE_KEY);
-		return stored ? normalizePreference(JSON.parse(stored)) : { notes: true, gardens: {} };
+		return stored ? normalizePreference(JSON.parse(stored)) : { drafts: false, notes: true, gardens: {} };
 	} catch {
-		return { notes: true, gardens: {} };
+		return { drafts: false, notes: true, gardens: {} };
 	}
 }
 

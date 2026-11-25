@@ -42,10 +42,10 @@ describe('Notes workspace presentation', () => {
 		expect(byGarden.gardenGroups.flatMap(({ notes: grouped }) => grouped.map(({ id }) => id))).toEqual(['planned', 'active', 'active-old']);
 	});
 
-	it('filters recoverable drafts by their text and available saved-Note Garden context', () => {
+	it('filters recoverable drafts by their text and recovered Garden association', () => {
 		const drafts = [
-			{ id: 'new-draft', subjectId: null, isNew: true, text: 'Buy labels', updatedAt: '2026-11-24T13:00:00.000Z' },
-			{ id: 'existing-draft', subjectId: 'archived', isNew: false, text: 'Revised record', updatedAt: '2026-11-24T12:00:00.000Z' },
+			{ id: 'new-draft', subjectId: null, isNew: true, text: 'Buy labels', gardenId: null, updatedAt: '2026-11-24T13:00:00.000Z' },
+			{ id: 'existing-draft', subjectId: 'archived', isNew: false, text: 'Revised record', gardenId: 'garden-d', updatedAt: '2026-11-24T12:00:00.000Z' },
 		];
 		expect(prepareNotesWorkspace(notes, drafts, gardens, 'labels').drafts.map(({ id }) => id)).toEqual(['new-draft']);
 		expect(prepareNotesWorkspace(notes, drafts, gardens, 'dormant plot').drafts.map(({ id }) => id)).toEqual(['existing-draft']);

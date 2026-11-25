@@ -14,12 +14,12 @@ function memoryStorage(initial = {}) {
 
 describe('Notes accordion preference', () => {
 	it('defaults application Notes open and Garden groups closed', () => {
-		expect(readNotesAccordionPreference(memoryStorage())).toEqual({ notes: true, gardens: {} });
+		expect(readNotesAccordionPreference(memoryStorage())).toEqual({ drafts: false, notes: true, gardens: {} });
 	});
 
 	it('persists independent states using Garden UUID keys', () => {
 		const storage = memoryStorage();
-		const preference = { notes: false, gardens: { 'garden-uuid': true, 'other-uuid': false } };
+		const preference = { drafts: true, notes: false, gardens: { 'garden-uuid': true, 'other-uuid': false } };
 		expect(writeNotesAccordionPreference(preference, storage)).toBe(true);
 		expect(storage.setItem).toHaveBeenCalledWith(NOTES_ACCORDION_STORAGE_KEY, JSON.stringify(preference));
 		expect(readNotesAccordionPreference(storage)).toEqual(preference);
@@ -29,9 +29,9 @@ describe('Notes accordion preference', () => {
 		const malformed = memoryStorage({
 			[NOTES_ACCORDION_STORAGE_KEY]: JSON.stringify({ notes: 'yes', gardens: { good: true, bad: 'yes' } }),
 		});
-		expect(readNotesAccordionPreference(malformed)).toEqual({ notes: true, gardens: { good: true } });
+		expect(readNotesAccordionPreference(malformed)).toEqual({ drafts: false, notes: true, gardens: { good: true } });
 		const unavailable = { getItem() { throw new Error('blocked'); }, setItem() { throw new Error('blocked'); } };
-		expect(readNotesAccordionPreference(unavailable)).toEqual({ notes: true, gardens: {} });
-		expect(writeNotesAccordionPreference({ notes: false, gardens: {} }, unavailable)).toBe(false);
+		expect(readNotesAccordionPreference(unavailable)).toEqual({ drafts: false, notes: true, gardens: {} });
+		expect(writeNotesAccordionPreference({ drafts: true, notes: false, gardens: {} }, unavailable)).toBe(false);
 	});
 });

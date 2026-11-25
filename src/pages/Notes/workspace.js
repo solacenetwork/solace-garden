@@ -16,7 +16,6 @@ export function prepareNotesWorkspace(notes, drafts, gardens, filter = '') {
 	const query = filter.trim().toLocaleLowerCase();
 	const filtering = query.length > 0;
 	const gardenById = new Map(gardens.map((garden) => [garden.id, garden]));
-	const noteById = new Map(notes.map((note) => [note.id, note]));
 	const matchesNote = (note) => {
 		if (!filtering) return true;
 		const gardenName = gardenById.get(note.gardenId)?.name;
@@ -24,8 +23,7 @@ export function prepareNotesWorkspace(notes, drafts, gardens, filter = '') {
 	};
 	const matchesDraft = (draft) => {
 		if (!filtering) return true;
-		const savedNote = noteById.get(draft.subjectId);
-		const gardenName = gardenById.get(savedNote?.gardenId)?.name;
+		const gardenName = gardenById.get(draft.gardenId)?.name;
 		return includes(draft.text, query) || includes(gardenName, query);
 	};
 

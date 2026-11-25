@@ -17,11 +17,12 @@ function props(overrides = {}) {
 	return {
 		state: { status: 'ready', notes: [], drafts: [], gardens: [] },
 		filter: '',
-		preference: { notes: true, gardens: {} },
+		preference: { drafts: false, notes: true, gardens: {} },
 		deletingId: null,
 		onDelete: vi.fn(),
 		onFilter: vi.fn(),
 		onClearFilter: vi.fn(),
+		onToggleDrafts: vi.fn(),
 		onToggleNotes: vi.fn(),
 		onToggleGarden: vi.fn(),
 		...overrides,
@@ -64,7 +65,7 @@ describe('NotesWorkspaceView', () => {
 		const onToggleGarden = vi.fn();
 		const filtered = NotesWorkspaceView(props({
 			state: { status: 'ready', notes: [note], drafts: [], gardens: [garden] },
-			filter: 'kitchen', preference: { notes: false, gardens: { [garden.id]: false } }, onToggleGarden,
+			filter: 'kitchen', preference: { drafts: false, notes: false, gardens: { [garden.id]: false } }, onToggleGarden,
 		}));
 		const filteredDetails = nodes(filtered).find((node) => node.props?.open === true);
 		expect(filteredDetails).toBeTruthy();
@@ -73,15 +74,15 @@ describe('NotesWorkspaceView', () => {
 
 		const restored = NotesWorkspaceView(props({
 			state: { status: 'ready', notes: [note], drafts: [], gardens: [garden] },
-			preference: { notes: false, gardens: { [garden.id]: false } },
+			preference: { drafts: false, notes: false, gardens: { [garden.id]: false } },
 		}));
 		expect(nodes(restored).filter((node) => node.type === 'details').every((node) => node.props.open === false)).toBe(true);
 	});
 
 	it('filters drafts without changing their independent resume destinations and offers a clear no-results state', () => {
 		const drafts = [
-			{ id: 'new-draft', subjectId: null, isNew: true, text: 'New seed idea', updatedAt: '2026-11-24T12:00:00.000Z' },
-			{ id: 'existing-draft', subjectId: 'saved-note', isNew: false, text: 'Revise pruning', updatedAt: '2026-11-23T12:00:00.000Z' },
+			{ id: 'new-draft', subjectId: null, isNew: true, text: 'New seed idea', gardenId: null, updatedAt: '2026-11-24T12:00:00.000Z' },
+			{ id: 'existing-draft', subjectId: 'saved-note', isNew: false, text: 'Revise pruning', gardenId: null, updatedAt: '2026-11-23T12:00:00.000Z' },
 		];
 		const state = { status: 'ready', notes: [], drafts, gardens: [] };
 		const visible = NotesWorkspaceView(props({ state, filter: 'pruning' }));
@@ -94,6 +95,52 @@ describe('NotesWorkspaceView', () => {
 		const clear = nodes(empty).find((node) => node.type === 'button' && text(node) === 'Clear filter');
 		clear.props.onClick();
 		expect(onClearFilter).toHaveBeenCalledOnce();
+	});
+
+	it('renders recoverable drafts as a compact collapsed accordion with persisted ordinary toggles', () => {
+		const onToggleDrafts = vi.fn();
+		const drafts = [
+			{ id: 'new-draft', subjectId: null, isNew: true, text: 'Newest draft', gardenId: null, updatedAt: '2026-11-24T12:00:00.000Z' },
+			{ id: 'existing-draft', subjectId: 'saved-note', isNew: false, text: 'Older draft', gardenId: null, updatedAt: '2026-11-23T12:00:00.000Z' },
+		];
+		const tree = NotesWorkspaceView(props({
+			state: { status: 'ready', notes: [], drafts, gardens: [] }, onToggleDrafts,
+		}));
+		const accordion = nodes(tree).find((node) => node.props?.['data-notes-group'] === 'drafts');
+		const details = nodes(accordion).find((node) => node.type === 'details');
+		expect(details.props.open).toBe(false);
+		expect(text(accordion)).toContain('Unfinished drafts');
+		expect(nodes(accordion).find((node) => node.props?.['aria-label'] === '2 drafts')).toBeTruthy();
+		expect(nodes(accordion).filter((node) => node.type === 'a' && node.props?.class?.includes('notes-draft-row')).map(({ props: rowProps }) => rowProps.href)).toEqual([
+			'/notes/new/new-draft', '/notes/saved-note',
+		]);
+		details.props.onToggle({ currentTarget: { open: true } });
+		expect(onToggleDrafts).toHaveBeenCalledWith(true);
+	});
+
+	it('temporarily expands and highlights only the exact returned draft without persisting the toggle', () => {
+		const onToggleDrafts = vi.fn();
+		const drafts = [
+			{ id: 'target-draft', subjectId: null, isNew: true, text: 'Target', gardenId: null, updatedAt: '2026-11-24T12:00:00.000Z' },
+			{ id: 'newer-draft', subjectId: null, isNew: true, text: 'Newer but not target', gardenId: null, updatedAt: '2026-11-25T12:00:00.000Z' },
+		];
+		const tree = NotesWorkspaceView(props({
+			state: { status: 'ready', notes: [], drafts, gardens: [] },
+			highlightedDraftId: 'target-draft', onToggleDrafts,
+		}));
+		const accordion = nodes(tree).find((node) => node.props?.['data-notes-group'] === 'drafts');
+		const details = nodes(accordion).find((node) => node.type === 'details');
+		expect(details.props.open).toBe(true);
+		const highlighted = nodes(accordion).filter((node) => node.props?.class?.includes('notes-draft-row--highlighted'));
+		expect(highlighted).toHaveLength(1);
+		expect(highlighted[0].props['data-draft-id']).toBe('target-draft');
+		details.props.onToggle({ currentTarget: { open: true } });
+		expect(onToggleDrafts).not.toHaveBeenCalled();
+
+		const nonexistent = NotesWorkspaceView(props({
+			state: { status: 'ready', notes: [], drafts, gardens: [] }, highlightedDraftId: 'missing',
+		}));
+		expect(nodes(nonexistent).some((node) => node.props?.class?.includes('notes-draft-row--highlighted'))).toBe(false);
 	});
 
 	it('retains the deleting action state', () => {

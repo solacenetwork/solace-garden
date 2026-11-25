@@ -82,7 +82,7 @@ export function createNoteDraftsService(repository, {
 			);
 		},
 
-		save({ id, noteId = null, text, createdAt }) {
+		save({ id, noteId = null, text, gardenId, createdAt }) {
 			const timestamp = now();
 			return repository.saveForKind({
 				id,
@@ -90,6 +90,7 @@ export function createNoteDraftsService(repository, {
 				subjectId: noteId,
 				isNew: noteId === null,
 				text,
+				gardenId,
 				createdAt: createdAt ?? timestamp,
 				updatedAt: timestamp,
 			}, 'note');

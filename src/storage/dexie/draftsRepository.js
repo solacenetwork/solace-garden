@@ -61,7 +61,7 @@ function validateDraft(draft) {
 	}
 	const allowed = new Set([
 		'id', 'kind', 'subjectId', 'isNew', 'createdAt', 'updatedAt',
-		draft.kind === 'garden' ? 'fields' : 'text',
+		...(draft.kind === 'garden' ? ['fields'] : ['text', 'gardenId']),
 		...(draft.kind === 'garden' ? GARDEN_DRAFT_CONTEXT_FIELDS : []),
 	]);
 	const unsupported = Object.keys(draft).find((field) => !allowed.has(field));
@@ -82,6 +82,12 @@ function validateDraft(draft) {
 	if (draft.kind === 'note') {
 		if (typeof draft.text !== 'string' || Object.hasOwn(draft, 'fields')) {
 			throw new ValidationError('INVALID_DRAFT_TEXT', 'Note draft text must be a string.', { field: 'text' });
+		}
+		if (!Object.hasOwn(draft, 'gardenId')) {
+			throw new ValidationError('INVALID_NOTE_DRAFT_GARDEN', 'Note draft gardenId is required.', { field: 'gardenId' });
+		}
+		if (draft.gardenId !== null) {
+			validateRecordId(draft.gardenId, 'gardenId');
 		}
 	} else {
 		if (draft.subjectId !== null || draft.isNew !== true || Object.hasOwn(draft, 'text')) {
