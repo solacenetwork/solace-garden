@@ -227,9 +227,12 @@ test('Standard phone and medium navigation Drawer stays in the viewport and rest
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
     await trigger.focus();
     await page.keyboard.press('Space');
-
     const drawer = page.getByRole('dialog', { name: 'Navigation' });
     await expect(drawer).toBeVisible();
+    await expect.poll(
+      () => drawer.evaluate(element => getComputedStyle(element).transform),
+      { message: 'Navigation Drawer should finish its opening transition' },
+    ).toBe('none');
     await expect(drawer.getByRole('button', { name: 'Close Navigation' })).toBeFocused();
     const drawerBounds = await drawer.boundingBox();
     expect(drawerBounds).not.toBeNull();
