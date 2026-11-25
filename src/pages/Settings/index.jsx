@@ -1,23 +1,23 @@
 import { useLocation } from 'preact-iso';
 import { useInterfaceMode } from '../../context/InterfaceModeContext.jsx';
-import { getSettingsReturnPath } from '../../routes.js';
+import { getLocationsHref, getSettingsReturnPath } from '../../routes.js';
 import './style.css';
 
 const modeOptions = [
 	{
 		value: 'auto',
 		label: 'Automatic',
-		description: 'Use Simple Mode on narrow screens and Standard Mode on wider screens.',
+		description: 'Automatically adapt the interface to your screen size.',
 	},
 	{
 		value: 'simple',
-		label: 'Simple',
-		description: 'Keep the focused, touch-friendly Simple Mode at every screen size.',
+		label: 'Simple Mode',
+		description: 'A simplified, card-based navigation experience.',
 	},
 	{
 		value: 'standard',
-		label: 'Standard',
-		description: 'Keep the desktop-oriented Standard Mode at every screen size.',
+		label: 'Standard Mode',
+		description: 'Full workspace navigation adapted to your screen size.',
 	},
 ];
 
@@ -98,7 +98,7 @@ export function Settings() {
 						Manage growing sites and their optional USDA Hardiness Zones.
 					</p>
 				</div>
-				<a class="btn-outline" href="/locations">
+				<a class="btn-outline" href={getLocationsHref('settings', query.ref)}>
 					<i class="bi bi-geo-alt" aria-hidden="true"></i>
 					Manage Locations
 				</a>

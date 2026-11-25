@@ -209,7 +209,7 @@ export function GardensOverviewView({ state, onRetry, onDiscard = () => {}, disc
 					<p>Continue drafts, manage growing projects, and revisit previous Gardens.</p>
 				</div>
 				<nav class="gardens-header__actions" aria-label="Garden management">
-					<a class="btn-outline" href="/locations"><i class="bi bi-geo-alt" aria-hidden="true"></i> Locations</a>
+					<a class="btn-outline" href="/locations?ref=gardens"><i class="bi bi-geo-alt" aria-hidden="true"></i> Locations</a>
 					<a class="btn-outline" href="/templates"><i class="bi bi-copy" aria-hidden="true"></i> Templates</a>
 					<a class="btn-solid theme-primary gardens-create-action" href="/gardens/new">
 						<i class="bi bi-plus-lg" aria-hidden="true"></i> Create Garden

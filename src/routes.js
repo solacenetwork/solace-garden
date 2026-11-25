@@ -20,9 +20,10 @@ export const routeCatalog = [
 		id: 'harvest',
 		path: '/harvest',
 		label: 'Harvest',
-		detail: 'Record a harvest',
+		detail: 'Harvest information',
 		icon: 'basket2',
-		description: 'Record what you picked and review harvest history.',
+		description: 'Harvest recording and history are planned for a future release.',
+		view: 'harvest',
 	},
 	{
 		id: 'photos',
@@ -189,4 +190,32 @@ export function getSettingsReturnPath(reference) {
 	const route = findRouteById(reference);
 
 	return route && route.id !== 'settings' ? route.path : '/';
+}
+
+function validSettingsReference(reference) {
+	const route = findRouteById(reference);
+	return route && route.id !== 'settings' ? route.id : 'home';
+}
+
+export function getLocationsHref(origin, settingsReference) {
+	if (origin === 'gardens') {
+		return '/locations?ref=gardens';
+	}
+	if (origin === 'settings') {
+		return `/locations?ref=settings&settingsRef=${encodeURIComponent(validSettingsReference(settingsReference))}`;
+	}
+	return '/locations';
+}
+
+export function getLocationsReturn(reference, settingsReference) {
+	if (reference === 'gardens') {
+		return { href: '/gardens', label: 'Back to Gardens' };
+	}
+	if (reference === 'settings') {
+		return {
+			href: `/settings?ref=${encodeURIComponent(validSettingsReference(settingsReference))}`,
+			label: 'Back to Settings',
+		};
+	}
+	return { href: '/settings', label: 'Back to Settings' };
 }

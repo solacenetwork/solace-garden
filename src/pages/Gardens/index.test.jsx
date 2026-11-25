@@ -238,7 +238,7 @@ describe('Garden read-only views', () => {
 		const tree = GardensOverviewView({ state: { status: 'loading' } });
 		const actions = nodes(tree).find((node) => node.props?.class === 'gardens-header__actions');
 		expect(nodes(actions).filter((node) => node.type === 'a').map(({ props }) => props.href)).toEqual([
-			'/locations', '/templates', '/gardens/new',
+			'/locations?ref=gardens', '/templates', '/gardens/new',
 		]);
 		expect(nodes(actions).filter((node) => node.type === 'a').map((node) => text(node).trim())).toEqual([
 			'Locations', 'Templates', 'Create Garden',

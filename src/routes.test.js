@@ -4,6 +4,8 @@ import {
 	applicationRoutes,
 	findRoute,
 	findRouteById,
+	getLocationsHref,
+	getLocationsReturn,
 	routeCatalog,
 	getSettingsHref,
 	getSettingsReturnPath,
@@ -116,7 +118,7 @@ describe('destination registry and route contracts', () => {
 	const destinations = [
 		['home', '/', 'home'],
 		['plants', '/plants', 'plants'],
-		['harvest', '/harvest', undefined],
+		['harvest', '/harvest', 'harvest'],
 		['photos', '/photos', undefined],
 		['tasks', '/tasks', 'lists'],
 		['wishlist', '/wishlist', 'lists'],
@@ -202,6 +204,28 @@ describe('destination registry and route contracts', () => {
 		expect(getSettingsHref('/unknown')).toBe('/settings?ref=home');
 		for (const reference of [undefined, null, '', 'unknown', 'settings', '/notes', 'toString']) {
 			expect(getSettingsReturnPath(reference)).toBe('/');
+		}
+	});
+
+	it('keeps Geographic Locations returns limited to Settings and Gardens', () => {
+		expect(getLocationsHref('gardens')).toBe('/locations?ref=gardens');
+		expect(getLocationsHref('settings', 'notes')).toBe('/locations?ref=settings&settingsRef=notes');
+		expect(getLocationsReturn('gardens', 'notes')).toEqual({ href: '/gardens', label: 'Back to Gardens' });
+		expect(getLocationsReturn('settings', 'notes')).toEqual({ href: '/settings?ref=notes', label: 'Back to Settings' });
+	});
+
+	it('preserves a validated nested Settings origin and rejects unsafe Location references', () => {
+		for (const settingsReference of ['home', 'notes', 'help', 'gardens']) {
+			const locationsHref = getLocationsHref('settings', settingsReference);
+			expect(locationsHref).toBe(`/locations?ref=settings&settingsRef=${settingsReference}`);
+			expect(getLocationsReturn('settings', settingsReference).href).toBe(`/settings?ref=${settingsReference}`);
+		}
+		for (const unsafe of [undefined, null, '', 'unknown', 'settings', '/notes', 'https://example.com', 'javascript:alert(1)', 'toString']) {
+			expect(getLocationsHref('settings', unsafe)).toBe('/locations?ref=settings&settingsRef=home');
+			expect(getLocationsReturn('settings', unsafe)).toEqual({ href: '/settings?ref=home', label: 'Back to Settings' });
+		}
+		for (const unsafe of [undefined, null, '', 'unknown', '/notes', 'https://example.com', 'javascript:alert(1)', 'toString']) {
+			expect(getLocationsReturn(unsafe, 'notes')).toEqual({ href: '/settings', label: 'Back to Settings' });
 		}
 	});
 });
