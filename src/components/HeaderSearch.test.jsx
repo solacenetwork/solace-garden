@@ -105,11 +105,15 @@ describe('HeaderSearch', () => {
 		vi.stubGlobal('localStorage', { setItem: write });
 		const view = mount(true);
 		const event = { preventDefault: vi.fn() };
+		field(view.render()).props.onInput({ currentTarget: { value: '<script>alert(1)</script> & tomatoes' } });
 		form(view.render()).props.onSubmit(event);
 		expect(event.preventDefault).toHaveBeenCalledOnce();
 		expect(nodes(view.render()).find(({ props }) => props.role === 'status').props.children).toBe("Search isn't available yet.");
 		expect(navigate).not.toHaveBeenCalled();
 		expect(write).not.toHaveBeenCalled();
+		expect(field(view.render()).props.value).toBe('<script>alert(1)</script> & tomatoes');
+		field(view.render()).props.onInput({ currentTarget: { value: 'beans' } });
+		expect(nodes(view.render()).some(({ props }) => props.role === 'status')).toBe(false);
 		view.cleanup();
 	});
 });

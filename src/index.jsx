@@ -25,6 +25,7 @@ import { Welcome } from './pages/Welcome/index.jsx';
 import { Help } from './pages/Help/index.jsx';
 import { About } from './pages/About/index.jsx';
 import { Harvest } from './pages/Harvest/index.jsx';
+import { Search } from './pages/Search/index.jsx';
 import { NotFound } from './pages/_404.jsx';
 import { applyWelcomeStartupPreference } from './services/welcomePreference.js';
 import { CAROUSEL_POC_PATH } from './dev/carousel/route.js';
@@ -57,6 +58,7 @@ const pageComponents = {
 	help: Help,
 	about: About,
 	harvest: Harvest,
+	search: Search,
 };
 
 function AppShell() {

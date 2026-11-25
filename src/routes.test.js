@@ -126,7 +126,7 @@ describe('destination registry and route contracts', () => {
 		['notes', '/notes', 'notes'],
 		['gardens', '/gardens', 'gardens'],
 		['journal', '/journal', undefined],
-		['search', '/search', undefined],
+		['search', '/search', 'search'],
 		['templates', '/templates', 'templates'],
 		['locations', '/locations', 'locations'],
 		['settings', '/settings', 'settings'],
