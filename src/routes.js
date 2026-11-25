@@ -87,8 +87,8 @@ export const routeCatalog = [
 		path: '/search',
 		label: 'Search',
 		icon: 'search',
-		description:
-			'Find gardens, plant groups, lists, calendar events, and journal entries.',
+		description: 'Search across SOLACE Garden is planned for a future release.',
+		view: 'search',
 	},
 	{
 		id: 'templates',
