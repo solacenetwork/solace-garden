@@ -28,4 +28,21 @@ describe('GardenAssociationSelector', () => {
 		expect(nodes(tree).filter((node) => typeof node === 'string').join(' ')).toContain('No Garden');
 		expect(nodes(tree).filter((node) => typeof node === 'string').join(' ')).toContain('No Gardens are available');
 	});
+
+	it('associates Garden validation feedback with the invalid selector', () => {
+		const tree = GardenAssociationSelector({
+			id: 'list-garden',
+			gardens: [],
+			onChange: vi.fn(),
+			error: 'The selected garden does not exist.',
+		});
+		const select = nodes(tree).find((node) => node.type === 'select');
+		const feedback = nodes(tree).find((node) => node.props?.id === 'list-garden-error');
+
+		expect(select.props.class).toContain('is-invalid');
+		expect(select.props['aria-invalid']).toBe('true');
+		expect(select.props['aria-describedby']).toBe('list-garden-error');
+		expect(nodes(feedback).filter((node) => typeof node === 'string').join(' '))
+			.toContain('The selected garden does not exist.');
+	});
 });

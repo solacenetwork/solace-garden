@@ -52,6 +52,13 @@
 	gap: 0.4rem;
 }
 
+.lists-page .invalid-feedback {
+	display: block;
+	max-width: 100%;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
 .lists-message {
 	display: flex;
 	padding: 0.85rem 1rem;

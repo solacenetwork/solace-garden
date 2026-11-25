@@ -19,15 +19,18 @@ export function GardenAssociationSelector({
 	onChange,
 	disabled = false,
 	label = 'Garden association',
+	error = '',
 }) {
 	return (
 		<div class="form-field">
 			<label class="form-label" for={id}>{label}</label>
 			<select
 				id={id}
-				class="form-control"
+				class={`form-control${error ? ' is-invalid' : ''}`}
 				value={value ?? ''}
 				disabled={disabled}
+				aria-invalid={error ? 'true' : undefined}
+				aria-describedby={error ? `${id}-error` : undefined}
 				onChange={(event) => onChange(event.currentTarget.value || null)}
 			>
 				<option value="">No Garden</option>
@@ -40,6 +43,7 @@ export function GardenAssociationSelector({
 			{gardens.length === 0 && (
 				<p class="form-text">No Gardens are available. This item will remain unlinked.</p>
 			)}
+			{error && <div id={`${id}-error`} class="invalid-feedback">{error}</div>}
 		</div>
 	);
 }
