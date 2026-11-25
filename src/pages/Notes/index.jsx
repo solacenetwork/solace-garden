@@ -2,6 +2,7 @@ import { createUUID } from '../../utils/uuid.js';
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useStorage } from '../../context/StorageContext.jsx';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { GardenAssociationSelector } from '../../components/GardenAssociationSelector.jsx';
 import { createDraftAutosave } from '../../services/draftAutosave.js';
 import { createGardensService } from '../../services/gardens.js';
@@ -235,8 +236,14 @@ export function NoteEditor({ record, draft, requestedDraftId, isFreshRoute = fal
 		}
 	};
 
-	return <div class="container notes-page notes-page--editing"><section class="note-editor" aria-labelledby="note-editor-title">
-		<header class="note-editor__header"><p class="notes-page__eyebrow">{record ? 'Edit Note' : 'New Note'}</p><h1 id="note-editor-title">{record ? 'Update your Note' : 'Capture a Note'}</h1><p class={`note-editor__draft-status note-editor__draft-status--${status}`} role="status">{STATUS_TEXT[status]}</p></header>
+	return <section class="workspace-page notes-page notes-page--editing" aria-labelledby="note-editor-title">
+		<PageHeader
+			eyebrow={record ? 'Edit Note' : 'New Note'}
+			title={record ? 'Update your Note' : 'Capture a Note'}
+			titleId="note-editor-title"
+			status={<p class={`note-editor__draft-status note-editor__draft-status--${status}`} role="status">{STATUS_TEXT[status]}</p>}
+		/>
+		<div class="page-content"><section class="note-editor">
 		{error && <div id="note-save-error" class="notes-message notes-message--error" role="alert" tabIndex="-1"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{error}</span></div>}
 		{autosaveError && <div class="notes-message notes-message--error" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{autosaveError}</span></div>}
 		<form class="note-editor__form" onSubmit={save}>
@@ -245,7 +252,8 @@ export function NoteEditor({ record, draft, requestedDraftId, isFreshRoute = fal
 			{recoveredGardenUnavailable && <p class="form-text note-editor__association-recovery" role="status">The Garden previously associated with this draft no longer exists. You can select another Garden or leave this Note unlinked.</p>}
 			<div class="note-editor__actions note-editor__actions--split"><button class="btn-text theme-danger note-editor__button" type="button" onClick={discard} disabled={saving}>{establishedId ? 'Discard draft' : 'Discard'}</button><div class="note-editor__primary-actions"><button class="btn-outline note-editor__button" type="button" onClick={leave} disabled={saving}>Back to Notes</button><button class="btn-solid theme-primary note-editor__button" type="submit" disabled={!canSave}><i class="bi bi-check2" aria-hidden="true"></i>{saving ? 'Saving…' : 'Save Note'}</button></div></div>
 		</form>
-	</section></div>;
+		</section></div>
+	</section>;
 }
 
 function LoadingNote() { return <div class="container notes-page"><div class="notes-state" role="status"><p>Loading Note…</p></div></div>; }
@@ -400,7 +408,15 @@ export function Notes() {
 		catch (deleteError) { setState((current) => ({ ...current, status: 'error', message: errorMessage(deleteError, 'deleted') })); }
 		finally { setDeletingId(null); }
 	};
-	return <section class="container notes-page" aria-labelledby="notes-title"><header class="notes-page__header"><div><p class="notes-page__eyebrow">Garden observations</p><h1 id="notes-title">Notes</h1><p>Keep plain-text observations together, whether linked to a garden or not.</p></div><a class="btn-solid theme-primary notes-page__new" href="/notes/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>New Note</a></header>
+	return <section class="workspace-page notes-page" aria-labelledby="notes-title">
+		<PageHeader
+			eyebrow="Garden observations"
+			title="Notes"
+			titleId="notes-title"
+			description="Keep plain-text observations together, whether linked to a garden or not."
+			actions={<a class="btn-solid theme-primary notes-page__new" href="/notes/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>New Note</a>}
+		/>
+		<div class="page-content notes-content">
 		{state.status === 'error' && <div class="notes-message notes-message--error" role="alert"><span>{state.message}</span><button class="btn-outline" type="button" onClick={load}>Retry</button></div>}
 		{state.status === 'loading' ? <div class="notes-state" role="status"><p>Loading Notes…</p></div> : <div><NotesWorkspaceView
 			state={state} filter={filter} filterRef={filterInput} preference={preference} highlightedDraftId={returnContext?.draftId} contextualExpansionActive={contextualExpansionActive} deletingId={deletingId}
@@ -412,5 +428,6 @@ export function Notes() {
 			onToggleNotes={(expanded) => updatePreference((current) => ({ ...current, notes: expanded }))}
 			onToggleGarden={(gardenId, expanded) => updatePreference((current) => ({ ...current, gardens: { ...current.gardens, [gardenId]: expanded } }))}
 		/></div>}
+		</div>
 	</section>;
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
 import { GardenColorChoices, GardenIconChoices } from '../../components/GardenIdentityChoices.jsx';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { CURATED_GARDEN_ICONS, GARDEN_NUMBER_ICONS } from '../../gardenIdentity.js';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';
@@ -236,14 +237,15 @@ export function TemplateMethodContents({ state, selectedId, onSelect, onRetry })
 
 export function CreateGardenLandingView({ templateState, selectedTemplateId, onSelectTemplate, onRetryTemplates }) {
 	return (
-		<section class="container gardens-page garden-create" aria-labelledby="create-garden-title">
-			<GardenCreationBreadcrumb current="Create Garden" />
-			<header class="gardens-header">
-				<p class="garden-create__eyebrow">Create a Garden</p>
-				<h1 id="create-garden-title">Choose how to begin</h1>
-				<p>Select the creation method that fits how much detail you want to enter now.</p>
-			</header>
-			<div class="garden-create-methods">
+		<section class="workspace-page gardens-page garden-create" aria-labelledby="create-garden-title">
+			<PageHeader
+				breadcrumbs={<GardenCreationBreadcrumb current="Create Garden" />}
+				eyebrow="Create a Garden"
+				title="Choose how to begin"
+				titleId="create-garden-title"
+				description="Select the creation method that fits how much detail you want to enter now."
+			/>
+			<div class="page-content garden-create-methods">
 				{creationMethods.map((method) => (
 					<MethodCard method={method} key={method.id}>
 						{method.id === 'template' ? (
@@ -330,17 +332,19 @@ export function QuickStartGardenView({
 	onDiscard,
 }) {
 	return (
-		<section class="container gardens-page garden-quick-start" aria-labelledby="quick-start-garden-title">
-			<GardenCreationBreadcrumb current="Quick Start" disabled={saving} onNavigate={onCancel} />
-			<header class="gardens-header">
-				<p class="garden-create__eyebrow">Quick Start</p>
-				<h1 id="quick-start-garden-title">Create Garden</h1>
-				<p>Set up the essentials now, then add growing details and plants later.</p>
-				{draftStatus && <p class={`garden-draft-status garden-draft-status--${draftStatus}`} role="status">{QUICK_START_STATUS_TEXT[draftStatus]}</p>}
-			</header>
-			{onDiscard && <div class="garden-full-create__toolbar garden-full-create__toolbar--discard"><button class="btn-text theme-danger" type="button" disabled={saving} onClick={onDiscard}><i class="bi bi-trash3" aria-hidden="true"></i> Discard Draft</button></div>}
+		<section class="workspace-page gardens-page garden-quick-start" aria-labelledby="quick-start-garden-title">
+			<PageHeader
+				breadcrumbs={<GardenCreationBreadcrumb current="Quick Start" disabled={saving} onNavigate={onCancel} />}
+				eyebrow="Quick Start"
+				title="Create Garden"
+				titleId="quick-start-garden-title"
+				description="Set up the essentials now, then add growing details and plants later."
+				status={draftStatus && <p class={`garden-draft-status garden-draft-status--${draftStatus}`} role="status">{QUICK_START_STATUS_TEXT[draftStatus]}</p>}
+			/>
+			<div class="page-content">
+				{onDiscard && <div class="garden-full-create__toolbar garden-full-create__toolbar--discard"><button class="btn-text theme-danger" type="button" disabled={saving} onClick={onDiscard}><i class="bi bi-trash3" aria-hidden="true"></i> Discard Draft</button></div>}
 
-			<form class="garden-create__form" noValidate onSubmit={onSubmit}>
+				<form class="garden-create__form" noValidate onSubmit={onSubmit}>
 				<div class="form-field">
 					<label class="form-label" for="garden-name">Garden Name</label>
 					<input
@@ -440,7 +444,8 @@ export function QuickStartGardenView({
 						{saving ? 'Creating…' : 'Create Garden'}
 					</button>
 				</div>
-			</form>
+				</form>
+			</div>
 		</section>
 	);
 }

@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { About } from './About/index.jsx';
 import { Harvest } from './Harvest/index.jsx';
 import { Help } from './Help/index.jsx';
+import { PageHeader } from '../components/PageHeader.jsx';
 
 function nodes(node) {
 	if (node === null || node === undefined || typeof node === 'boolean') return [];
 	if (Array.isArray(node)) return node.flatMap(nodes);
 	if (typeof node !== 'object') return [node];
+	if (node.type === PageHeader) return nodes(node.type(node.props));
 	return [node, ...nodes(node.props?.children)];
 }
 
@@ -50,7 +52,7 @@ describe('secondary information pages', () => {
 
 	it('keeps Harvest contextual, nonfunctional, and linked back to Gardens', () => {
 		const tree = Harvest();
-		expect(nodes(tree).find((node) => node.type === 'h1').props.children).toBe('Harvest');
+		expect(text(nodes(tree).find((node) => node.type === 'h1'))).toBe('Harvest');
 		expect(text(tree)).toContain('through your Gardens and Plant Groups in a future release');
 		expect(nodes(tree).filter((node) => node.type === 'a').map(({ props }) => props.href))
 			.toEqual(['/gardens']);

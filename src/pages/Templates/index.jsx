@@ -1,5 +1,6 @@
 import Dialog from 'bootstrap/js/dist/dialog.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';
 import { createGardenTypesService } from '../../services/gardenTypes.js';
@@ -95,19 +96,15 @@ export function TemplateDeletionDialog({
 
 export function TemplatesPageView({ state, message = '', onRetry, onRequestDelete }) {
 	return (
-		<section class="container templates-page" aria-labelledby="templates-title">
-			<nav class="garden-creation-breadcrumb" aria-label="Templates breadcrumb">
-				<ol class="breadcrumb">
-					<li class="breadcrumb-item"><a class="breadcrumb-link" href="/gardens">Gardens</a></li>
-					<li class="breadcrumb-divider" aria-hidden="true"></li>
-					<li class="breadcrumb-item"><span class="breadcrumb-link active" aria-current="page">Templates</span></li>
-				</ol>
-			</nav>
-			<header class="templates-page__header">
-				<p class="templates-page__eyebrow">Reusable Garden setup</p>
-				<h1 id="templates-title">Templates</h1>
-				<p><strong>Save as Template</strong> preserves reusable configuration from a Garden. <strong>Create Garden from Template</strong> uses that configuration to start another Garden without copying Notes, dates, plants, or activity history.</p>
-			</header>
+		<section class="workspace-page templates-page" aria-labelledby="templates-title">
+			<PageHeader
+				breadcrumbs={<nav class="garden-creation-breadcrumb" aria-label="Templates breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a class="breadcrumb-link" href="/gardens">Gardens</a></li><li class="breadcrumb-divider" aria-hidden="true"></li><li class="breadcrumb-item"><span class="breadcrumb-link active" aria-current="page">Templates</span></li></ol></nav>}
+				eyebrow="Reusable Garden setup"
+				title="Templates"
+				titleId="templates-title"
+				description={<><strong>Save as Template</strong> preserves reusable configuration from a Garden. <strong>Create Garden from Template</strong> uses that configuration to start another Garden without copying Notes, dates, plants, or activity history.</>}
+			/>
+			<div class="page-content templates-content">
 			{message && <p class="templates-message" role="status" aria-live="polite">{message}</p>}
 			{state.status === 'loading' ? (
 				<p class="templates-state" role="status">Loading Templates…</p>
@@ -180,6 +177,7 @@ export function TemplatesPageView({ state, message = '', onRetry, onRequestDelet
 					))}
 				</ul>
 			)}
+			</div>
 		</section>
 	);
 }

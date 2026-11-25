@@ -19,11 +19,13 @@ vi.mock('../../context/InterfaceModeContext.jsx', () => ({
 }));
 
 import { Settings } from './index.jsx';
+import { PageHeader } from '../../components/PageHeader.jsx';
 
 function nodes(node) {
 	if (node === null || node === undefined || typeof node === 'boolean') return [];
 	if (Array.isArray(node)) return node.flatMap(nodes);
 	if (typeof node !== 'object') return [node];
+	if (node.type === PageHeader) return nodes(node.type(node.props));
 	return [node, ...nodes(node.props?.children)];
 }
 

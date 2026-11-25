@@ -2,6 +2,7 @@ import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { CardCarousel } from '../../components/CardCarousel.jsx';
 import { GardenIdentityBadge } from '../../components/GardenIdentity.jsx';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { formatDateOnly } from '../Home/dashboardData.js';
 import {
@@ -202,50 +203,55 @@ function GardenDraftSection({ drafts = [], onDiscard, discardingId, error = '' }
 
 export function GardensOverviewView({ state, onRetry, onDiscard = () => {}, discardingId = null, draftError = '' }) {
 	return (
-		<section class="container gardens-page" aria-labelledby="gardens-title">
-			<header class="gardens-header gardens-header--overview">
-				<div>
-					<h1 id="gardens-title"><i class="bi bi-leaf-fill" aria-hidden="true"></i> Gardens</h1>
-					<p>Continue drafts, manage growing projects, and revisit previous Gardens.</p>
-				</div>
-				<nav class="gardens-header__actions" aria-label="Garden management">
+		<section class="workspace-page gardens-page" aria-labelledby="gardens-title">
+			<PageHeader
+				title="Gardens"
+				titleId="gardens-title"
+				leading={<i class="bi bi-leaf-fill" aria-hidden="true" />}
+				description="Continue drafts, manage growing projects, and revisit previous Gardens."
+				actions={(
+					<nav class="gardens-header__actions" aria-label="Garden management">
 					<a class="btn-outline" href="/locations?ref=gardens"><i class="bi bi-geo-alt" aria-hidden="true"></i> Locations</a>
 					<a class="btn-outline" href="/templates"><i class="bi bi-copy" aria-hidden="true"></i> Templates</a>
 					<a class="btn-solid theme-primary gardens-create-action" href="/gardens/new">
 						<i class="bi bi-plus-lg" aria-hidden="true"></i> Create Garden
 					</a>
-				</nav>
-			</header>
-			{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (
-				<>
-					<GardenDraftSection drafts={state.drafts} onDiscard={onDiscard} discardingId={discardingId} error={draftError} />
-					<GardenSection title="Current Gardens" id="current-gardens" items={state.current} emptyMessage="No active Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.current} />
-					<GardenSection title="Planned Gardens" id="planned-gardens" items={state.planned} emptyMessage="No planned Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.planned} />
-					<GardenSection title="Previous Gardens" id="previous-gardens" items={state.previous} emptyMessage="No closed, completed, or archived Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.previous} />
-				</>
-			)}
+					</nav>
+				)}
+			/>
+			<div class="page-content">
+				{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (
+					<>
+						<GardenDraftSection drafts={state.drafts} onDiscard={onDiscard} discardingId={discardingId} error={draftError} />
+						<GardenSection title="Current Gardens" id="current-gardens" items={state.current} emptyMessage="No active Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.current} />
+						<GardenSection title="Planned Gardens" id="planned-gardens" items={state.planned} emptyMessage="No planned Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.planned} />
+						<GardenSection title="Previous Gardens" id="previous-gardens" items={state.previous} emptyMessage="No closed, completed, or archived Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.previous} />
+					</>
+				)}
+			</div>
 		</section>
 	);
 }
 
 export function GardenDraftsView({ state, onRetry, onDiscard = () => {}, discardingId = null, draftError = '' }) {
 	return (
-		<section class="container gardens-page garden-drafts-page" aria-labelledby="garden-drafts-page-title">
-			<a class="btn-outline gardens-back" href="/gardens">
-				<i class="bi bi-arrow-left" aria-hidden="true"></i> All Gardens
-			</a>
-			<header class="gardens-header">
-				<h1 id="garden-drafts-page-title">Draft Gardens</h1>
-				<p>Continue an unfinished Garden or discard one you no longer need.</p>
-			</header>
-			{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (
-				<>
-					{draftError && <div class="garden-create__error" role="alert">{draftError}</div>}
-					{state.drafts.length === 0
-						? <p class="gardens-state">No unfinished Garden drafts.</p>
-						: <GardenDraftGrid drafts={state.drafts} onDiscard={onDiscard} discardingId={discardingId} />}
-				</>
-			)}
+		<section class="workspace-page gardens-page garden-drafts-page" aria-labelledby="garden-drafts-page-title">
+			<PageHeader
+				title="Draft Gardens"
+				titleId="garden-drafts-page-title"
+				description="Continue an unfinished Garden or discard one you no longer need."
+				actions={<a class="btn-outline gardens-back" href="/gardens"><i class="bi bi-arrow-left" aria-hidden="true"></i> All Gardens</a>}
+			/>
+			<div class="page-content">
+				{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (
+					<>
+						{draftError && <div class="garden-create__error" role="alert">{draftError}</div>}
+						{state.drafts.length === 0
+							? <p class="gardens-state">No unfinished Garden drafts.</p>
+							: <GardenDraftGrid drafts={state.drafts} onDiscard={onDiscard} discardingId={discardingId} />}
+					</>
+				)}
+			</div>
 		</section>
 	);
 }
@@ -271,52 +277,58 @@ function AssociatedRecords({ associations, onRefresh }) {
 export function GardenDetailView({ state, onRetry, lifecycle = null, deletion = null, saveTemplate = null }) {
 	const garden = state.garden;
 	return (
-		<section class="container gardens-page" aria-label="Garden details">
-			<a class="btn-outline gardens-back" href="/gardens">
-				<i class="bi bi-arrow-left" aria-hidden="true"></i> All Gardens
-			</a>
-			{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (
+		<section class="workspace-page gardens-page garden-detail" aria-label="Garden details">
+			{state.status !== 'ready' ? (
 				<>
-					<header class="gardens-header garden-detail__header">
-						<div class="garden-detail__identity">
-							<GardenIdentityBadge icon={garden.icon} color={garden.color} />
-							<div>
-								<h1>{garden.name}</h1>
-								{garden.subtitle && <p class="garden-subtitle">{garden.subtitle}</p>}
-							</div>
-						</div>
-						<div class="garden-detail__actions">
-							{!garden.isClosed && garden.status !== 'archived' && (
-								<a class="btn-solid theme-primary garden-detail__edit" href={`/gardens/${garden.id}/edit`}>
-									<i class="bi bi-pencil" aria-hidden="true"></i> Edit Garden
-								</a>
-							)}
-							{saveTemplate}
-						</div>
-					</header>
-					<dl class="garden-facts">
-						<div><dt>Status</dt><dd>{garden.statusLabel}</dd></div>
-						<div><dt>Closed</dt><dd>{garden.isClosed ? 'Yes' : 'No'}</dd></div>
-						<div><dt>Location</dt><dd>{garden.locationName}</dd></div>
-						<div><dt>Garden Types</dt><dd>{garden.typeNames.length ? garden.typeNames.join(', ') : 'No types selected'}</dd></div>
-						{garden.startDate && <div><dt>Start date</dt><dd><time dateTime={garden.startDate}>{garden.startDate}</time></dd></div>}
-						{garden.endDate && <div><dt>End date</dt><dd><time dateTime={garden.endDate}>{garden.endDate}</time></dd></div>}
-					</dl>
-					{lifecycle}
-					{garden.description && (
-						<section class="garden-text" aria-labelledby="garden-description">
-							<h2 id="garden-description">Description</h2>
-							<p>{garden.description}</p>
-						</section>
-					)}
-					{garden.notes && (
-						<section class="garden-text" aria-labelledby="garden-notes">
-							<h2 id="garden-notes">Garden Notes</h2>
-							<p>{garden.notes}</p>
-						</section>
-					)}
-					<AssociatedRecords associations={state.associations ?? { notes: [], tasks: [], wishlist: [] }} onRefresh={onRetry} />
-					{deletion}
+					<a class="btn-outline gardens-back gardens-back--standalone" href="/gardens"><i class="bi bi-arrow-left" aria-hidden="true"></i> All Gardens</a>
+					<ReadState state={state} onRetry={onRetry} />
+				</>
+			) : (
+				<>
+					<PageHeader
+						title={garden.name}
+						titleId="garden-detail-title"
+						leading={<span class="garden-detail__identity"><GardenIdentityBadge icon={garden.icon} color={garden.color} /></span>}
+						description={garden.subtitle}
+						actions={(
+							<>
+								<a class="btn-outline gardens-back" href="/gardens"><i class="bi bi-arrow-left" aria-hidden="true"></i> All Gardens</a>
+								<div class="garden-detail__actions">
+									{!garden.isClosed && garden.status !== 'archived' && (
+										<a class="btn-solid theme-primary garden-detail__edit" href={`/gardens/${garden.id}/edit`}>
+											<i class="bi bi-pencil" aria-hidden="true"></i> Edit Garden
+										</a>
+									)}
+									{saveTemplate}
+								</div>
+							</>
+						)}
+					/>
+					<div class="page-content">
+						<dl class="garden-facts">
+							<div><dt>Status</dt><dd>{garden.statusLabel}</dd></div>
+							<div><dt>Closed</dt><dd>{garden.isClosed ? 'Yes' : 'No'}</dd></div>
+							<div><dt>Location</dt><dd>{garden.locationName}</dd></div>
+							<div><dt>Garden Types</dt><dd>{garden.typeNames.length ? garden.typeNames.join(', ') : 'No types selected'}</dd></div>
+							{garden.startDate && <div><dt>Start date</dt><dd><time dateTime={garden.startDate}>{garden.startDate}</time></dd></div>}
+							{garden.endDate && <div><dt>End date</dt><dd><time dateTime={garden.endDate}>{garden.endDate}</time></dd></div>}
+						</dl>
+						{lifecycle}
+						{garden.description && (
+							<section class="garden-text" aria-labelledby="garden-description">
+								<h2 id="garden-description">Description</h2>
+								<p>{garden.description}</p>
+							</section>
+						)}
+						{garden.notes && (
+							<section class="garden-text" aria-labelledby="garden-notes">
+								<h2 id="garden-notes">Garden Notes</h2>
+								<p>{garden.notes}</p>
+							</section>
+						)}
+						<AssociatedRecords associations={state.associations ?? { notes: [], tasks: [], wishlist: [] }} onRefresh={onRetry} />
+						{deletion}
+					</div>
 				</>
 			)}
 		</section>

@@ -1,37 +1,14 @@
 .locations-page {
-	width: 100%;
-	max-width: 64rem;
-}
-
-.locations-page__header {
-	margin-block-end: 1.5rem;
+	--page-content-max-width: 64rem;
 }
 
 .locations-page__return {
 	display: inline-flex;
 	min-height: 3rem;
-	margin-block-end: 1rem;
 	align-items: center;
 	gap: 0.5rem;
 }
 
-.locations-page__eyebrow {
-	margin-block-end: 0.4rem;
-	color: var(--sg-color-primary);
-	font-size: 0.8125rem;
-	font-weight: 700;
-	letter-spacing: 0.09em;
-	text-transform: uppercase;
-}
-
-.locations-page h1 {
-	margin-block-end: 0.6rem;
-	font-size: clamp(2rem, 6vw, 3rem);
-	font-weight: 650;
-	letter-spacing: -0.03em;
-}
-
-.locations-page__header > p:last-child,
 .locations-zone-help,
 .location-card p {
 	color: var(--sg-color-text-muted);

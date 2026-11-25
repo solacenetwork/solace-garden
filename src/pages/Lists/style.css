@@ -1,25 +1,14 @@
-.lists-page {
+.lists-page .page-content {
 	display: grid;
-	width: min(100% - 2rem, 58rem);
+	--page-content-max-width: 58rem;
 	gap: 1.5rem;
 }
 
-.lists-page__header p,
 .lists-state p {
 	margin-block-end: 0;
 	color: var(--sg-color-text-muted);
 }
 
-.lists-page__eyebrow {
-	margin-block-end: 0.25rem;
-	color: var(--sg-color-primary);
-	font-size: 0.78rem;
-	font-weight: 800;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-}
-
-.lists-page__header h1,
 .lists-state h2 {
 	margin-block-end: 0.4rem;
 }

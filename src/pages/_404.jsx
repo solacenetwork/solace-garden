@@ -1,16 +1,21 @@
+import { PageHeader } from '../components/PageHeader.jsx';
+
 export function NotFound() {
 	return (
-		<section class="container placeholder-page" aria-labelledby="not-found-title">
-			<div class="placeholder-page__icon" aria-hidden="true">
-				<i class="bi bi-signpost-split"></i>
-			</div>
-			<p class="placeholder-page__eyebrow">Page not found</p>
-			<h1 id="not-found-title">This path needs tending.</h1>
+		<section class="workspace-page placeholder-page" aria-labelledby="not-found-title">
+			<PageHeader
+				eyebrow="Page not found"
+				title="This path needs tending."
+				titleId="not-found-title"
+				leading={<i class="bi bi-signpost-split" aria-hidden="true" />}
+			/>
+			<div class="page-content placeholder-content">
 			<p>The page you requested is not part of the garden yet.</p>
 			<a class="app-button" href="/">
 				<i class="bi bi-house-door" aria-hidden="true"></i>
 				Return Home
 			</a>
+			</div>
 		</section>
 	);
 }

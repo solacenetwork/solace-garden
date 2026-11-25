@@ -1,4 +1,5 @@
 import { useLocation } from 'preact-iso';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { getLocationsReturn } from '../../routes.js';
@@ -223,18 +224,16 @@ export function Locations() {
 	}
 
 	return (
-		<section class="container locations-page" aria-labelledby="locations-title" aria-busy={busy ? 'true' : undefined}>
-			<header class="locations-page__header">
-				<a class="btn-outline locations-page__return" href={returnDestination.href}>
-					<i class="bi bi-arrow-left" aria-hidden="true"></i>
-					{returnDestination.label}
-				</a>
-				<p class="locations-page__eyebrow">Garden geography</p>
-				<h1 id="locations-title"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Geographic Locations</h1>
-				<p>
-					Manage the growing sites associated with your Gardens, such as your home, a second property, or a community garden. Each Location can include an optional USDA Hardiness Zone.
-				</p>
-			</header>
+		<section class="workspace-page locations-page" aria-labelledby="locations-title" aria-busy={busy ? 'true' : undefined}>
+			<PageHeader
+				eyebrow="Garden geography"
+				title="Geographic Locations"
+				titleId="locations-title"
+				leading={<i class="bi bi-geo-alt-fill" aria-hidden="true" />}
+				description="Manage the growing sites associated with your Gardens, such as your home, a second property, or a community garden. Each Location can include an optional USDA Hardiness Zone."
+				actions={<a class="btn-outline locations-page__return" href={returnDestination.href}><i class="bi bi-arrow-left" aria-hidden="true"></i>{returnDestination.label}</a>}
+			/>
+			<div class="page-content locations-content">
 
 			<section class="locations-panel" aria-labelledby="add-location-title">
 				<h2 id="add-location-title">Add a Location</h2>
@@ -407,6 +406,7 @@ export function Locations() {
 					))}
 				</ul>
 			)}
+			</div>
 		</section>
 	);
 }

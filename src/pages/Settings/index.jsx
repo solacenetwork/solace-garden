@@ -1,4 +1,5 @@
 import { useLocation } from 'preact-iso';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { useInterfaceMode } from '../../context/InterfaceModeContext.jsx';
 import { getLocationsHref, getSettingsReturnPath } from '../../routes.js';
 import './style.css';
@@ -32,20 +33,15 @@ export function Settings() {
 	} = useInterfaceMode();
 
 	return (
-		<section class="container settings-page" aria-labelledby="settings-title">
-			<header class="settings-page__header">
-				<div class="settings-page__title-row">
-					<div>
-						<p class="settings-page__eyebrow">Application preferences</p>
-						<h1 id="settings-title">Settings</h1>
-					</div>
-					<a class="settings-close" href={returnPath}>
-						<i class="bi bi-x-lg" aria-hidden="true"></i>
-						<span>Close</span>
-					</a>
-				</div>
-				<p>Choose how SOLACE Garden presents its workspace.</p>
-			</header>
+		<section class="workspace-page settings-page" aria-labelledby="settings-title">
+			<PageHeader
+				eyebrow="Application preferences"
+				title="Settings"
+				titleId="settings-title"
+				description="Choose how SOLACE Garden presents its workspace."
+				actions={<a class="settings-close" href={returnPath}><i class="bi bi-x-lg" aria-hidden="true"></i><span>Close</span></a>}
+			/>
+			<div class="page-content settings-content">
 
 			<fieldset class="settings-card" aria-describedby="interface-mode-help">
 				<legend>Interface mode</legend>
@@ -103,6 +99,7 @@ export function Settings() {
 					Manage Locations
 				</a>
 			</section>
+			</div>
 		</section>
 	);
 }

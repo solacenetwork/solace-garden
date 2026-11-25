@@ -27,6 +27,10 @@
 	-webkit-text-size-adjust: 100%;
 }
 
+html {
+	scrollbar-gutter: stable;
+}
+
 body {
 	margin: 0;
 	min-width: 20rem;
@@ -318,53 +322,29 @@ body {
 	align-items: stretch;
 }
 
-.app-shell--standard .home-page,
-.app-shell--standard .placeholder-page,
-.app-shell--standard .settings-page,
-.app-shell--standard .notes-page,
-.app-shell--standard .locations-page,
-.app-shell--standard .plants-page {
+.app-shell--standard .home-page {
 	width: 100%;
 	max-width: 72rem;
 	margin-inline: auto;
 }
 
 .placeholder-page {
-	width: 100%;
-	max-width: 42rem;
-	margin: auto;
 	text-align: center;
 }
 
-.placeholder-page__icon {
-	display: inline-grid;
-	width: 4.5rem;
-	height: 4.5rem;
-	margin-block-end: 1.25rem;
-	color: var(--sg-color-primary);
-	font-size: 2rem;
-	background: var(--sg-color-primary-soft);
-	border-radius: 50%;
-	place-items: center;
+.placeholder-page .page-header {
+	text-align: center;
 }
 
-.placeholder-page__eyebrow {
-	margin-block-end: 0.4rem;
-	color: var(--sg-color-primary);
-	font-size: 0.8125rem;
-	font-weight: 700;
-	letter-spacing: 0.09em;
-	text-transform: uppercase;
+.placeholder-page .page-header__title {
+	justify-content: center;
 }
 
-.placeholder-page h1 {
-	margin-block-end: 0.75rem;
-	font-size: clamp(2rem, 6vw, 3rem);
-	font-weight: 650;
-	letter-spacing: -0.03em;
+.placeholder-content {
+	--page-content-max-width: 42rem;
 }
 
-.placeholder-page > p:not(.placeholder-page__eyebrow) {
+.placeholder-content > p {
 	color: var(--sg-color-text-muted);
 	font-size: 1.0625rem;
 }

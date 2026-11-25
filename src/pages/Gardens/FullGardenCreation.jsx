@@ -2,6 +2,7 @@ import Dialog from 'bootstrap/js/dist/dialog.js';
 import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { WizardStepper } from '../../components/WizardStepper.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createDraftAutosave } from '../../services/draftAutosave.js';
@@ -649,16 +650,22 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 		? adjacentWizardStepId(resolvedWizardSteps, activeStepId, 1)
 		: null;
 	return (
-		<section class="container gardens-page garden-full-create" aria-labelledby="full-create-title">
-			<GardenCreationBreadcrumb
-				current={mode === 'wizard' ? 'Guided Wizard' : 'Advanced Form'}
-				disabled={busy}
-				onNavigate={(path) => navigatePreservingDraft(path)}
+		<section class="workspace-page gardens-page garden-full-create" aria-labelledby="full-create-title">
+			<PageHeader
+				breadcrumbs={(
+					<GardenCreationBreadcrumb
+						current={mode === 'wizard' ? 'Guided Wizard' : 'Advanced Form'}
+						disabled={busy}
+						onNavigate={(path) => navigatePreservingDraft(path)}
+					/>
+				)}
+				eyebrow={establishedId ? 'Recoverable draft' : 'New Garden'}
+				title={title}
+				titleId="full-create-title"
+				description={establishedId ? 'Your progress is saved locally until you create or discard this Garden.' : 'Your progress will be saved locally after your first change.'}
+				status={<p class={`garden-draft-status garden-draft-status--${status}`} role="status">{STATUS_TEXT[status]}</p>}
 			/>
-			<header class="gardens-header garden-full-create__header">
-				<div><p class="garden-create__eyebrow">{establishedId ? 'Recoverable draft' : 'New Garden'}</p><h1 id="full-create-title">{title}</h1><p>{establishedId ? 'Your progress is saved locally until you create or discard this Garden.' : 'Your progress will be saved locally after your first change.'}</p></div>
-				<p class={`garden-draft-status garden-draft-status--${status}`} role="status">{STATUS_TEXT[status]}</p>
-			</header>
+			<div class="page-content">
 			{(message || autosaveError) && <div id={CREATION_ERROR_ID} class="garden-create__error" role="alert" tabIndex={-1}><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{message || autosaveError}</span></div>}
 			{templateNotice && <div class="garden-template-notice" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i><span>{templateNotice}</span></div>}
 			<div
@@ -698,6 +705,7 @@ export function GardenDraftEditor({ draft, references, mode, workspace, wizardSt
 				onCancel={() => setTemplateDialogOpen(false)}
 				onConfirm={(name) => { void finalizeGarden(name); }}
 			/>
+			</div>
 		</section>
 	);
 }

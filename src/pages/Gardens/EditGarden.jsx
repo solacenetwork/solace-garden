@@ -2,6 +2,7 @@ import { useLocation } from 'preact-iso';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { GardenFields } from '../../components/GardenFields.jsx';
 import { GardenIdentityEditor } from '../../components/GardenIdentity.jsx';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { createGardensService } from '../../services/gardens.js';
 import { createGardenTypesService } from '../../services/gardenTypes.js';
@@ -111,12 +112,14 @@ export function GardenEditView({
 		? 'became read-only before these changes could be saved'
 		: state.garden.isClosed ? 'is closed' : 'is archived';
 	return (
-		<section class="container gardens-page garden-edit" aria-labelledby="garden-edit-title">
-			<header class="gardens-header">
-				<p class="garden-create__eyebrow">Garden details</p>
-				<h1 id="garden-edit-title">Edit {state.garden.name}</h1>
-				<p>{readOnly ? 'Garden details are shown here for reference.' : 'Changes are saved only when you choose Save Changes.'}</p>
-			</header>
+		<section class="workspace-page gardens-page garden-edit" aria-labelledby="garden-edit-title">
+			<PageHeader
+				eyebrow="Garden details"
+				title={`Edit ${state.garden.name}`}
+				titleId="garden-edit-title"
+				description={readOnly ? 'Garden details are shown here for reference.' : 'Changes are saved only when you choose Save Changes.'}
+			/>
+			<div class="page-content">
 			{readOnly && <div class="garden-edit__notice" role="status"><i class="bi bi-lock" aria-hidden="true"></i><span>This Garden is read-only because it {readOnlyReason}. It must be unlocked in a later lifecycle workflow before it can be edited.</span></div>}
 			{message && <div class="garden-create__error" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{message}</span></div>}
 			{identity}
@@ -136,6 +139,7 @@ export function GardenEditView({
 					{!readOnly && <button class="btn-solid theme-primary" type="submit" disabled={saving}><i class="bi bi-check2" aria-hidden="true"></i>{saving ? 'Saving…' : 'Save Changes'}</button>}
 				</div>
 			</form>
+			</div>
 		</section>
 	);
 }

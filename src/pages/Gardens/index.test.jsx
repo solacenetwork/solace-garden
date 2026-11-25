@@ -214,7 +214,8 @@ describe('Garden read-only views', () => {
 		expect(text(overview)).toContain(identified.name);
 
 		const detail = GardenDetailView({ state: { status: 'ready', garden: identified } });
-		expect(nodes(detail).find((node) => node.props?.class === 'garden-detail__identity')).toBeTruthy();
+		expect(nodes(detail).find((node) => node.props?.class === 'garden-identity-badge').props.style['--garden-identity-color'])
+			.toBe('#287D46');
 		expect(text(detail)).toContain(identified.name);
 	});
 

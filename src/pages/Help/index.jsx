@@ -1,14 +1,17 @@
 import '../secondary.css';
+import { PageHeader } from '../../components/PageHeader.jsx';
 
 export function Help() {
 	return (
-		<section class="container secondary-page" aria-labelledby="help-title">
-			<header class="secondary-page__header">
-				<h1 id="help-title"><i class="bi bi-question-circle" aria-hidden="true"></i> Help</h1>
-				<p>Find information about using SOLACE Garden.</p>
-			</header>
+		<section class="workspace-page secondary-page" aria-labelledby="help-title">
+			<PageHeader
+				title="Help"
+				titleId="help-title"
+				leading={<i class="bi bi-question-circle" aria-hidden="true" />}
+				description="Find information about using SOLACE Garden."
+			/>
 
-			<div class="secondary-page__sections">
+			<div class="page-content secondary-page__sections">
 				<section class="card" aria-labelledby="help-getting-started-title">
 					<div class="card-body">
 						<h2 id="help-getting-started-title"><i class="bi bi-stars" aria-hidden="true"></i> Getting Started</h2>

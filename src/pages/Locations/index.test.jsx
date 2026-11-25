@@ -33,6 +33,7 @@ vi.mock('preact/hooks', () => ({
 }));
 
 import { ValidationError } from '../../storage/errors.js';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { Locations, revealLocationField } from './index.jsx';
 
 const CUSTOM = { id: 'custom-location', name: 'Community Plot', hardinessZone: '7b', isSystemDefault: false };
@@ -41,6 +42,7 @@ function nodes(node) {
 	if (node === null || node === undefined || typeof node === 'boolean') return [];
 	if (Array.isArray(node)) return node.flatMap(nodes);
 	if (typeof node !== 'object') return [node];
+	if (node.type === PageHeader) return nodes(node.type(node.props));
 	return [node, ...nodes(node.props?.children)];
 }
 
@@ -81,7 +83,8 @@ describe('Geographic Locations page', () => {
 		const name = nodes(tree).find((node) => node.props?.id === 'new-location-name');
 		const zone = nodes(tree).find((node) => node.props?.id === 'new-location-zone');
 
-		expect(nodes(tree).find((node) => node.type === 'h1').props.children.flat().at(-1)).toContain('Geographic Locations');
+		expect(nodes(tree).find((node) => node.type === 'h1').props.id).toBe('locations-title');
+		expect(nodes(tree).some((node) => node === 'Geographic Locations')).toBe(true);
 		expect(returnLink.props).toMatchObject({ href: '/settings' });
 		expect(name.props).toMatchObject({ required: true, disabled: false, value: 'Retained name' });
 		expect(zone.props).toMatchObject({ disabled: false, value: '7B', 'aria-describedby': 'locations-zone-help' });

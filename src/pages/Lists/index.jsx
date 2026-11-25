@@ -1,5 +1,6 @@
 import Sortable from 'sortablejs';
 import { useLocation } from 'preact-iso';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useStorage } from '../../context/StorageContext.jsx';
 import { GardenAssociationSelector, gardenAssociationLabel } from '../../components/GardenAssociationSelector.jsx';
@@ -750,12 +751,14 @@ export function Lists() {
 	}
 
 	return (
-		<section class="container lists-page" aria-labelledby="lists-title">
-			<header class="lists-page__header">
-				<p class="lists-page__eyebrow">{config.eyebrow}</p>
-				<h1 id="lists-title">{config.title}</h1>
-				<p>{config.description}</p>
-			</header>
+		<section class="workspace-page lists-page" aria-labelledby="lists-title">
+			<PageHeader
+				eyebrow={config.eyebrow}
+				title={config.title}
+				titleId="lists-title"
+				description={config.description}
+			/>
+			<div class="page-content lists-content">
 
 			<nav aria-label="Lists workspace">
 				<ul class="nav nav-tabs lists-tabs">
@@ -876,6 +879,7 @@ export function Lists() {
 					)}
 				</div>
 			)}
+			</div>
 		</section>
 	);
 }

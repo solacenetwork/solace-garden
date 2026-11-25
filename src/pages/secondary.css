@@ -1,8 +1,12 @@
-.secondary-page {
+.secondary-page.about-page {
 	display: grid;
 	width: 100%;
 	max-width: 52rem;
 	gap: 1rem;
+}
+
+.secondary-page:not(.about-page) .page-content {
+	--page-content-max-width: 52rem;
 }
 
 .secondary-page__header {

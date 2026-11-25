@@ -45,6 +45,7 @@ vi.mock('preact/hooks', () => {
 
 import { GardenDraftEditor, GardenFinalizationTemplateDialog, revealGardenCreationFeedback } from './FullGardenCreation.jsx';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import {
 	GardenAdvancedOptionsStep, GardenWizardDatesStep, GardenWizardDetailsStep,
@@ -56,12 +57,14 @@ import { loadGardenDrafts } from './viewModel.js';
 function nodes(node) {
 	if (!node || typeof node !== 'object') return [];
 	if (Array.isArray(node)) return node.flatMap(nodes);
+	if (node.type === PageHeader) return nodes(node.type(node.props));
 	return [node, ...nodes(node.props?.children)];
 }
 function nodeText(node) {
 	if (node === null || node === undefined || typeof node === 'boolean') return '';
 	if (typeof node !== 'object') return String(node);
 	if (Array.isArray(node)) return node.map(nodeText).join('');
+	if (node.type === PageHeader) return nodeText(node.type(node.props));
 	return nodeText(node.props?.children);
 }
 function button(tree, label) {

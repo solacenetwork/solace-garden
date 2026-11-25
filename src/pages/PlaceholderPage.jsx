@@ -1,5 +1,6 @@
 import { useLocation } from 'preact-iso';
 import { AppDrawer } from '../components/AppDrawer.jsx';
+import { PageHeader } from '../components/PageHeader.jsx';
 import { findRoute } from '../routes.js';
 import { NotFound } from './_404.jsx';
 
@@ -13,13 +14,15 @@ export function PlaceholderPage() {
 
 	return (
 		<>
-		<section class="container placeholder-page" aria-labelledby="page-title">
-			<div class="placeholder-page__icon" aria-hidden="true">
-				<i class={`bi bi-${destination.icon}`}></i>
-			</div>
-			<p class="placeholder-page__eyebrow">Workspace preview</p>
-			<h1 id="page-title">{destination.label}</h1>
-			<p>{destination.description}</p>
+		<section class="workspace-page placeholder-page" aria-labelledby="page-title">
+			<PageHeader
+				eyebrow="Workspace preview"
+				title={destination.label}
+				titleId="page-title"
+				leading={<i class={`bi bi-${destination.icon}`} aria-hidden="true" />}
+				description={destination.description}
+			/>
+			<div class="page-content placeholder-content">
 			<p class="placeholder-page__status">
 				This area will be connected in a later milestone.
 			</p>
@@ -27,6 +30,7 @@ export function PlaceholderPage() {
 				<i class="bi bi-arrow-left" aria-hidden="true"></i>
 				Back to Home
 			</a>
+			</div>
 		</section>
 		{destination.id === 'calendar' && (
 			<AppDrawer

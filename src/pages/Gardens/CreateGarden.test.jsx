@@ -44,7 +44,7 @@ describe('Create Garden method landing page', () => {
 			selectedTemplateId: '',
 			...callbacks,
 		});
-		const grid = nodes(tree).find(({ props }) => props.class === 'garden-create-methods');
+		const grid = nodes(tree).find(({ props }) => props.class?.split(/\s+/).includes('garden-create-methods'));
 		const cards = nodes(grid).filter(({ type }) => type === 'article');
 
 		expect(cards.map(({ props }) => props['data-creation-method'])).toEqual([

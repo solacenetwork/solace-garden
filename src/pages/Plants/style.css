@@ -1,13 +1,7 @@
 .plants-page {
-	width: 100%;
-	max-width: 48rem;
+	--page-content-max-width: 48rem;
 }
 
-.plants-page__header {
-	margin-block-end: 1.25rem;
-}
-
-.plants-page__eyebrow,
 .plant-editor__eyebrow {
 	margin-block-end: 0.4rem;
 	color: var(--sg-color-primary);
@@ -15,17 +9,6 @@
 	font-weight: 700;
 	letter-spacing: 0.09em;
 	text-transform: uppercase;
-}
-
-.plants-page h1 {
-	margin-block-end: 0.6rem;
-	font-size: clamp(2rem, 6vw, 3rem);
-	font-weight: 650;
-	letter-spacing: -0.03em;
-}
-
-.plants-page__header > p:last-child {
-	color: var(--sg-color-text-muted);
 }
 
 .plant-demo-note {

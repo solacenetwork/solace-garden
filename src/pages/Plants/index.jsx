@@ -1,5 +1,6 @@
 import Dialog from 'bootstrap/js/dist/dialog.js';
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { PageHeader } from '../../components/PageHeader.jsx';
 import { demoPlantGroups } from './demoPlantGroups.js';
 import './style.css';
 
@@ -61,12 +62,14 @@ export function Plants() {
 	};
 
 	return (
-		<section class="container plants-page" aria-labelledby="plants-title">
-			<header class="plants-page__header">
-				<p class="plants-page__eyebrow">Simple Mode prototype</p>
-				<h1 id="plants-title">Update Plants</h1>
-				<p>Choose a demonstration plant group to preview the editor handoff.</p>
-			</header>
+		<section class="workspace-page plants-page" aria-labelledby="plants-title">
+			<PageHeader
+				eyebrow="Simple Mode prototype"
+				title="Update Plants"
+				titleId="plants-title"
+				description="Choose a demonstration plant group to preview the editor handoff."
+			/>
+			<div class="page-content plants-content">
 
 			<div class="plant-demo-note" role="note">
 				<i class="bi bi-info-circle" aria-hidden="true"></i>
@@ -133,6 +136,7 @@ export function Plants() {
 					</button>
 				</div>
 			</dialog>
+			</div>
 		</section>
 	);
 }
