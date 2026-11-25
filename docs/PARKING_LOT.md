@@ -11,6 +11,16 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## V2 candidate: Expanded and contextual list-item creation
+
+**Status (November 25, 2026):** Parked for V2 Lists planning; no committed implementation milestone. Explicitly outside V1 and UI redesign 8B6.
+
+- Retain the lightweight Quick Add action. Consider a second **Add More Details** action that expands optional fields before creation, so the gardener can save a complete Task or Wish List item in one operation instead of adding it and subsequently editing it.
+- Tasks can optionally select an associated Garden; Wish List items can additionally supply quantity, product URL and notes. Reuse the existing list-item field validation, Garden association selector and creation service rather than adding a separate record type or Garden-specific editor.
+- Consider contextual creation actions on Garden detail pages, such as **Add a Task** and **Add a Wish List Item**, opening the ordinary expanded form with the current Garden preselected. Candidate URL proposed by the developer: `/lists?type=wishlist&gardenId=UUID&extra=true` if a combined Lists workspace is adopted. Alternatives using existing separate routes include `/wishlist?gardenId=UUID&extra=true`, `/tasks?gardenId=UUID&extra=true`, and `/wishlist?extra=true` for expanded creation without Garden context. The exact routing and parameter contract remain undecided.
+- Treat URL parameters as initial UI context only, never authorization or an instruction to write. Validate the Garden UUID and existence, handle missing Gardens visibly, keep association optional and editable, and do not create a record until explicit submission succeeds. Do not overwrite user edits on rerender or repeated context application. Design Save/Cancel and contextual return navigation when scoped.
+- Align with the parked contextual Note creation idea below, potentially establishing a reusable contextual record creation convention across SOLACE Garden. No combined Lists workspace, schema change, automatic record creation, or expanded creation flow is approved for V1.
+
 ## Future test maintenance: Shared Playwright accordion expansion helper
 
 **Status:** Parked November 24, 2026; no assigned milestone. Identified during post-8B5 Playwright maintenance ([`097a133`](https://github.com/solacenetwork/solace-garden/commit/097a133d4420df877109f34e6adcd1a3fdf04f3e)).
