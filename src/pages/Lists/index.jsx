@@ -6,8 +6,16 @@ import { GardenAssociationSelector, gardenAssociationLabel } from '../../compone
 import { createGardensService } from '../../services/gardens.js';
 import { createListItemsService, resolveListKind } from '../../services/listItems.js';
 import { createLocationsService } from '../../services/locations.js';
+import {
+	readListAccordionPreference,
+	writeListAccordionPreference,
+} from '../../services/listAccordionPreference.js';
 import { StorageError, ValidationError } from '../../storage/errors.js';
-import { updateItemCompletion } from './completionState.js';
+import {
+	deriveListCollections,
+	reconstructListOrder,
+	updateItemCompletion,
+} from './completionState.js';
 import './style.css';
 
 const LISTS = {
@@ -77,18 +85,27 @@ export function Lists() {
 	);
 	const gardens = useMemo(() => createGardensService(storage.repositories.gardens), [storage]);
 	const locations = useMemo(() => createLocationsService(storage.repositories.locations), [storage]);
-	const listElement = useRef(null);
+	const outstandingElement = useRef(null);
+	const completedElement = useRef(null);
 	const quickInput = useRef(null);
 	const requestId = useRef(0);
+	const operationRef = useRef(null);
 	const [state, setState] = useState({ kind, status: 'loading', items: [] });
 	const [quickText, setQuickText] = useState('');
+	const [quickError, setQuickError] = useState('');
 	const [editingId, setEditingId] = useState(null);
 	const [fields, setFields] = useState(null);
+	const [fieldErrors, setFieldErrors] = useState({});
 	const [pendingId, setPendingId] = useState(null);
 	const [adding, setAdding] = useState(false);
 	const [reordering, setReordering] = useState(false);
 	const [message, setMessage] = useState('');
+	const [accordionPreference, setAccordionPreference] = useState(readListAccordionPreference);
 	const routePending = state.kind !== kind;
+	const collections = state.status === 'ready'
+		? deriveListCollections(state.items)
+		: { outstanding: [], completed: [] };
+	const accordionExpanded = accordionPreference[kind] ?? false;
 
 	// A fragment requests the existing quick-add field without changing the
 	// list route or introducing a second editor. Wait until route reuse enables it.
@@ -123,18 +140,21 @@ export function Lists() {
 
 	useEffect(() => {
 		setQuickText('');
+		setQuickError('');
 		setEditingId(null);
 		setFields(null);
+		setFieldErrors({});
 		setMessage('');
 		void loadItems();
 	}, [loadItems]);
 
 	const persistOrder = useCallback(async (nextItems) => {
-		if (reordering) {
+		if (operationRef.current) {
 			return;
 		}
 
 		const previousItems = state.items;
+		operationRef.current = 'reorder';
 		setItemsState(nextItems);
 		setReordering(true);
 		setMessage('');
@@ -150,6 +170,7 @@ export function Lists() {
 			setMessage(errorMessage(error, 'reordered'));
 		} finally {
 			setReordering(false);
+			operationRef.current = null;
 		}
 	}, [kind, lists, reordering, state.items]);
 
@@ -157,36 +178,36 @@ export function Lists() {
 		if (
 			routePending ||
 			state.status !== 'ready' ||
-			state.items.length < 2 ||
-			!listElement.current ||
-			reordering
+			reordering ||
+			operationRef.current ||
+			editingId
 		) {
 			return undefined;
 		}
 
-		const sortable = new Sortable(listElement.current, {
-			animation: 150,
-			draggable: '[data-list-item]',
-			handle: '.lists-item__drag',
-			ghostClass: 'lists-item--dragging',
-			onEnd({ oldIndex, newIndex }) {
-				if (
-					oldIndex === undefined ||
-					newIndex === undefined ||
-					oldIndex === newIndex
-				) {
-					return;
-				}
-
-				const nextItems = [...state.items];
-				const [moved] = nextItems.splice(oldIndex, 1);
-				nextItems.splice(newIndex, 0, moved);
-				void persistOrder(nextItems);
-			},
-		});
-
-		return () => sortable.destroy();
-	}, [persistOrder, reordering, routePending, state.items, state.status]);
+		const sortables = [];
+		const setup = (element, collection) => {
+			if (!element || element.querySelectorAll('[data-list-item]').length < 2) return;
+			sortables.push(new Sortable(element, {
+				animation: 150,
+				draggable: '[data-list-item]',
+				handle: '.lists-item__drag',
+				ghostClass: 'lists-item--dragging',
+				onEnd({ oldIndex, newIndex }) {
+					if (operationRef.current || oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return;
+					const source = deriveListCollections(state.items)[collection];
+					const reordered = [...source];
+					const [moved] = reordered.splice(oldIndex, 1);
+					reordered.splice(newIndex, 0, moved);
+					const nextItems = reconstructListOrder(state.items, collection, reordered);
+					void persistOrder(nextItems);
+				},
+			}));
+		};
+		setup(outstandingElement.current, 'outstanding');
+		if (accordionExpanded) setup(completedElement.current, 'completed');
+		return () => sortables.forEach((sortable) => sortable.destroy());
+	}, [accordionExpanded, editingId, persistOrder, reordering, routePending, state.items, state.status]);
 
 	function setItemsState(items) {
 		setState((current) => ({ ...current, kind, status: 'ready', items }));
@@ -204,25 +225,38 @@ export function Lists() {
 
 	async function addItem(event) {
 		event.preventDefault();
-		if (adding) {
+		if (operationRef.current || adding || editingId) {
 			return;
 		}
 
+		const text = quickText.trim();
+		if (!text || text.length > 200) {
+			setQuickError('Item text must contain 1 to 200 characters.');
+			quickInput.current?.focus();
+			return;
+		}
+
+		operationRef.current = 'add';
 		setAdding(true);
 		setMessage('');
+		setQuickError('');
 		try {
-			await lists.create(kind, { text: quickText.trim() });
+			await lists.create(kind, { text });
 			setQuickText('');
 			await loadItems(false);
 			quickInput.current?.focus();
 		} catch (error) {
+			if (error instanceof ValidationError) setQuickError(error.field === 'text' ? error.message : '');
 			setMessage(errorMessage(error, 'added'));
 		} finally {
 			setAdding(false);
+			operationRef.current = null;
 		}
 	}
 
 	async function toggleCompleted(item, completed) {
+		if (operationRef.current || editingId) return;
+		operationRef.current = `completion:${item.id}`;
 		setPendingId(item.id);
 		setMessage('');
 		setItemCompletion(item.id, completed);
@@ -230,33 +264,58 @@ export function Lists() {
 			if (!await lists.setCompleted(item.id, completed)) {
 				throw new Error('The list item no longer exists.');
 			}
+			requestAnimationFrame(() => {
+				const target = document.getElementById(`list-check-${item.id}`);
+				target?.focus();
+			});
 		} catch (error) {
 			setItemCompletion(item.id, item.completed);
 			setMessage(errorMessage(error, 'updated'));
 		} finally {
 			setPendingId(null);
+			operationRef.current = null;
 		}
 	}
 
 	function beginEdit(item) {
+		if (operationRef.current || editingId) return;
 		setEditingId(item.id);
 		setFields(editFields(item));
+		setFieldErrors({});
 		setMessage('');
+		requestAnimationFrame(() => {
+			document.getElementById(`list-text-${item.id}`)?.focus();
+		});
 	}
 
 	function cancelEdit() {
+		if (operationRef.current) return;
+		const id = editingId;
 		setEditingId(null);
 		setFields(null);
+		setFieldErrors({});
 		setMessage('');
+		requestAnimationFrame(() => {
+			document.getElementById(`list-edit-${id}`)?.focus();
+		});
 	}
 
 	async function saveEdit(event, item) {
 		event.preventDefault();
+		if (operationRef.current) return;
+		const text = fields.text.trim();
+		if (!text || text.length > 200) {
+			setFieldErrors({ text: 'Item text must contain 1 to 200 characters.' });
+			requestAnimationFrame(() => document.getElementById(`list-text-${item.id}`)?.focus());
+			return;
+		}
+		operationRef.current = `save:${item.id}`;
 		setPendingId(item.id);
 		setMessage('');
+		setFieldErrors({});
 
 		const changes = {
-			text: fields.text.trim(),
+			text,
 			gardenId: fields.gardenId,
 			...(kind === 'wishlist' ? {
 				quantity: optionalValue(fields.quantity),
@@ -272,18 +331,30 @@ export function Lists() {
 			setEditingId(null);
 			setFields(null);
 			await loadItems(false);
+			requestAnimationFrame(() => document.getElementById(`list-edit-${item.id}`)?.focus());
 		} catch (error) {
+			if (error instanceof ValidationError && error.field) {
+				setFieldErrors({ [error.field]: error.message });
+				requestAnimationFrame(() => document.getElementById(
+					error.field === 'text' ? `list-text-${item.id}`
+						: error.field === 'gardenId' ? `list-garden-${item.id}`
+							: `list-${error.field}-${item.id}`,
+				)?.focus());
+			}
 			setMessage(errorMessage(error, 'saved'));
 		} finally {
 			setPendingId(null);
+			operationRef.current = null;
 		}
 	}
 
 	async function deleteItem(item) {
+		if (operationRef.current || editingId) return;
 		if (!globalThis.confirm(config.deletePrompt)) {
 			return;
 		}
 
+		operationRef.current = `delete:${item.id}`;
 		setPendingId(item.id);
 		setMessage('');
 		try {
@@ -292,23 +363,194 @@ export function Lists() {
 				cancelEdit();
 			}
 			await loadItems(false);
+			requestAnimationFrame(() => {
+				const remaining = document.querySelector('.lists-item__edit');
+				(remaining ?? quickInput.current)?.focus();
+			});
 		} catch (error) {
 			setMessage(errorMessage(error, 'deleted'));
 		} finally {
 			setPendingId(null);
+			operationRef.current = null;
 		}
 	}
 
-	function moveItem(index, offset) {
+	function moveItem(collection, index, offset) {
 		const target = index + offset;
-		if (target < 0 || target >= state.items.length || reordering) {
+		const source = deriveListCollections(state.items)[collection];
+		if (target < 0 || target >= source.length || operationRef.current) {
 			return;
 		}
 
-		const nextItems = [...state.items];
-		const [moved] = nextItems.splice(index, 1);
-		nextItems.splice(target, 0, moved);
+		const reordered = [...source];
+		const [moved] = reordered.splice(index, 1);
+		reordered.splice(target, 0, moved);
+		const nextItems = reconstructListOrder(state.items, collection, reordered);
 		void persistOrder(nextItems);
+	}
+
+	function toggleAccordion(expanded) {
+		setAccordionPreference((current) => {
+			const next = { ...current, [kind]: expanded };
+			writeListAccordionPreference(next);
+			return next;
+		});
+	}
+
+	function renderListItem(item, collection, index) {
+		const collectionItems = deriveListCollections(state.items)[collection];
+		const isEditing = editingId === item.id;
+		const rowPending = pendingId === item.id;
+		return (
+			<li class={`lists-item${item.completed ? ' lists-item--completed' : ''}`} key={item.id} data-list-item>
+				{isEditing ? (
+					<form class="lists-edit" autoComplete="off" noValidate onSubmit={(event) => saveEdit(event, item)}>
+						<div class="form-field">
+							<label class="form-label" for={`list-text-${item.id}`}>Item</label>
+							<input
+								id={`list-text-${item.id}`}
+								class={`form-control${fieldErrors.text ? ' is-invalid' : ''}`}
+								type="text"
+								autoComplete="off"
+								required
+								maxlength="200"
+								disabled={rowPending}
+								value={fields.text}
+								aria-invalid={fieldErrors.text ? 'true' : undefined}
+								aria-describedby={fieldErrors.text ? `list-text-error-${item.id}` : undefined}
+								onInput={(event) => {
+									setFields({ ...fields, text: event.currentTarget.value });
+									setFieldErrors({ ...fieldErrors, text: '' });
+								}}
+							/>
+							{fieldErrors.text && <div id={`list-text-error-${item.id}`} class="invalid-feedback">{fieldErrors.text}</div>}
+						</div>
+						<GardenAssociationSelector
+							id={`list-garden-${item.id}`}
+							value={fields.gardenId}
+							gardens={state.gardens}
+							locations={state.locations}
+							onChange={(gardenId) => setFields({ ...fields, gardenId })}
+							disabled={rowPending}
+						/>
+						{kind === 'wishlist' && (
+							<>
+								<div class="lists-edit__grid">
+									<div class="form-field">
+										<label class="form-label" for={`list-quantity-${item.id}`}>Quantity <span>(optional)</span></label>
+										<input
+											id={`list-quantity-${item.id}`}
+											class={`form-control${fieldErrors.quantity ? ' is-invalid' : ''}`}
+											type="text"
+											autoComplete="off"
+											maxlength="100"
+											disabled={rowPending}
+											value={fields.quantity}
+											aria-invalid={fieldErrors.quantity ? 'true' : undefined}
+											aria-describedby={fieldErrors.quantity ? `list-quantity-error-${item.id}` : undefined}
+											onInput={(event) => {
+												setFields({ ...fields, quantity: event.currentTarget.value });
+												setFieldErrors({ ...fieldErrors, quantity: '' });
+											}}
+										/>
+										{fieldErrors.quantity && <div id={`list-quantity-error-${item.id}`} class="invalid-feedback">{fieldErrors.quantity}</div>}
+									</div>
+									<div class="form-field">
+										<label class="form-label" for={`list-url-${item.id}`}>Product URL <span>(optional)</span></label>
+										<input
+											id={`list-url-${item.id}`}
+											class={`form-control${fieldErrors.url ? ' is-invalid' : ''}`}
+											type="url"
+											autoComplete="off"
+											maxlength="2048"
+											placeholder="https://example.com/item"
+											disabled={rowPending}
+											value={fields.url}
+											aria-invalid={fieldErrors.url ? 'true' : undefined}
+											aria-describedby={fieldErrors.url ? `list-url-error-${item.id}` : undefined}
+											onInput={(event) => {
+												setFields({ ...fields, url: event.currentTarget.value });
+												setFieldErrors({ ...fieldErrors, url: '' });
+											}}
+										/>
+										{fieldErrors.url && <div id={`list-url-error-${item.id}`} class="invalid-feedback">{fieldErrors.url}</div>}
+									</div>
+								</div>
+								<div class="form-field">
+									<label class="form-label" for={`list-notes-${item.id}`}>Notes <span>(optional)</span></label>
+									<textarea
+										id={`list-notes-${item.id}`}
+										class={`form-control${fieldErrors.notes ? ' is-invalid' : ''}`}
+										autoComplete="off"
+										rows="3"
+										maxlength="1000"
+										disabled={rowPending}
+										value={fields.notes}
+										aria-invalid={fieldErrors.notes ? 'true' : undefined}
+										aria-describedby={fieldErrors.notes ? `list-notes-error-${item.id}` : undefined}
+										onInput={(event) => {
+											setFields({ ...fields, notes: event.currentTarget.value });
+											setFieldErrors({ ...fieldErrors, notes: '' });
+										}}
+									></textarea>
+									{fieldErrors.notes && <div id={`list-notes-error-${item.id}`} class="invalid-feedback">{fieldErrors.notes}</div>}
+								</div>
+							</>
+						)}
+						<div class="lists-edit__actions">
+							<button class="btn-outline" type="button" onClick={cancelEdit} disabled={rowPending}>Cancel</button>
+							<button class="btn-solid theme-primary" type="submit" disabled={rowPending}>{rowPending ? 'Saving…' : 'Save'}</button>
+						</div>
+					</form>
+				) : (
+					<>
+						<span class="lists-item__drag" title="Drag to reorder" aria-hidden="true"><i class="bi bi-grip-vertical"></i></span>
+						<input
+							id={`list-check-${item.id}`}
+							class="check lists-item__check"
+							type="checkbox"
+							checked={item.completed}
+							disabled={rowPending || reordering || Boolean(editingId) || Boolean(operationRef.current)}
+							aria-label={`${item.completed ? config.incompletionAction : config.completionAction}: ${item.text}`}
+							onChange={(event) => toggleCompleted(item, event.currentTarget.checked)}
+						/>
+						<div class="lists-item__content">
+							<div class="lists-item__title-row">
+								<span class="lists-item__text">{item.text}</span>
+								{item.completed && <span class="badge theme-success">{config.completedLabel}</span>}
+							</div>
+							{item.gardenId && (() => {
+								const garden = state.gardens.find(({ id }) => id === item.gardenId);
+								return garden ? <a class="lists-item__garden" href={`/gardens/${garden.id}`}>
+									<i class="bi bi-tree" aria-hidden="true"></i>{gardenAssociationLabel(garden, state.locations)}
+								</a> : null;
+							})()}
+							{kind === 'wishlist' && (item.quantity || item.notes || item.url) && (
+								<div class="lists-item__details">
+									{item.quantity && <span><strong>Quantity:</strong> {item.quantity}</span>}
+									{item.notes && <span>{item.notes}</span>}
+									{item.url && <a href={item.url} target="_blank" rel="noreferrer"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>Product link</a>}
+								</div>
+							)}
+						</div>
+						<div class="lists-item__actions">
+							<button class="btn-text lists-item__order" type="button" aria-label={`Move ${item.text} up`} title="Move up" disabled={index === 0 || reordering || Boolean(editingId) || Boolean(operationRef.current)} onClick={() => moveItem(collection, index, -1)}>
+								<i class="bi bi-arrow-up" aria-hidden="true"></i>
+							</button>
+							<button class="btn-text lists-item__order" type="button" aria-label={`Move ${item.text} down`} title="Move down" disabled={index === collectionItems.length - 1 || reordering || Boolean(editingId) || Boolean(operationRef.current)} onClick={() => moveItem(collection, index, 1)}>
+								<i class="bi bi-arrow-down" aria-hidden="true"></i>
+							</button>
+							<button id={`list-edit-${item.id}`} class="btn-text lists-item__edit" type="button" onClick={() => beginEdit(item)} disabled={rowPending || reordering || Boolean(editingId) || Boolean(operationRef.current)}>
+								<i class="bi bi-pencil" aria-hidden="true"></i>Edit
+							</button>
+							<button class="btn-text theme-danger" type="button" onClick={() => deleteItem(item)} disabled={rowPending || reordering || Boolean(editingId) || Boolean(operationRef.current)}>
+								<i class="bi bi-trash3" aria-hidden="true"></i>{rowPending ? 'Working…' : 'Delete'}
+							</button>
+						</div>
+					</>
+				)}
+			</li>
+		);
 	}
 
 	return (
@@ -344,32 +586,38 @@ export function Lists() {
 				</ul>
 			</nav>
 
-			<form class="lists-quick-add" autoComplete="off" onSubmit={addItem}>
+			<form class="lists-quick-add" autoComplete="off" noValidate onSubmit={addItem}>
 				<label class="form-label" for="lists-quick-text">
 					{config.quickLabel}
 				</label>
 				<div class="lists-quick-add__controls">
 					<input
 						id="lists-quick-text"
-						class="form-control"
+						class={`form-control${quickError ? ' is-invalid' : ''}`}
 						type="text"
 						autoComplete="off"
 						maxlength="200"
 						placeholder={config.quickPlaceholder}
 						value={routePending ? '' : quickText}
 						ref={quickInput}
-						onInput={(event) => setQuickText(event.currentTarget.value)}
-						disabled={adding || routePending}
+						aria-invalid={quickError ? 'true' : undefined}
+						aria-describedby={quickError ? 'lists-quick-text-error' : undefined}
+						onInput={(event) => {
+							setQuickText(event.currentTarget.value);
+							setQuickError('');
+						}}
+						disabled={adding || routePending || Boolean(editingId) || Boolean(operationRef.current)}
 					/>
 					<button
 						class="btn-solid theme-primary"
 						type="submit"
-						disabled={adding || routePending}
+						disabled={adding || routePending || Boolean(editingId) || Boolean(operationRef.current)}
 					>
 						<i class="bi bi-plus-lg" aria-hidden="true"></i>
 						{adding ? 'Adding…' : config.addLabel}
 					</button>
 				</div>
+				{quickError && <div id="lists-quick-text-error" class="invalid-feedback">{quickError}</div>}
 			</form>
 
 			{!routePending && message && (
@@ -387,7 +635,6 @@ export function Lists() {
 					)}
 				</div>
 			)}
-
 			{routePending || state.status === 'loading' ? (
 				<div class="lists-state" role="status">Loading {config.title}…</div>
 			) : state.items.length === 0 ? (
@@ -397,217 +644,34 @@ export function Lists() {
 					<p>{config.emptyText}</p>
 				</div>
 			) : (
-				<ol class="lists-list" ref={listElement} aria-label={config.title}>
-					{state.items.map((item, index) => (
-						<li
-							class={`lists-item${item.completed ? ' lists-item--completed' : ''}`}
-							key={item.id}
-							data-list-item
-						>
-							{editingId === item.id ? (
-								<form
-									class="lists-edit"
-									autoComplete="off"
-									onSubmit={(event) => saveEdit(event, item)}
-								>
-									<div class="form-field">
-										<label class="form-label" for={`list-text-${item.id}`}>
-											Item
-										</label>
-										<input
-											id={`list-text-${item.id}`}
-											class="form-control"
-											type="text"
-											autoComplete="off"
-											maxlength="200"
-											value={fields.text}
-											onInput={(event) => setFields({
-												...fields,
-												text: event.currentTarget.value,
-											})}
-										/>
-									</div>
-									<GardenAssociationSelector
-										id={`list-garden-${item.id}`}
-										value={fields.gardenId}
-										gardens={state.gardens}
-										locations={state.locations}
-										onChange={(gardenId) => setFields({ ...fields, gardenId })}
-										disabled={pendingId === item.id}
-									/>
-									{kind === 'wishlist' && (
-										<>
-											<div class="lists-edit__grid">
-												<div class="form-field">
-													<label class="form-label" for={`list-quantity-${item.id}`}>
-														Quantity <span>(optional)</span>
-													</label>
-													<input
-														id={`list-quantity-${item.id}`}
-														class="form-control"
-														type="text"
-														autoComplete="off"
-														maxlength="100"
-														value={fields.quantity}
-														onInput={(event) => setFields({
-															...fields,
-															quantity: event.currentTarget.value,
-														})}
-													/>
-												</div>
-												<div class="form-field">
-													<label class="form-label" for={`list-url-${item.id}`}>
-														Product URL <span>(optional)</span>
-													</label>
-													<input
-														id={`list-url-${item.id}`}
-														class="form-control"
-														type="url"
-														autoComplete="off"
-														maxlength="2048"
-														placeholder="https://example.com/item"
-														value={fields.url}
-														onInput={(event) => setFields({
-															...fields,
-															url: event.currentTarget.value,
-														})}
-													/>
-												</div>
-											</div>
-											<div class="form-field">
-												<label class="form-label" for={`list-notes-${item.id}`}>
-													Notes <span>(optional)</span>
-												</label>
-												<textarea
-													id={`list-notes-${item.id}`}
-													class="form-control"
-													autoComplete="off"
-													rows="3"
-													maxlength="1000"
-													value={fields.notes}
-													onInput={(event) => setFields({
-														...fields,
-														notes: event.currentTarget.value,
-													})}
-												></textarea>
-											</div>
-										</>
-									)}
-									<div class="lists-edit__actions">
-										<button
-											class="btn-outline"
-											type="button"
-											onClick={cancelEdit}
-											disabled={pendingId === item.id}
-										>
-											Cancel
-										</button>
-										<button
-											class="btn-solid theme-primary"
-											type="submit"
-											disabled={pendingId === item.id}
-										>
-											{pendingId === item.id ? 'Saving…' : 'Save'}
-										</button>
-									</div>
-								</form>
-							) : (
-								<>
-									<span
-										class="lists-item__drag"
-										title="Drag to reorder"
-										aria-hidden="true"
-									>
-										<i class="bi bi-grip-vertical"></i>
-									</span>
-									<input
-										class="check lists-item__check"
-										type="checkbox"
-										checked={item.completed}
-										disabled={pendingId === item.id || reordering}
-										aria-label={`${
-											item.completed
-												? config.incompletionAction
-												: config.completionAction
-										}: ${item.text}`}
-										onChange={(event) => toggleCompleted(item, event.currentTarget.checked)}
-									/>
-									<div class="lists-item__content">
-										<div class="lists-item__title-row">
-											<span class="lists-item__text">{item.text}</span>
-											{item.completed && (
-												<span class="badge theme-success">
-													{config.completedLabel}
-												</span>
-											)}
-										</div>
-										{item.gardenId && (() => {
-											const garden = state.gardens.find(({ id }) => id === item.gardenId);
-											return garden ? <a class="lists-item__garden" href={`/gardens/${garden.id}`}>
-												<i class="bi bi-tree" aria-hidden="true"></i>{gardenAssociationLabel(garden, state.locations)}
-											</a> : null;
-										})()}
-										{kind === 'wishlist' &&
-											(item.quantity || item.notes || item.url) && (
-												<div class="lists-item__details">
-													{item.quantity && (
-														<span><strong>Quantity:</strong> {item.quantity}</span>
-													)}
-													{item.notes && <span>{item.notes}</span>}
-													{item.url && (
-														<a href={item.url} target="_blank" rel="noreferrer">
-															<i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
-															Product link
-														</a>
-													)}
-												</div>
-											)}
-									</div>
-									<div class="lists-item__actions">
-										<button
-											class="btn-text lists-item__order"
-											type="button"
-											aria-label={`Move ${item.text} up`}
-											title="Move up"
-											disabled={index === 0 || reordering}
-											onClick={() => moveItem(index, -1)}
-										>
-											<i class="bi bi-arrow-up" aria-hidden="true"></i>
-										</button>
-										<button
-											class="btn-text lists-item__order"
-											type="button"
-											aria-label={`Move ${item.text} down`}
-											title="Move down"
-											disabled={index === state.items.length - 1 || reordering}
-											onClick={() => moveItem(index, 1)}
-										>
-											<i class="bi bi-arrow-down" aria-hidden="true"></i>
-										</button>
-										<button
-											class="btn-text"
-											type="button"
-											onClick={() => beginEdit(item)}
-											disabled={pendingId === item.id || reordering}
-										>
-											<i class="bi bi-pencil" aria-hidden="true"></i>
-											Edit
-										</button>
-										<button
-											class="btn-text theme-danger"
-											type="button"
-											onClick={() => deleteItem(item)}
-											disabled={pendingId === item.id || reordering}
-										>
-											<i class="bi bi-trash3" aria-hidden="true"></i>
-											{pendingId === item.id ? 'Working…' : 'Delete'}
-										</button>
-									</div>
-								</>
-							)}
-						</li>
-					))}
-				</ol>
+				<div class="lists-collections">
+					{collections.outstanding.length === 0 ? (
+						<div class="lists-state lists-state--all-completed">
+							<i class="bi bi-check2-circle" aria-hidden="true"></i>
+							<h2>No outstanding items</h2>
+							<p>All {kind === 'task' ? 'tasks are completed' : 'Wish List items are purchased'}.</p>
+						</div>
+					) : (
+						<ol class="lists-list" ref={outstandingElement} aria-label={`Outstanding ${config.title}`}>
+							{collections.outstanding.map((item, index) => renderListItem(item, 'outstanding', index))}
+						</ol>
+					)}
+					{collections.completed.length > 0 && (
+						<div class="accordion lists-accordion" data-lists-group={kind}>
+							<details class="accordion-item" open={accordionExpanded} onToggle={(event) => toggleAccordion(event.currentTarget.open)}>
+								<summary class="accordion-header">
+									<span class="lists-accordion__label">{config.completedLabel}</span>
+									<span class="lists-accordion__count" aria-label={`${collections.completed.length} ${kind === 'task' ? 'completed tasks' : 'purchased items'}`}>{collections.completed.length}</span>
+								</summary>
+								<div class="accordion-body">
+									<ol class="lists-list" ref={completedElement} aria-label={config.completedLabel}>
+										{collections.completed.map((item, index) => renderListItem(item, 'completed', index))}
+									</ol>
+								</div>
+							</details>
+						</div>
+					)}
+				</div>
 			)}
 		</section>
 	);

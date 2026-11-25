@@ -90,11 +90,49 @@
 	gap: 0.75rem;
 }
 
+.lists-collections {
+	display: grid;
+	gap: 1rem;
+}
+
+.lists-accordion {
+	border: 1px solid var(--sg-color-border);
+	border-radius: 0.85rem;
+}
+
+.lists-accordion .accordion-item,
+.lists-accordion .accordion-header,
+.lists-accordion .accordion-body {
+	border: 0;
+}
+
+.lists-accordion .accordion-header {
+	min-height: 3.25rem;
+	padding: 0.75rem 1rem;
+}
+
+.lists-accordion__label {
+	font-weight: 800;
+}
+
+.lists-accordion__count {
+	display: inline-grid;
+	min-width: 1.75rem;
+	height: 1.75rem;
+	margin-inline-start: auto;
+	margin-inline-end: 0.65rem;
+	background: var(--sg-color-primary-soft);
+	border-radius: 999px;
+	font-size: 0.82rem;
+	font-weight: 800;
+	place-items: center;
+}
+
 .lists-item {
 	display: grid;
 	grid-template-columns: auto auto minmax(0, 1fr) auto;
-	min-height: 4.5rem;
-	padding: 0.85rem;
+	min-height: 3.75rem;
+	padding: 0.65rem 0.75rem;
 	background: var(--sg-color-surface);
 	border: 1px solid var(--sg-color-border);
 	border-radius: 0.85rem;
