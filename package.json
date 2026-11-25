@@ -41,7 +41,7 @@
 		"@tiptap/core": "^3.32.2",
 		"@tiptap/pm": "^3.32.2",
 		"@tiptap/starter-kit": "^3.32.2",
-		"bootstrap": "6.0.0-alpha.1",
+		"bootstrap": "6.0.0-alpha.2",
 		"bootstrap-icons": "1.13.2",
 		"dexie": "^4.4.7",
 		"dexie-react-hooks": "^4.4.0",
