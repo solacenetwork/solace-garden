@@ -24,14 +24,15 @@ Confirmed issues with an agreed correction.
 **Related:** UI-002; [redesign scroll/focus decision](UI_REDESIGN.md).  
 **Priority:** Nonblocking
 
-### UI-016 — Search feedback cannot be dismissed after whitespace-only submission
+### UI-016 — Search feedback cannot be dismissed after empty submission
 
 **Target milestone:** 8M — Initial Search  
 **Location:** Header Search placeholder  
-**Observed:** Entering a nonempty query and pressing Go displays an X that clears the query and the “Search isn't available yet.” message. Submitting whitespace only displays the message without a clear control, leaving no apparent way to dismiss it.  
-**Expected:** During 8M, handle empty/whitespace-only input deliberately and ensure any displayed feedback has an appropriate dismissal or reset path. Verify keyboard interaction and nonempty query clearing. No particular implementation is approved.  
-**Related:** Step 10B manual acceptance, November 25, 2026.  
+**Observed:** (a) Entering whitespace (e.g. one space) and pressing Go displays an X that clears both input and the “Search isn't available yet.” message. (b) Entering a text query and pressing Go behaves the same way. (c) Leaving the input completely empty and pressing Go displays the message but no X, leaving no apparent way to dismiss the feedback.  
+**Expected:** During 8M, handle empty and whitespace-only input deliberately and ensure displayed feedback has an appropriate dismissal or reset path. Verify all three cases and keyboard interaction. No particular implementation is approved.  
+**Related:** Step 10B manual acceptance, November 25, 2026; developer clarification supersedes the initial whitespace-only diagnosis.  
 **Priority:** Nonblocking; explicitly deferred to 8M.
+
 
 ## To Investigate	
 Reproducible issues where the cause or solution is unknown.
