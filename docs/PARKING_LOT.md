@@ -11,6 +11,12 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future improvement idea: Navigation on short landscape viewports
+
+**Status (November 25, 2026):** Parked; no assigned milestone and not a Step 10 or Step 9 blocker. During Step 10A manual acceptance, a phone in landscape orientation with Standard Mode manually selected displayed only one or two workspace destinations at a time in the left navigation drawer because its header and footer consumed much of the available height. Automatic/Simple Mode already provides an alternative for small screens; the developer explicitly chose not to change Standard Mode for this edge case now.
+
+Future option: investigate a height-sensitive fullscreen Bootstrap Dialog presentation (rather than orientation alone), possibly with a multi-column navigation layout and a single accessible close control. Reuse navigation definitions and focus/dismissal behavior; verify available viewport height, safe areas, scrolling, keyboard and touch access, and breakpoint transitions. Reference: https://getbootstrap.com/docs/6.0/components/dialog/#fullscreen-dialog. No threshold or implementation is approved. Preserve the current drawer until separately scoped.
+
 ## V2 candidate: Expanded and contextual list-item creation
 
 **Status (November 25, 2026):** Parked for V2 Lists planning; no committed implementation milestone. Explicitly outside V1 and UI redesign 8B6.
