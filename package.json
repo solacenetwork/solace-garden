@@ -1,6 +1,6 @@
 {
 	"name": "solace-garden",
-	"version": "0.0.2-alpha",
+	"version": "0.0.3-alpha",
 	"description": "The Garden app for SOLACE Network",
 	"keywords": [
 		"SOLACE",
@@ -10,7 +10,7 @@
 	"author": {
 		"name": "SOLACE Network",
 		"email": "ken@solace.network",
-		"url": "https://solacenetwork.com"
+		"url": "https://solace.network"
 	},
 	"license": "GPL-3.0-or-later",
 	"private": true,

@@ -43,7 +43,7 @@ describe('secondary information pages', () => {
 			alt: 'SOLACE Garden',
 		});
 		expect(links.map(({ props }) => props.href)).toEqual([
-			'https://solacenetwork.com',
+			'https://solace.network',
 			'https://github.com/solacenetwork/solace-garden',
 		]);
 		expect(text(tree)).toContain('local-first data storage and offline use');

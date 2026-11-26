@@ -24,7 +24,7 @@ export function About() {
 				<div class="card-body">
 					<h2 id="about-project-title"><i class="bi bi-info-circle" aria-hidden="true"></i> Project information</h2>
 					<ul class="about-page__links">
-						<li><a href="https://solacenetwork.com" target="_blank" rel="noreferrer">SOLACE Network <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a></li>
+						<li><a href="https://solace.network" target="_blank" rel="noreferrer">SOLACE Network <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a></li>
 						<li><a href="https://github.com/solacenetwork/solace-garden" target="_blank" rel="noreferrer">Source code on GitHub <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a></li>
 					</ul>
 				</div>
