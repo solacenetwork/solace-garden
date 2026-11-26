@@ -267,17 +267,13 @@
 	display: grid;
 	min-height: 3.25rem;
 	padding: 0.75rem 1rem;
-	grid-template-columns: auto minmax(0, 1fr) auto;
+	grid-template-columns: minmax(0, 1fr) auto;
 	align-items: center;
 	gap: 0.75rem;
 }
 
 .home-preview-list__item + .home-preview-list__item {
 	border-block-start: 1px solid var(--sg-color-border);
-}
-
-.home-preview-list__item > i {
-	color: var(--sg-color-primary);
 }
 
 .home-preview-list__item--completed .home-preview-list__text {

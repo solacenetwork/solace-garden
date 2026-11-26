@@ -36,7 +36,16 @@ export function PlaceholderPage() {
 			<AppDrawer
 				id="calendar-information"
 				title="About the Calendar workspace"
-				triggerLabel="Info"
+				renderTrigger={(triggerProps) => (
+					<button
+						class="icon-control app-drawer-trigger"
+						{...triggerProps}
+						aria-label="Calendar information"
+						title="Calendar information"
+					>
+						<i class="bi bi-info-circle" aria-hidden="true"></i>
+					</button>
+				)}
 			>
 				<div>
 					<p>

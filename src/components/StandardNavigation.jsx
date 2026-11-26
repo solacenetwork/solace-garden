@@ -94,36 +94,36 @@ export function StandardNavigation() {
 
 	return (
 		<aside class={`standard-sidebar standard-sidebar--${presentation}`} ref={root}>
-			{presentation !== 'large' ? (
-				<>
-					<AppDrawer
-						key={presentation}
-						id="standard-navigation-drawer"
-						title="Navigation"
-						placement="start"
-						style={{ '--app-drawer-width': '300px' }}
-						renderTrigger={(triggerProps) => presentation === 'small' ? (
-							<div class="standard-navigation__phone-strip">
-								<button class="standard-navigation__phone-trigger" {...triggerProps}>
-									<i class="bi bi-list" aria-hidden="true"></i><span>Navigation</span>
-								</button>
-								<span class="standard-navigation__current" title={currentRoute ? labelFor(currentRoute) : 'Navigation'}>
-									{currentRoute ? labelFor(currentRoute) : 'Navigation'}
-								</span>
-							</div>
-						) : (
-							<button class="icon-control standard-navigation__expand" {...triggerProps} aria-label="Open navigation" title="Open navigation">
-								<i class="bi bi-list" aria-hidden="true"></i>
+			{presentation === 'medium' && <nav class="standard-navigation standard-navigation--icons" aria-label="Standard Mode workspaces">
+				<NavigationLinks currentId={currentId} iconsOnly />
+			</nav>}
+			{presentation !== 'large' && (
+				<AppDrawer
+					key={presentation}
+					id="standard-navigation-drawer"
+					title="Navigation"
+					placement="start"
+					style={{ '--app-drawer-width': '300px' }}
+					footerCloseIcon="arrow-left-square-fill"
+					renderTrigger={(triggerProps) => presentation === 'small' ? (
+						<div class="standard-navigation__phone-strip">
+							<button class="standard-navigation__phone-trigger" {...triggerProps}>
+								<i class="bi bi-list" aria-hidden="true"></i><span>Navigation</span>
 							</button>
-						)}
-					>
-						{({ close }) => <nav class="standard-navigation" aria-label="Standard Mode workspaces"><NavigationLinks currentId={currentId} onNavigate={close} /></nav>}
-					</AppDrawer>
-					{presentation === 'medium' && <nav class="standard-navigation standard-navigation--icons" aria-label="Standard Mode workspaces">
-						<NavigationLinks currentId={currentId} iconsOnly />
-					</nav>}
-				</>
-			) : (
+							<span class="standard-navigation__current" title={currentRoute ? labelFor(currentRoute) : 'Navigation'}>
+								{currentRoute ? labelFor(currentRoute) : 'Navigation'}
+							</span>
+						</div>
+					) : (
+						<button class="icon-control standard-navigation__expand" {...triggerProps} aria-label="Open navigation" title="Open navigation">
+							<i class="bi bi-arrow-right-square-fill" aria-hidden="true"></i>
+						</button>
+					)}
+				>
+					{({ close }) => <nav class="standard-navigation" aria-label="Standard Mode workspaces"><NavigationLinks currentId={currentId} onNavigate={close} /></nav>}
+				</AppDrawer>
+			)}
+			{presentation === 'large' && (
 				<nav id="standard-navigation" class="standard-navigation" aria-label="Standard Mode workspaces">
 					<NavigationLinks currentId={currentId} />
 				</nav>

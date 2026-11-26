@@ -9,7 +9,7 @@ import { HeaderSearch } from './HeaderSearch.jsx';
 const tools = globalToolIds.map(findRouteById);
 const support = moreDestinationIds.map(findRouteById);
 const addActions = [
-	{ label: 'Create Garden', destination: 'gardens', href: applicationRoutes.find(({ view }) => view === 'garden-new').path },
+	{ label: 'New Garden', destination: 'gardens', href: applicationRoutes.find(({ view }) => view === 'garden-new').path },
 	{ label: 'New Note', destination: 'notes', href: applicationRoutes.find(({ view }) => view === 'note-new').path },
 	{ label: 'New Task', destination: 'tasks', href: `${findRouteById('tasks').path}#lists-quick-text` },
 	{ label: 'New Wish List Item', destination: 'wishlist', href: `${findRouteById('wishlist').path}#lists-quick-text` },
@@ -101,6 +101,7 @@ export function HeaderToolbar() {
 			class={inMenu ? 'menu-item header-menu__link' : 'header-tool'}
 			href={destination.id === 'settings' ? getSettingsHref(path) : destination.path}
 			aria-current={currentId === destination.id ? 'page' : undefined}
+			title={destination.label}
 			data-header-tool={destination.id}
 		>
 			<DestinationContents destination={destination} />
@@ -109,15 +110,13 @@ export function HeaderToolbar() {
 
 	return (
 		<div class="header-toolbar" ref={toolbar}>
-			<div key="search" class="header-search-slot" ref={searchSlot}><HeaderSearch /></div>
-			{tools.slice(0, visibleCount).map((destination) => link(destination, false))}
 			<div key="add" class="header-menu">
-				<button class="header-control icon-control" type="button" ref={addToggle} data-bs-toggle="menu" data-bs-placement="bottom-end" data-bs-strategy="fixed" aria-expanded="false" aria-controls="header-add-menu" aria-label="Add New">
+				<button class="header-control icon-control" type="button" ref={addToggle} data-bs-toggle="menu" data-bs-placement="bottom-end" data-bs-strategy="fixed" aria-expanded="false" aria-controls="header-add-menu" aria-label="Add New" title="Add New">
 					<i class="bi bi-plus-lg" aria-hidden="true"></i>
 				</button>
 				<div class="menu header-menu__panel" id="header-add-menu" ref={addMenu}>
 					{addActions.map((action) => (
-						<a class="menu-item header-menu__link" key={action.label} href={action.href} onClick={(event) => {
+						<a class="menu-item header-menu__link" key={action.label} href={action.href} title={action.label} onClick={(event) => {
 							// Repeated activation on the same list URL may not rerender its route.
 							if (!event.defaultPrevented && event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && action.href.endsWith('#lists-quick-text') && path === findRouteById(action.destination).path) {
 								toolbar.current.ownerDocument.getElementById('lists-quick-text')?.focus();
@@ -128,8 +127,10 @@ export function HeaderToolbar() {
 					))}
 				</div>
 			</div>
+			<div key="search" class="header-search-slot" ref={searchSlot}><HeaderSearch /></div>
+			{tools.slice(0, visibleCount).map((destination) => link(destination, false))}
 			<div key="more" class="header-menu">
-				<button class="header-control icon-control" type="button" ref={moreToggle} data-bs-toggle="menu" data-bs-placement="bottom-end" data-bs-strategy="fixed" aria-expanded="false" aria-controls="header-more-menu" aria-label="More">
+				<button class="header-control icon-control" type="button" ref={moreToggle} data-bs-toggle="menu" data-bs-placement="bottom-end" data-bs-strategy="fixed" aria-expanded="false" aria-controls="header-more-menu" aria-label="More" title="More">
 					<i class="bi bi-three-dots" aria-hidden="true"></i>
 				</button>
 				<div class="menu header-menu__panel" id="header-more-menu" ref={moreMenu}>

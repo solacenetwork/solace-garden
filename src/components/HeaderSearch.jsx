@@ -46,6 +46,7 @@ export function HeaderSearch() {
 				ref={trigger}
 				hidden={isWide}
 				aria-label="Search"
+				title="Search"
 				aria-controls="header-search-panel"
 				aria-expanded={isOpen}
 				onClick={() => setIsOpen((open) => !open)}
@@ -72,15 +73,13 @@ export function HeaderSearch() {
 					id="header-search-query"
 					class="form-control header-search__input"
 					type="search"
-					placeholder="Search Garden"
+					placeholder="Type your search query"
 					ref={input}
 					value={query}
 					onInput={(event) => { setQuery(event.currentTarget.value); setMessage(''); }}
 				/>
-				<button class="header-control icon-control" type="submit" aria-label="Submit search">
-					<i class="bi bi-search" aria-hidden="true"></i>
-				</button>
-				<button class="header-control icon-control" type="button" hidden={isWide} aria-label="Close search" onClick={close}>
+				<button class="header-control icon-control" type="submit" aria-label="Go" title="Go">Go</button>
+				<button class="header-control icon-control" type="button" hidden={isWide} aria-label="Close search" title="Close search" onClick={close}>
 					<i class="bi bi-x-lg" aria-hidden="true"></i>
 				</button>
 				{message && <p class="header-search__status" role="status">{message}</p>}

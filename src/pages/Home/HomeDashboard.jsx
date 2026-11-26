@@ -9,11 +9,11 @@ import { GardenPreviewCard } from './GardenPreviewCard.jsx';
 const initialGardens = { status: 'loading', current: [], previous: [] };
 const initialList = { status: 'loading', items: [] };
 
-function SectionHeader({ id, title, href, linkLabel = 'View all' }) {
+function SectionHeader({ id, title, href, linkLabel = 'View all', linkClass }) {
 	return (
 		<header class="home-dashboard__section-header">
 			<h2 id={id}>{title}</h2>
-			<a href={href}>{linkLabel}</a>
+			<a class={linkClass} href={href}>{linkLabel}</a>
 		</header>
 	);
 }
@@ -84,7 +84,6 @@ function ListPreview({ kind, state }) {
 					class={`home-preview-list__item${item.completed ? ' home-preview-list__item--completed' : ''}`}
 					key={item.id}
 				>
-					<i class={`bi bi-${item.completed ? 'check-circle-fill' : 'circle'}`} aria-hidden="true"></i>
 					<span class="home-preview-list__text">{item.text}</span>
 					{kind === 'wishlist' && item.quantity && (
 						<span class="home-preview-list__quantity">Qty: {item.quantity}</span>
@@ -97,9 +96,17 @@ function ListPreview({ kind, state }) {
 }
 
 function ListSection({ id, title, href, kind, state, onRetry }) {
+	const hasPreview = state.status === 'ready' && state.items.length > 0;
 	return (
 		<section class="home-dashboard__section" aria-labelledby={id}>
-			<SectionHeader id={id} title={title} href={href} />
+			{hasPreview ? (
+				<div class="position-relative">
+					<SectionHeader id={id} title={title} href={href} linkClass="stretched-link" />
+					<ListPreview kind={kind} state={state} />
+				</div>
+			) : (
+				<SectionHeader id={id} title={title} href={href} />
+			)}
 			{state.status === 'loading' ? (
 				<LoadingState>Loading {title}…</LoadingState>
 			) : state.status === 'error' ? (
@@ -111,9 +118,7 @@ function ListSection({ id, title, href, kind, state, onRetry }) {
 				>
 					{kind === 'task' ? 'No tasks yet.' : 'Your Wish List is empty.'}
 				</EmptyState>
-			) : (
-				<ListPreview kind={kind} state={state} />
-			)}
+			) : null}
 		</section>
 	);
 }

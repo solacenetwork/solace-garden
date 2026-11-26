@@ -37,5 +37,5 @@ export const simpleCardIds = [
 
 // Shared shell placement; legacy Home configuration above remains independent.
 export const standardPrimaryIds = ['gardens', 'journal', 'photos', 'plants'];
-export const globalToolIds = ['tasks', 'notes', 'wishlist', 'calendar'];
+export const globalToolIds = ['notes', 'tasks', 'wishlist', 'calendar'];
 export const moreDestinationIds = ['help', 'about', 'settings'];

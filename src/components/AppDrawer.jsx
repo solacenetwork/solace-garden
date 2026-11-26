@@ -5,7 +5,7 @@ import './AppDrawer.css';
 // renderTrigger receives native button props; forward them to the invoking button.
 // children may be content or a render function receiving { close }.
 export function AppDrawer({
-	id, title, placement = 'bottom', triggerLabel = 'Information', renderTrigger, children, style,
+	id, title, placement = 'bottom', triggerLabel = 'Information', renderTrigger, children, style, footerCloseIcon,
 }) {
 	const resolvedPlacement = ['top', 'end', 'bottom', 'start'].includes(placement) ? placement : 'bottom';
 	const drawerElement = useRef(null);
@@ -126,6 +126,7 @@ export function AppDrawer({
 						ref={closeControl}
 						type="button"
 						aria-label={`Close ${title}`}
+						title="Close"
 						autoFocus
 						onClick={closeDrawer}
 					></button>
@@ -134,8 +135,14 @@ export function AppDrawer({
 					{typeof children === 'function' ? children({ close: closeDrawer }) : children}
 				</div>
 				<div class="drawer-footer app-drawer__footer">
-					<button class="app-button app-drawer__close" type="button" onClick={closeDrawer}>
-						Close
+					<button
+						class={footerCloseIcon ? 'app-button icon-control app-drawer__close' : 'app-button app-drawer__close'}
+						type="button"
+						aria-label={footerCloseIcon ? `Close ${title}` : undefined}
+						title={footerCloseIcon ? `Close ${title}` : undefined}
+						onClick={closeDrawer}
+					>
+						{footerCloseIcon ? <><i class={`bi bi-${footerCloseIcon}`} aria-hidden="true"></i><span class="visually-hidden">Close {title}</span></> : 'Close'}
 					</button>
 				</div>
 			</dialog>

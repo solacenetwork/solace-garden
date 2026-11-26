@@ -109,6 +109,11 @@
 	border: 0;
 }
 
+.app-drawer__close[aria-label] {
+	padding-inline: 0;
+	justify-content: center;
+}
+
 @media (min-width: 48rem) {
 	.app-drawer--top,
 	.app-drawer--bottom {
