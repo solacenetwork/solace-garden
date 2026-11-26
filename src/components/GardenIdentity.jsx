@@ -9,6 +9,7 @@ import {
 	renderableGardenIcon,
 	validateBootstrapIconName,
 	validateGardenColor,
+	normalizeGardenColor,
 } from '../gardenIdentity.js';
 import { GardenColorChoices, GardenIconChoices } from './GardenIdentityChoices.jsx';
 
@@ -88,7 +89,6 @@ export function GardenIdentityDialogView({
 	onSelectCustomColor = () => {},
 	onCustomIconChange = () => {},
 	onCustomColorChange = () => {},
-	onReset = () => {},
 	onResetColor = () => {},
 	onResetIcon = () => {},
 	onCancel = () => {},
@@ -118,7 +118,7 @@ export function GardenIdentityDialogView({
 					</div>
 					<ul class="nav nav-tabs garden-identity-tabs">
 						<li class="nav-item">
-							<button ref={colorTabRef} class="nav-link active" id="garden-identity-color-tab" type="button" data-bs-toggle="tab" data-bs-target="#garden-identity-color-panel">Color</button>
+							<button ref={colorTabRef} class="nav-link active" id="garden-identity-color-tab" type="button" data-bs-toggle="tab" data-bs-target="#garden-identity-color-panel">Ring Color</button>
 						</li>
 						<li class="nav-item">
 							<button ref={iconTabRef} class="nav-link" id="garden-identity-icon-tab" type="button" data-bs-toggle="tab" data-bs-target="#garden-identity-icon-panel">Icon</button>
@@ -127,12 +127,13 @@ export function GardenIdentityDialogView({
 					<div class="tab-content garden-identity-tab-content">
 						<div class="tab-pane fade show active" id="garden-identity-color-panel">
 							<fieldset class="garden-identity-fieldset">
-								<legend>Choose a color</legend>
+								<legend>Choose a ring color</legend>
 								<GardenColorChoices
 									selected={isCustomColor ? customColor : selectedColor}
 									onSelect={onSelectColor}
 									onCustomSelect={(value) => onSelectCustomColor(value)}
 									onCustomChange={onCustomColorChange}
+									customMode={isCustomColor}
 								/>
 							</fieldset>
 						</div>
@@ -259,11 +260,6 @@ export function GardenIdentityModal({ open, type = 'color', icon = null, color =
 		void dialogInstance.current?.hide();
 	}
 
-	function reset() {
-		setError('');
-		setDraft(resetGardenIdentityDraft);
-	}
-
 	async function save(event) {
 		event?.preventDefault();
 		if (savingRef.current) return;
@@ -298,15 +294,22 @@ export function GardenIdentityModal({ open, type = 'color', icon = null, color =
 			onSelectIcon={(name) => setDraft((current) => ({ ...current, draftIcon: name, isCustomIcon: false }))}
 			onSelectColor={(value) => setDraft((current) => ({ ...current, draftColor: value, isCustomColor: false }))}
 			onSelectCustomIcon={() => setDraft((current) => ({ ...current, isCustomIcon: true, customIcon: current.customIcon || (ALL_CURATED_ICONS.has(current.draftIcon) ? '' : current.draftIcon ?? '') }))}
-			onSelectCustomColor={(value) => setDraft((current) => ({
-				...current,
-				isCustomColor: true,
-				customColor: value || current.customColor || (PALETTE_COLORS.has(current.draftColor) ? '' : current.draftColor ?? ''),
-				draftColor: validateGardenColor(value || current.customColor || current.draftColor).color,
-			}))}
+			onSelectCustomColor={() => setDraft((current) => {
+				const existingCustom = !PALETTE_COLORS.has(current.draftColor) && current.draftColor
+					? normalizeGardenColor(current.draftColor)
+					: normalizeGardenColor(current.customColor);
+				return {
+					...current,
+					isCustomColor: true,
+					customColor: existingCustom ?? '',
+				};
+			})}
 			onCustomIconChange={(value) => setDraft((current) => ({ ...current, customIcon: value, draftIcon: validateBootstrapIconName(value).name }))}
-			onCustomColorChange={(value) => setDraft((current) => ({ ...current, customColor: value, draftColor: validateGardenColor(value).color }))}
-			onReset={reset}
+			onCustomColorChange={(value) => setDraft((current) => ({
+				...current,
+				customColor: normalizeGardenColor(value),
+				draftColor: normalizeGardenColor(value),
+			}))}
 			onResetColor={() => setDraft(resetGardenIdentityColor)}
 			onResetIcon={() => setDraft(resetGardenIdentityIcon)}
 			onCancel={close}
@@ -326,12 +329,12 @@ export function GardenIdentityEditor({ garden, disabled = false, onSave }) {
 				<GardenIdentityBadge icon={garden.icon} color={garden.color} />
 				<div>
 					<h2 id="garden-identity-editor-title">Garden Identity</h2>
-					<p>Choose an optional color and icon to recognize this Garden.</p>
+					<p>Choose an optional ring color and icon to recognize this Garden.</p>
 				</div>
 			</div>
 			<div class="garden-identity-editor__actions">
 				<button class="btn-outline" type="button" disabled={disabled} onClick={(event) => open('color', event)}>
-					<i class="bi bi-palette-fill" aria-hidden="true"></i> Choose Color
+					<i class="bi bi-palette-fill" aria-hidden="true"></i> Choose Ring Color
 				</button>
 				<button class="btn-outline" type="button" disabled={disabled} onClick={(event) => open('icon', event)}>
 					<i class="bi bi-flower1" aria-hidden="true"></i> Choose Icon

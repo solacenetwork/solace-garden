@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'preact/hooks';
-import { CURATED_GARDEN_ICONS, GARDEN_NUMBER_ICONS, GARDEN_COLOR_PALETTE } from '../gardenIdentity.js';
+import {
+	CURATED_GARDEN_ICONS,
+	GARDEN_NUMBER_ICONS,
+	GARDEN_COLOR_PALETTE,
+	normalizeGardenColor,
+} from '../gardenIdentity.js';
 import {
 	readGardenIdentityAccordionPreference,
 	writeGardenIdentityAccordionPreference,
@@ -29,13 +34,25 @@ export function GardenIconChoices({ values = CURATED_GARDEN_ICONS, selected, onS
 	);
 }
 
-export function GardenColorChoices({ selected, onSelect, onCustomSelect, onCustomChange, disabled = false }) {
-	const paletteValues = new Set(GARDEN_COLOR_PALETTE.map(({ value }) => value));
-	const isCustom = typeof selected === 'string' && !paletteValues.has(selected);
+export function GardenColorChoices({
+	selected,
+	onSelect,
+	onCustomSelect,
+	onCustomChange,
+	customMode,
+	disabled = false,
+}) {
+	const [internalCustomMode, setInternalCustomMode] = useState(false);
+	const isCustom = typeof customMode === 'boolean' ? customMode : internalCustomMode;
+	const normalizedSelected = normalizeGardenColor(selected);
+	const pickerValue = normalizedSelected ?? '#287D46';
+	useEffect(() => {
+		if (normalizedSelected === null) setInternalCustomMode(false);
+	}, [normalizedSelected]);
 	return (
 		<div class="garden-identity-options garden-identity-options--colors">
 			{GARDEN_COLOR_PALETTE.map(({ name, value }) => {
-				const active = selected === value;
+				const active = !isCustom && normalizedSelected === value;
 				return (
 					<button
 						class={`garden-identity-option garden-identity-option--color${active ? ' garden-identity-option--selected' : ''}`}
@@ -44,7 +61,10 @@ export function GardenColorChoices({ selected, onSelect, onCustomSelect, onCusto
 						aria-pressed={active}
 						aria-label={`${name}, ${value}`}
 						disabled={disabled}
-						onClick={() => onSelect(value)}
+						onClick={() => {
+							setInternalCustomMode(false);
+							onSelect(value);
+						}}
 						key={value}
 					>
 						<span class="garden-identity-option__swatch" aria-hidden="true"></span>
@@ -58,7 +78,10 @@ export function GardenColorChoices({ selected, onSelect, onCustomSelect, onCusto
 				type="button"
 				aria-pressed={isCustom}
 				disabled={disabled}
-				onClick={() => onCustomSelect?.(isCustom ? selected : '#287D46')}
+				onClick={() => {
+					setInternalCustomMode(true);
+					onCustomSelect?.();
+				}}
 			>
 				<i class="bi bi-palette-fill" aria-hidden="true"></i> Custom
 			</button>
@@ -69,9 +92,9 @@ export function GardenColorChoices({ selected, onSelect, onCustomSelect, onCusto
 						id="garden-custom-ring-color"
 						class="form-control form-control-color"
 						type="color"
-						value={selected}
+						value={pickerValue}
 						disabled={disabled}
-						onInput={(event) => onCustomChange?.(event.currentTarget.value)}
+						onInput={(event) => onCustomChange?.(normalizeGardenColor(event.currentTarget.value))}
 					/>
 				</div>
 			)}
@@ -102,8 +125,18 @@ export function GardenCreationIdentitySections({
 	const iconPreview = fields.icon
 		? <><i class={`bi bi-${fields.icon}`} aria-hidden="true"></i> {fields.icon}</>
 		: 'Not set';
-	const colorPreview = fields.color
-		? <><span class="garden-create__color-preview" style={{ '--garden-swatch-color': fields.color }} aria-hidden="true"></span> {fields.color}</>
+	const normalizedColor = normalizeGardenColor(fields.color);
+	const paletteColor = GARDEN_COLOR_PALETTE.find(({ value }) => value === normalizedColor);
+	const colorPreview = normalizedColor
+		? <>
+			<span
+				class="garden-create__color-preview"
+				style={{ '--garden-swatch-color': normalizedColor }}
+				aria-label={paletteColor ? paletteColor.name : 'Custom color'}
+				title={paletteColor ? paletteColor.name : 'Custom color'}
+			></span>
+			{paletteColor ? paletteColor.name : 'Custom color'}
+		</>
 		: 'Not set';
 
 	return (

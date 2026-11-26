@@ -61,7 +61,7 @@ function GardenCardVisual({ src, garden = null }) {
 	return (
 		<span class="garden-card__visual">
 			<img src={src} alt="" loading="lazy" decoding="async" />
-			{garden && (garden.icon || garden.color) && <GardenIdentityBadge icon={garden.icon} color={garden.color} className="garden-card__identity" />}
+			{garden && <GardenIdentityBadge icon={garden.icon} color={garden.color} className="garden-card__identity" />}
 			{garden?.isClosed && (
 				<span class="garden-card__lock" role="img" aria-label="Locked">
 					<i class="bi bi-lock-fill" aria-hidden="true"></i>
@@ -100,7 +100,11 @@ export function SavedGardenCard({ garden, placeholder }) {
 export function GardenDraftCard({ draft, onDiscard, discardingId = null }) {
 	return (
 		<article class="garden-card garden-card--draft">
-			<a class="garden-draft-card__resume" href={draft.href}>
+			<a
+				class="garden-draft-card__resume"
+				href={draft.href}
+				aria-label={`Continue draft: ${draft.label}`}
+			>
 				<GardenCardVisual
 					src={GARDEN_CARD_PLACEHOLDERS.draft}
 					garden={{ icon: draft.icon, color: draft.color, isClosed: false }}

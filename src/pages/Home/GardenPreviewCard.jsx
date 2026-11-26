@@ -3,7 +3,7 @@ import { formatDateOnly } from './dashboardData.js';
 function lifecycleLabel(garden) {
 	if (garden.status === 'archived') return 'Archived';
 	if (garden.status === 'completed') return 'Completed';
-	if (garden.isClosed) return 'Closed';
+	if (garden.isClosed) return 'Locked';
 	return null;
 }
 
