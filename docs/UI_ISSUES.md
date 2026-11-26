@@ -57,14 +57,6 @@ Reproducible issues where the cause or solution is unknown.
 **Priority:** Nonblocking
 
 
-### UI-005 — About project website destination
-
-**Target milestone:** 8T  
-**Location:** About  
-**Observed:** 8B7 review noted `solacenetwork.com` versus `solace.network`; intended project destination not confirmed.  
-**Expected:** Confirm intended official project URL before changing it; verify navigation.  
-**Related:** [TESTING_NOTES.md](TESTING_NOTES.md), 8B7.  
-**Priority:** Nonblocking
 
 ## Unconfirmed	
 Intermittent observations that haven't been reliably reproduced.
@@ -171,3 +163,12 @@ Completed corrections with commit references and verification results.
 **Expected:** Resolved: three-line card title/two-line subtitle clamp, full wrapping detail title, isolated badge typography. No stored-name limits introduced. Developer manual acceptance, Vitest 726/726, Playwright 57/57 and build passed.  
 **Related:** [344f006](https://github.com/solacenetwork/solace-garden/commit/344f0065a31c5497c3704f72f86f0035961b0118); [TESTING_NOTES.md](TESTING_NOTES.md).  
 **Priority:** Resolved
+
+### UI-005 — About project website destination
+
+**Target milestone:** Corrected during Step 10B acceptance  
+**Location:** About and package author metadata  
+**Observed:** The previous URL pointed to solacenetwork.com, which the developer does not own.  
+**Expected:** Link to https://solace.network. The developer also owns solacenetwork.org.  
+**Related:** Resolved in [a08002b](https://github.com/solacenetwork/solace-garden/commit/a08002b87f42d71701127eb28d13518215f2e08e); About link, author metadata and corresponding Vitest expectation corrected. Package and lockfile bumped to 0.0.3-alpha. Source changes reviewed; post-change test execution not yet reported.  
+**Priority:** Resolved in code; verify during next acceptance run.
