@@ -194,12 +194,28 @@
 
 .garden-card__identity {
 	position: absolute;
-	inset-block-end: 0.65rem;
+	inset-block-start: 0.65rem;
 	inset-inline-end: 0.65rem;
-	width: 3.25rem;
-	height: 3.25rem;
-	font-size: 1.25rem;
+	width: 2.25rem;
+	height: 2.25rem;
+	padding: 0.22rem;
+	font-size: 0.875rem;
 	box-shadow: 0 2px 8px rgb(0 0 0 / 18%);
+}
+
+.garden-card__lock {
+	position: absolute;
+	inset-block-end: 0.55rem;
+	inset-inline-end: 0.55rem;
+	display: grid;
+	width: 1.75rem;
+	height: 1.75rem;
+	color: var(--sg-color-text);
+	background: var(--sg-color-surface);
+	border: 1px solid var(--sg-color-border);
+	border-radius: 50%;
+	box-shadow: 0 2px 8px rgb(0 0 0 / 18%);
+	place-items: center;
 }
 
 .garden-card__visual img {
@@ -506,6 +522,29 @@
 	justify-self: start;
 }
 
+.garden-create__identity {
+	display: grid;
+	gap: 0.75rem;
+}
+
+.garden-create__accordion-preview {
+	display: inline-flex;
+	margin-inline-start: auto;
+	align-items: center;
+	gap: 0.35rem;
+	color: var(--sg-color-text-muted);
+	font-size: 0.875rem;
+}
+
+.garden-create__color-preview {
+	display: inline-block;
+	width: 1rem;
+	height: 1rem;
+	background: var(--garden-swatch-color);
+	border: 1px solid var(--sg-color-border);
+	border-radius: 50%;
+}
+
 .garden-create__status label {
 	display: flex;
 	align-items: center;
@@ -590,6 +629,17 @@
 
 .garden-card--draft {
 	display: flex;
+}
+
+.garden-create__status {
+	margin-block-end: 1.25rem;
+}
+
+.garden-create__status + .form-field.garden-fields__wide,
+.garden-fields > .garden-create__status + .form-field {
+	margin-block-start: 0.25rem;
+	padding-block-start: 1.25rem;
+	border-block-start: 1px solid var(--sg-color-border);
 }
 
 .garden-draft-card__resume {

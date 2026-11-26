@@ -59,9 +59,14 @@ function ReadState({ state, onRetry }) {
 
 function GardenCardVisual({ src, garden = null }) {
 	return (
-		<span class="garden-card__visual" aria-hidden="true">
+		<span class="garden-card__visual">
 			<img src={src} alt="" loading="lazy" decoding="async" />
-			{garden && <GardenIdentityBadge icon={garden.icon} color={garden.color} className="garden-card__identity" />}
+			{garden && (garden.icon || garden.color) && <GardenIdentityBadge icon={garden.icon} color={garden.color} className="garden-card__identity" />}
+			{garden?.isClosed && (
+				<span class="garden-card__lock" role="img" aria-label="Locked">
+					<i class="bi bi-lock-fill" aria-hidden="true"></i>
+				</span>
+			)}
 		</span>
 	);
 }
@@ -96,8 +101,11 @@ export function GardenDraftCard({ draft, onDiscard, discardingId = null }) {
 	return (
 		<article class="garden-card garden-card--draft">
 			<a class="garden-draft-card__resume" href={draft.href}>
-				<GardenCardVisual src={GARDEN_CARD_PLACEHOLDERS.draft} />
-				<GardenCardContent title={draft.label} subtitle={draft.subtitle} actionLabel="Continue draft" />
+				<GardenCardVisual
+					src={GARDEN_CARD_PLACEHOLDERS.draft}
+					garden={{ icon: draft.icon, color: draft.color, isClosed: false }}
+				/>
+				<GardenCardContent title={draft.label} subtitle={draft.subtitle} />
 			</a>
 			<button class="btn-text theme-danger garden-draft-card__discard" type="button" disabled={discardingId === draft.id} onClick={() => onDiscard(draft)}>
 				<i class="bi bi-trash3" aria-hidden="true"></i>
@@ -188,7 +196,7 @@ function GardenDraftSection({ drafts = [], onDiscard, discardingId, error = '' }
 				<h2 id="garden-drafts-title">Draft Gardens</h2>
 				{drafts.length > 0 && <a href="/gardens/drafts">View All</a>}
 			</div>
-			<p>Continue an unfinished Garden or discard one you no longer need.</p>
+			<p>Select a draft to continue working on your Garden, or discard one you no longer need.</p>
 			{error && <div class="garden-create__error" role="alert">{error}</div>}
 			{drafts.length === 0 ? <p class="gardens-state">No unfinished Garden drafts.</p> : (
 				<CardCarousel id="garden-drafts-carousel" label="Draft Gardens" className="garden-drafts__carousel">
@@ -225,7 +233,7 @@ export function GardensOverviewView({ state, onRetry, onDiscard = () => {}, disc
 						<GardenDraftSection drafts={state.drafts} onDiscard={onDiscard} discardingId={discardingId} error={draftError} />
 						<GardenSection title="Current Gardens" id="current-gardens" items={state.current} emptyMessage="No active Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.current} />
 						<GardenSection title="Planned Gardens" id="planned-gardens" items={state.planned} emptyMessage="No planned Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.planned} />
-						<GardenSection title="Previous Gardens" id="previous-gardens" items={state.previous} emptyMessage="No closed, completed, or archived Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.previous} />
+						<GardenSection title="Previous Gardens" id="previous-gardens" items={state.previous} emptyMessage="No locked, completed, or archived Gardens." placeholder={GARDEN_CARD_PLACEHOLDERS.previous} />
 					</>
 				)}
 			</div>
@@ -239,7 +247,7 @@ export function GardenDraftsView({ state, onRetry, onDiscard = () => {}, discard
 			<PageHeader
 				title="Draft Gardens"
 				titleId="garden-drafts-page-title"
-				description="Continue an unfinished Garden or discard one you no longer need."
+				description="Select a draft to continue working on your Garden, or discard one you no longer need."
 				actions={<a class="btn-outline gardens-back" href="/gardens"><i class="bi bi-arrow-left" aria-hidden="true"></i> All Gardens</a>}
 			/>
 			<div class="page-content">
@@ -307,7 +315,7 @@ export function GardenDetailView({ state, onRetry, lifecycle = null, deletion = 
 					<div class="page-content">
 						<dl class="garden-facts">
 							<div><dt>Status</dt><dd>{garden.statusLabel}</dd></div>
-							<div><dt>Closed</dt><dd>{garden.isClosed ? 'Yes' : 'No'}</dd></div>
+							<div><dt>Locked</dt><dd>{garden.isClosed ? 'Yes' : 'No'}</dd></div>
 							<div><dt>Location</dt><dd>{garden.locationName}</dd></div>
 							<div><dt>Garden Types</dt><dd>{garden.typeNames.length ? garden.typeNames.join(', ') : 'No types selected'}</dd></div>
 							{garden.startDate && <div><dt>Start date</dt><dd><time dateTime={garden.startDate}>{garden.startDate}</time></dd></div>}

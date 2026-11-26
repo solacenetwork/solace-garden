@@ -1,6 +1,6 @@
-import { GardenColorChoices, GardenIconChoices } from '../../components/GardenIdentityChoices.jsx';
+import { GardenCreationIdentitySections } from '../../components/GardenIdentityChoices.jsx';
 import { GardenTypeSelector } from '../../components/GardenTypeSelector.jsx';
-import { CURATED_GARDEN_ICONS, GARDEN_NUMBER_ICONS, validateBootstrapIconName, validateGardenColor } from '../../gardenIdentity.js';
+import { validateBootstrapIconName, validateGardenColor } from '../../gardenIdentity.js';
 import { DEFAULT_LOCATION_ID } from '../../services/locations.js';
 import { normalizeGardenFields, validateGardenDateOrder } from '../../storage/gardenValidation.js';
 import { SaveAsTemplateField } from './SaveAsTemplateField.jsx';
@@ -22,18 +22,15 @@ export function GardenWizardIdentityStep({ fields, errors, onChange, disabled, i
 				<label class="form-label" for={id('subtitle')}>Subtitle <span>(optional)</span></label>
 				<input id={id('subtitle')} class={`form-control${errors.subtitle ? ' is-invalid' : ''}`} type="text" value={fields.subtitle} disabled={disabled} onInput={(event) => onChange('subtitle', event.currentTarget.value)} />
 			</div>
-			<fieldset class="garden-create__identity-field garden-fields__wide">
-				<legend>Icon <span class="garden-create__optional">(optional)</span></legend>
-				<GardenIconChoices values={[...CURATED_GARDEN_ICONS, ...GARDEN_NUMBER_ICONS]} selected={fields.icon} disabled={disabled} onSelect={(value) => onChange('icon', value)} />
-				<button id={id('icon')} class="btn-text garden-create__clear-identity" type="button" disabled={disabled || fields.icon === null} aria-describedby={errors.icon ? id('icon-error') : undefined} onClick={() => onChange('icon', null)}>No icon</button>
-				{errors.icon && <p id={id('icon-error')} class="garden-create__field-error" role="alert">{errors.icon}</p>}
-			</fieldset>
-			<fieldset class="garden-create__identity-field garden-fields__wide">
-				<legend>Color <span class="garden-create__optional">(optional)</span></legend>
-				<GardenColorChoices selected={fields.color} disabled={disabled} onSelect={(value) => onChange('color', value)} />
-				<button id={id('color')} class="btn-text garden-create__clear-identity" type="button" disabled={disabled || fields.color === null} aria-describedby={errors.color ? id('color-error') : undefined} onClick={() => onChange('color', null)}>No color</button>
-				{errors.color && <p id={id('color-error')} class="garden-create__field-error" role="alert">{errors.color}</p>}
-			</fieldset>
+			<div class="garden-fields__wide">
+				<GardenCreationIdentitySections
+					fields={fields}
+					errors={errors}
+					onChange={onChange}
+					disabled={disabled}
+					idPrefix={idPrefix}
+				/>
+			</div>
 			<div class="form-field garden-fields__wide">
 				<label class="form-label" for={id('image')}>Garden Image <span>(optional)</span></label>
 				<input id={id('image')} class="form-control" type="file" accept="image/*" disabled aria-describedby={id('image-help')} />

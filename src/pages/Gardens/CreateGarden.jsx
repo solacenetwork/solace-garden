@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import { GardenCreationBreadcrumb } from '../../components/GardenCreationBreadcrumb.jsx';
-import { GardenColorChoices, GardenIconChoices } from '../../components/GardenIdentityChoices.jsx';
+import { GardenCreationIdentitySections } from '../../components/GardenIdentityChoices.jsx';
 import { PageHeader } from '../../components/PageHeader.jsx';
 import { useStorage } from '../../context/StorageContext.jsx';
-import { CURATED_GARDEN_ICONS, GARDEN_NUMBER_ICONS } from '../../gardenIdentity.js';
 import { createGardenTemplatesService } from '../../services/gardenTemplates.js';
 import { createDraftAutosave } from '../../services/draftAutosave.js';
 import {
@@ -383,24 +382,13 @@ export function QuickStartGardenView({
 					{errors.subtitle && <div id="garden-subtitle-error" class="invalid-feedback">{errors.subtitle}</div>}
 				</div>
 
-				<fieldset class="garden-create__identity-field">
-					<legend>Icon <span class="garden-create__optional">(optional)</span></legend>
-					<GardenIconChoices
-						values={[...CURATED_GARDEN_ICONS, ...GARDEN_NUMBER_ICONS]}
-						selected={values.icon}
-						disabled={saving}
-						onSelect={(value) => onChange('icon', value)}
-					/>
-					<button class="btn-text garden-create__clear-identity" type="button" disabled={saving || values.icon === null} onClick={() => onChange('icon', null)}>No icon</button>
-					{errors.icon && <p class="garden-create__field-error" role="alert">{errors.icon}</p>}
-				</fieldset>
-
-				<fieldset class="garden-create__identity-field">
-					<legend>Color <span class="garden-create__optional">(optional)</span></legend>
-					<GardenColorChoices selected={values.color} disabled={saving} onSelect={(value) => onChange('color', value)} />
-					<button class="btn-text garden-create__clear-identity" type="button" disabled={saving || values.color === null} onClick={() => onChange('color', null)}>No color</button>
-					{errors.color && <p class="garden-create__field-error" role="alert">{errors.color}</p>}
-				</fieldset>
+				<GardenCreationIdentitySections
+					fields={values}
+					errors={errors}
+					onChange={onChange}
+					disabled={saving}
+					idPrefix="garden"
+				/>
 
 				<div class="form-field">
 					<label class="form-label" for="garden-thumbnail">Garden Image <span class="garden-create__optional">(optional)</span></label>

@@ -50,6 +50,14 @@ export function resetGardenIdentityDraft(draft) {
 		: { ...draft, draftColor: null, customColor: '', isCustomColor: false };
 }
 
+export function resetGardenIdentityColor(draft) {
+	return { ...draft, draftColor: null, customColor: '', isCustomColor: false };
+}
+
+export function resetGardenIdentityIcon(draft) {
+	return { ...draft, draftIcon: null, customIcon: '', isCustomIcon: false };
+}
+
 export function validateGardenIdentityDraft(draft) {
 	const icon = validateBootstrapIconName(draft.isCustomIcon ? draft.customIcon : draft.draftIcon);
 	const color = validateGardenColor(draft.isCustomColor ? draft.customColor : draft.draftColor);
@@ -81,6 +89,8 @@ export function GardenIdentityDialogView({
 	onCustomIconChange = () => {},
 	onCustomColorChange = () => {},
 	onReset = () => {},
+	onResetColor = () => {},
+	onResetIcon = () => {},
 	onCancel = () => {},
 	onSubmit = () => {},
 }) {
@@ -118,27 +128,12 @@ export function GardenIdentityDialogView({
 						<div class="tab-pane fade show active" id="garden-identity-color-panel">
 							<fieldset class="garden-identity-fieldset">
 								<legend>Choose a color</legend>
-								<GardenColorChoices selected={selectedColor} onSelect={onSelectColor} />
-								<button class={`garden-identity-custom${isCustomColor ? ' garden-identity-custom--selected' : ''}`} type="button" aria-pressed={isCustomColor} onClick={onSelectCustomColor}>
-									<i class="bi bi-palette-fill" aria-hidden="true"></i> Custom
-								</button>
-								{isCustomColor && (
-									<div class="form-field garden-identity-custom-field">
-										<label class="form-label" for="garden-identity-custom-color">Six-digit hex color</label>
-										<input
-											id="garden-identity-custom-color"
-											class={`form-control${colorValidation.isValid ? '' : ' is-invalid'}`}
-											type="text"
-											inputMode="text"
-											placeholder="#287D46"
-											value={customColor}
-											aria-invalid={colorValidation.isValid ? undefined : 'true'}
-											aria-describedby={colorValidation.isValid ? undefined : 'garden-identity-color-error'}
-											onInput={(event) => onCustomColorChange(event.currentTarget.value)}
-										/>
-										{!colorValidation.isValid && <div class="invalid-feedback" id="garden-identity-color-error">{colorValidation.error}</div>}
-									</div>
-								)}
+								<GardenColorChoices
+									selected={isCustomColor ? customColor : selectedColor}
+									onSelect={onSelectColor}
+									onCustomSelect={(value) => onSelectCustomColor(value)}
+									onCustomChange={onCustomColorChange}
+								/>
 							</fieldset>
 						</div>
 						<div class="tab-pane fade" id="garden-identity-icon-panel">
@@ -173,7 +168,8 @@ export function GardenIdentityDialogView({
 					{error && <p class="garden-identity-dialog__error" role="alert">{error}</p>}
 				</div>
 				<div class="dialog-footer garden-identity-dialog__footer">
-					<button class="btn-text" type="button" disabled={saving} onClick={onReset}>Reset</button>
+					<button class="btn-text" type="button" disabled={saving} onClick={onResetColor}>Reset Color</button>
+					<button class="btn-text" type="button" disabled={saving} onClick={onResetIcon}>Reset Icon</button>
 					<button class="btn-outline" type="button" disabled={saving} onClick={onCancel}>Cancel</button>
 					<button class="btn-solid theme-primary" type="submit" disabled={saving || !validation.isValid}>
 						{saving ? 'Saving…' : 'Save Identity'}
@@ -302,10 +298,17 @@ export function GardenIdentityModal({ open, type = 'color', icon = null, color =
 			onSelectIcon={(name) => setDraft((current) => ({ ...current, draftIcon: name, isCustomIcon: false }))}
 			onSelectColor={(value) => setDraft((current) => ({ ...current, draftColor: value, isCustomColor: false }))}
 			onSelectCustomIcon={() => setDraft((current) => ({ ...current, isCustomIcon: true, customIcon: current.customIcon || (ALL_CURATED_ICONS.has(current.draftIcon) ? '' : current.draftIcon ?? '') }))}
-			onSelectCustomColor={() => setDraft((current) => ({ ...current, isCustomColor: true, customColor: current.customColor || (PALETTE_COLORS.has(current.draftColor) ? '' : current.draftColor ?? '') }))}
+			onSelectCustomColor={(value) => setDraft((current) => ({
+				...current,
+				isCustomColor: true,
+				customColor: value || current.customColor || (PALETTE_COLORS.has(current.draftColor) ? '' : current.draftColor ?? ''),
+				draftColor: validateGardenColor(value || current.customColor || current.draftColor).color,
+			}))}
 			onCustomIconChange={(value) => setDraft((current) => ({ ...current, customIcon: value, draftIcon: validateBootstrapIconName(value).name }))}
 			onCustomColorChange={(value) => setDraft((current) => ({ ...current, customColor: value, draftColor: validateGardenColor(value).color }))}
 			onReset={reset}
+			onResetColor={() => setDraft(resetGardenIdentityColor)}
+			onResetIcon={() => setDraft(resetGardenIdentityIcon)}
 			onCancel={close}
 			onSubmit={save}
 		/>

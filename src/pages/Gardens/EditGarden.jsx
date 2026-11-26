@@ -110,7 +110,7 @@ export function GardenEditView({
 	const readOnly = forceReadOnly || state.garden.isClosed || state.garden.status === 'archived';
 	const readOnlyReason = forceReadOnly
 		? 'became read-only before these changes could be saved'
-		: state.garden.isClosed ? 'is closed' : 'is archived';
+		: state.garden.isClosed ? 'is locked' : 'is archived';
 	return (
 		<section class="workspace-page gardens-page garden-edit" aria-labelledby="garden-edit-title">
 			<PageHeader

@@ -30,10 +30,10 @@ export function GardenLifecycleView({
 		return (
 		<section class="garden-lifecycle" aria-labelledby="garden-lifecycle-title">
 			<h2 id="garden-lifecycle-title">Garden lifecycle</h2>
-			<p>This Garden is closed and read-only. Reopening keeps its current status.</p>
+			<p>This Garden is locked and read-only. Unlocking keeps its current status.</p>
 			{error && <p class="garden-lifecycle__error" role="alert">{error}</p>}
 			<button class="btn-outline" type="button" disabled={busy} onClick={onReopen}>
-				{busy ? 'Updating…' : 'Reopen Garden'}
+				{busy ? 'Updating…' : 'Unlock Garden'}
 			</button>
 		</section>
 		);
@@ -75,11 +75,11 @@ export function GardenLifecycleView({
 						disabled={busy}
 						onChange={(event) => onCloseOnCompleteChange(event.currentTarget.checked)}
 					/>
-					<label class="form-check-label" for="garden-complete-and-close">Close Garden after marking it Completed</label>
+					<label class="form-check-label" for="garden-complete-and-close">Lock Garden after marking it Completed</label>
 				</div>
 			)}
 			<div class="garden-lifecycle__actions">
-				<button class="btn-outline" type="button" disabled={busy} onClick={onClose}>Close Garden</button>
+				<button class="btn-outline" type="button" disabled={busy} onClick={onClose}>Lock Garden</button>
 				<button class="btn-text theme-danger" type="button" disabled={busy} onClick={onArchive}>Archive Garden</button>
 			</div>
 		</section>
@@ -92,17 +92,17 @@ export function LifecycleDialog({ dialogRef, kind, garden, notes, onNotesChange,
 		<dialog class="dialog garden-lifecycle-dialog" ref={dialogRef} aria-labelledby="garden-lifecycle-dialog-title">
 			<div class="dialog-header">
 				<h2 class="dialog-title" id="garden-lifecycle-dialog-title">
-					{isArchive ? 'Archive Garden?' : 'Close Garden?'}
+					{isArchive ? 'Archive Garden?' : 'Lock Garden?'}
 				</h2>
 				<button class="btn-close" type="button" aria-label="Cancel lifecycle change" disabled={busy} onClick={onCancel}></button>
 			</div>
 			<div class="dialog-body">
 				{error && <p class="garden-lifecycle__error" role="alert">{error}</p>}
 				{isArchive ? (
-					<p>Archiving <strong>{garden.name}</strong> closes it and makes it read-only. You can unarchive it later.</p>
+					<p>Archiving <strong>{garden.name}</strong> locks it and makes it read-only. You can unarchive it later.</p>
 				) : (
 					<>
-						<p>Closing <strong>{garden.name}</strong> keeps it in your history and makes it read-only. You can reopen it later.</p>
+						<p>Locking <strong>{garden.name}</strong> keeps it in your history and makes it read-only. You can unlock it later.</p>
 						<label for="garden-close-notes">Garden Notes <span class="fg-muted">(optional)</span></label>
 						<textarea
 							class="form-control"
@@ -121,7 +121,7 @@ export function LifecycleDialog({ dialogRef, kind, garden, notes, onNotesChange,
 			<div class="dialog-footer">
 				<button class="btn-outline" type="button" disabled={busy} onClick={onCancel}>Cancel</button>
 				<button class={`btn-solid ${isArchive ? 'theme-danger' : 'theme-primary'}`} type="button" disabled={busy} onClick={onConfirm}>
-					{busy ? 'Updating…' : isArchive ? 'Archive Garden' : 'Close Garden'}
+					{busy ? 'Updating…' : isArchive ? 'Archive Garden' : 'Lock Garden'}
 				</button>
 			</div>
 		</dialog>

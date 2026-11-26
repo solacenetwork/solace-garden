@@ -42,6 +42,8 @@ function gardenDraftView(draft) {
 		...draft,
 		label: draft.fields.name.trim() ? draft.fields.name : 'Untitled Garden',
 		subtitle: draft.fields.subtitle,
+		icon: draft.fields.icon,
+		color: draft.fields.color,
 		creationMethodLabel: DRAFT_EDITOR_LABELS[draft.preferredEditor],
 		href: `/gardens/new/${draft.preferredEditor}/${draft.id}`,
 	};
