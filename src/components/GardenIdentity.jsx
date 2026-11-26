@@ -131,7 +131,7 @@ export function GardenIdentityDialogView({
 								<GardenColorChoices
 									selected={isCustomColor ? customColor : selectedColor}
 									onSelect={onSelectColor}
-									onCustomSelect={(value) => onSelectCustomColor(value)}
+									onCustomSelect={() => onSelectCustomColor()}
 									onCustomChange={onCustomColorChange}
 									customMode={isCustomColor}
 								/>
@@ -295,13 +295,11 @@ export function GardenIdentityModal({ open, type = 'color', icon = null, color =
 			onSelectColor={(value) => setDraft((current) => ({ ...current, draftColor: value, isCustomColor: false }))}
 			onSelectCustomIcon={() => setDraft((current) => ({ ...current, isCustomIcon: true, customIcon: current.customIcon || (ALL_CURATED_ICONS.has(current.draftIcon) ? '' : current.draftIcon ?? '') }))}
 			onSelectCustomColor={() => setDraft((current) => {
-				const existingCustom = !PALETTE_COLORS.has(current.draftColor) && current.draftColor
-					? normalizeGardenColor(current.draftColor)
-					: normalizeGardenColor(current.customColor);
+				const effectiveColor = normalizeGardenColor(current.draftColor);
 				return {
 					...current,
 					isCustomColor: true,
-					customColor: existingCustom ?? '',
+					customColor: effectiveColor,
 				};
 			})}
 			onCustomIconChange={(value) => setDraft((current) => ({ ...current, customIcon: value, draftIcon: validateBootstrapIconName(value).name }))}

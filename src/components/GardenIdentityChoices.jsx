@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import {
 	CURATED_GARDEN_ICONS,
 	GARDEN_NUMBER_ICONS,
@@ -42,12 +42,24 @@ export function GardenColorChoices({
 	customMode,
 	disabled = false,
 }) {
-	const [internalCustomMode, setInternalCustomMode] = useState(false);
-	const isCustom = typeof customMode === 'boolean' ? customMode : internalCustomMode;
+	const paletteValues = new Set(GARDEN_COLOR_PALETTE.map(({ value }) => value));
 	const normalizedSelected = normalizeGardenColor(selected);
+	const [internalCustomMode, setInternalCustomMode] = useState(
+		() => Boolean(normalizedSelected && !paletteValues.has(normalizedSelected)),
+	);
+	const isCustom = typeof customMode === 'boolean' ? customMode : internalCustomMode;
 	const pickerValue = normalizedSelected ?? '#287D46';
+	const nativeInputChange = useRef(false);
 	useEffect(() => {
-		if (normalizedSelected === null) setInternalCustomMode(false);
+		if (typeof customMode === 'boolean') return;
+		if (normalizedSelected === null) {
+			setInternalCustomMode((current) => current ? false : current);
+		} else if (!paletteValues.has(normalizedSelected)) {
+			setInternalCustomMode((current) => current ? current : true);
+		} else if (!nativeInputChange.current) {
+			setInternalCustomMode((current) => current ? false : current);
+		}
+		nativeInputChange.current = false;
 	}, [normalizedSelected]);
 	return (
 		<div class="garden-identity-options garden-identity-options--colors">
@@ -94,7 +106,10 @@ export function GardenColorChoices({
 						type="color"
 						value={pickerValue}
 						disabled={disabled}
-						onInput={(event) => onCustomChange?.(normalizeGardenColor(event.currentTarget.value))}
+						onInput={(event) => {
+							nativeInputChange.current = true;
+							onCustomChange?.(normalizeGardenColor(event.currentTarget.value));
+						}}
 					/>
 				</div>
 			)}
@@ -174,7 +189,7 @@ export function GardenCreationIdentitySections({
 						selected={fields.color}
 						disabled={disabled}
 						onSelect={(value) => onChange('color', value)}
-						onCustomSelect={(value) => onChange('color', value)}
+						onCustomSelect={() => {}}
 						onCustomChange={(value) => onChange('color', value)}
 					/>
 					<button
