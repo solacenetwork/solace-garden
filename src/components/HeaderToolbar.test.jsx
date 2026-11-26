@@ -92,7 +92,7 @@ describe('HeaderToolbar', () => {
 		for (const [width, expected] of [
 			[547, ['/help', '/about', '/settings?ref=home']],
 			[546, ['/calendar', '/help', '/about', '/settings?ref=home']],
-			[160, ['/tasks', '/notes', '/wishlist', '/calendar', '/help', '/about', '/settings?ref=home']],
+			[160, ['/notes', '/tasks', '/wishlist', '/calendar', '/help', '/about', '/settings?ref=home']],
 			[547, ['/help', '/about', '/settings?ref=home']],
 		]) {
 			view.resize(width);
@@ -116,7 +116,7 @@ describe('HeaderToolbar', () => {
 			'/gardens/new', '/notes/new', '/tasks#lists-quick-text', '/wishlist#lists-quick-text',
 		]);
 		expect(actions.map(({ props }) => nodes(props.children).find(({ type }) => type === 'span').props.children)).toEqual([
-			'Create Garden', 'New Note', 'New Task', 'New Wish List Item',
+			'New Garden', 'New Note', 'New Task', 'New Wish List Item',
 		]);
 		actions[2].props.onClick({ button: 0 });
 		expect(view.quickFocus).toHaveBeenCalledOnce();

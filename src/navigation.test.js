@@ -101,7 +101,7 @@ describe('navigation presentation', () => {
 describe('shared shell navigation', () => {
 	it('defines approved primary, global tool and support IDs independently of Home', () => {
 		expect(standardPrimaryIds).toEqual(['gardens', 'journal', 'photos', 'plants']);
-		expect(globalToolIds).toEqual(['tasks', 'notes', 'wishlist', 'calendar']);
+		expect(globalToolIds).toEqual(['notes', 'tasks', 'wishlist', 'calendar']);
 		expect(moreDestinationIds).toEqual(['help', 'about', 'settings']);
 		for (const id of [...standardPrimaryIds, ...globalToolIds, ...moreDestinationIds]) {
 			expect(findRouteById(id), id).toBeDefined();
