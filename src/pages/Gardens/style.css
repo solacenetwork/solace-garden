@@ -31,12 +31,6 @@
 	gap: 0.75rem;
 }
 
-.garden-detail__identity {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
-}
-
 .garden-template-action {
 	display: grid;
 	justify-items: end;
@@ -230,11 +224,17 @@
 }
 
 .garden-card h3 {
+	display: -webkit-box;
 	margin: 0;
+	overflow: hidden;
 	font-size: 1rem;
 	font-weight: 750;
 	line-height: 1.25;
 	overflow-wrap: anywhere;
+	text-overflow: ellipsis;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	line-clamp: 3;
 }
 
 .garden-card__subtitle,
@@ -244,6 +244,15 @@
 	font-size: 0.8125rem;
 	line-height: 1.35;
 	overflow-wrap: anywhere;
+}
+
+.garden-card__subtitle {
+	display: -webkit-box;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
 }
 
 .garden-card__date {
@@ -757,6 +766,7 @@
 	height: 4.5rem;
 	padding: 0.38rem;
 	color: var(--sg-color-text);
+	font-size: 1rem;
 	background: var(--garden-identity-color);
 	border: 1px solid color-mix(in srgb, var(--garden-identity-color) 70%, var(--sg-color-text));
 	border-radius: 50%;
@@ -777,12 +787,6 @@
 .garden-identity-badge__inner > i {
 	font-size: 1.65em;
 	line-height: 1;
-}
-
-.garden-detail__identity {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
 }
 
 .garden-identity-editor {

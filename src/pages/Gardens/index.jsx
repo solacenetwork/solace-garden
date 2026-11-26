@@ -288,7 +288,7 @@ export function GardenDetailView({ state, onRetry, lifecycle = null, deletion = 
 					<PageHeader
 						title={garden.name}
 						titleId="garden-detail-title"
-						leading={<span class="garden-detail__identity"><GardenIdentityBadge icon={garden.icon} color={garden.color} /></span>}
+						leading={<GardenIdentityBadge icon={garden.icon} color={garden.color} />}
 						description={garden.subtitle}
 						actions={(
 							<>

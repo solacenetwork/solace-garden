@@ -39,7 +39,7 @@ export function Settings() {
 				title="Settings"
 				titleId="settings-title"
 				description="Choose how SOLACE Garden presents its workspace."
-				actions={<a class="settings-close" href={returnPath}><i class="bi bi-x-lg" aria-hidden="true"></i><span>Close</span></a>}
+				actions={<a class="settings-close" href={returnPath} aria-label="Close" title="Close"><i class="bi bi-x-lg" aria-hidden="true"></i><span class="d-none sm:d-inline">Close</span></a>}
 			/>
 			<div class="page-content settings-content">
 
