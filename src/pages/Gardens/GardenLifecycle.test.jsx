@@ -31,16 +31,16 @@ describe('Garden lifecycle controls', () => {
 		const select = nodes(tree).find((node) => node.type === 'select');
 		expect(nodes(select).filter((node) => node.type === 'option').map((node) => node.props.value))
 			.toEqual(['planned', 'active', 'completed', 'archived']);
-		expect(text(tree)).toContain('Close Garden');
+		expect(text(tree)).toContain('Lock Garden');
 		expect(text(tree)).toContain('Archive Garden');
-		expect(text(tree)).toContain('Close Garden after marking it Completed');
+		expect(text(tree)).toContain('Lock Garden after marking it Completed');
 		select.props.onChange({ currentTarget: { value: 'planned' } });
 		expect(onStatusChange).toHaveBeenCalledWith('planned');
 	});
 
 	it('replaces normal controls with Reopen or Unarchive for read-only Gardens', () => {
 		const closed = GardenLifecycleView({ garden: { ...garden, status: 'completed', isClosed: true }, onReopen: vi.fn() });
-		expect(text(closed)).toContain('Reopen Garden');
+		expect(text(closed)).toContain('Unlock Garden');
 		expect(nodes(closed).some((node) => node.type === 'select')).toBe(false);
 		const archived = GardenLifecycleView({ garden: { ...garden, status: 'archived', isClosed: true }, onUnarchive: vi.fn() });
 		expect(text(archived)).toContain('Unarchive Garden');
@@ -59,7 +59,7 @@ describe('Garden lifecycle controls', () => {
 		expect(textarea.props['aria-describedby']).toBe('garden-close-notes-counter');
 		expect(text(tree)).toContain('2 / 1,000 characters');
 		expect(text(tree)).toContain('read-only');
-		expect(text(tree)).toContain('reopen');
+		expect(text(tree)).toContain('unlock');
 	});
 
 	it('requires deliberate archive confirmation without a Notes editor', () => {
@@ -67,7 +67,7 @@ describe('Garden lifecycle controls', () => {
 			garden, kind: 'archive', notes: '', onCancel: vi.fn(), onConfirm: vi.fn(), busy: false,
 		});
 		expect(text(tree)).toContain('Archive Garden?');
-		expect(text(tree)).toContain('closes it');
+		expect(text(tree)).toContain('locks it');
 		expect(nodes(tree).some((node) => node.type === 'textarea')).toBe(false);
 	});
 });

@@ -274,7 +274,7 @@ describe('Garden read-only views', () => {
 		const overview = GardensOverviewView({ state: { status: 'ready', drafts: [], current: [], planned: [], previous: [] } });
 		for (const message of [
 			'No unfinished Garden drafts.', 'No active Gardens.', 'No planned Gardens.',
-			'No closed, completed, or archived Gardens.',
+			'No locked, completed, or archived Gardens.',
 		]) expect(text(overview)).toContain(message);
 		expect(nodes(overview).find((node) => node.props?.href === '/gardens/new')).toBeTruthy();
 		expect(nodes(overview).some((node) => node.type === 'form')).toBe(false);
@@ -311,7 +311,10 @@ describe('Garden read-only views', () => {
 		const resume = nodes(tree).find((node) => node.props?.href === draft.href);
 		expect(resume).toBeTruthy();
 		expect(text(resume)).toContain('Untitled Garden');
-		expect(text(resume)).toContain('Continue draft');
+		expect(text(resume)).not.toContain('Continue draft');
+		expect(resume.props['aria-label']).toBe(
+			'Continue draft: Untitled Garden'
+		);
 		expect(nodes(resume).some((node) => node.type === 'button')).toBe(false);
 		const discard = nodes(tree).find((node) => node.type === 'button');
 		expect(text(discard)).toContain('Discard Draft');

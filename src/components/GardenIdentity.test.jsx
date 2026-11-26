@@ -188,19 +188,32 @@ describe('Garden identity UI', () => {
 		expect(nodes(invalid).find((node) => node.type === 'button' && text(node).includes('Save Identity')).props.disabled).toBe(true);
 	});
 
-	it('routes Reset, Cancel, X, selections, and unified saves through their handlers', () => {
-		const onReset = vi.fn();
+	it('routes independent resets, Cancel, X, selections, and unified saves through their handlers', () => {
+		const onResetColor = vi.fn();
+		const onResetIcon = vi.fn();
 		const onCancel = vi.fn();
 		const onSubmit = vi.fn();
 		const onSelectColor = vi.fn();
-		const tree = dialog({ onReset, onCancel, onSubmit, onSelectColor });
+
+		const tree = dialog({
+			onResetColor,
+			onResetIcon,
+			onCancel,
+			onSubmit,
+			onSelectColor,
+		});
+
 		const all = nodes(tree);
-		all.find((node) => node.type === 'button' && text(node) === 'Reset').props.onClick();
+
+		all.find((node) => node.type === 'button' && text(node) === 'Reset Color').props.onClick();
+		all.find((node) => node.type === 'button' && text(node) === 'Reset Icon').props.onClick();
 		all.find((node) => node.type === 'button' && text(node) === 'Cancel').props.onClick();
 		all.find((node) => node.props?.class?.includes('garden-identity-dialog__close')).props.onClick();
 		all.find((node) => node.props?.['aria-label'] === 'Forest, #287D46').props.onClick();
 		nodes(tree).find((node) => node.type === 'form').props.onSubmit();
-		expect(onReset).toHaveBeenCalledOnce();
+
+		expect(onResetColor).toHaveBeenCalledOnce();
+		expect(onResetIcon).toHaveBeenCalledOnce();
 		expect(onCancel).toHaveBeenCalledTimes(2);
 		expect(onSelectColor).toHaveBeenCalledWith('#287D46');
 		expect(onSubmit).toHaveBeenCalledOnce();
@@ -266,7 +279,7 @@ describe('Garden identity UI', () => {
 		}
 	});
 
-	it('resets only the active tab and cancel or dismissal discards all pending changes', async () => {
+	it('resets the icon independently and cancel or dismissal discards all pending changes', async () => {
 		const onSave = vi.fn(async () => true);
 		const onDismiss = vi.fn();
 		const view = mountModal({ icon: 'flower1', color: '#BD4851', onSave, onDismiss });
@@ -276,7 +289,7 @@ describe('Garden identity UI', () => {
 		tree = view.render();
 		nodes(tree).find((node) => node.props?.['aria-label'] === 'Use tree-fill icon').props.onClick();
 		tree = view.render();
-		nodes(tree).find((node) => node.type === 'button' && text(node) === 'Reset').props.onClick();
+		nodes(tree).find((node) => node.type === 'button' && text(node) === 'Reset Icon').props.onClick();
 		await harness.tabs.get(view.colorTab).show();
 		tree = view.render();
 		const resetPreview = nodes(tree).find((node) => node.props?.['aria-label'] === 'Garden identity preview');

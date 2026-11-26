@@ -14,6 +14,24 @@ import {
 	TemplateMethodContents,
 } from './CreateGarden.jsx';
 
+vi.mock('preact/hooks', async (importOriginal) => {
+	const actual = await importOriginal();
+
+	return {
+		...actual,
+		useState(initial) {
+			return [
+				typeof initial === 'function' ? initial() : initial,
+				vi.fn(),
+			];
+		},
+		useEffect: vi.fn(),
+		useRef(initial) {
+			return { current: initial };
+		},
+	};
+});
+
 const CREATED = '2026-11-07T18:30:00.000Z';
 const TEMPLATE_ID = '550e8400-e29b-41d4-a716-446655440010';
 
@@ -171,26 +189,72 @@ describe('Quick Start Garden creation', () => {
 		return { name: 'Garden', subtitle: '', icon: null, color: null, status: 'planned', ...overrides };
 	}
 
-	it('renders the expanded fields in order with safe defaults and chooser cancellation', () => {
+	it('renders fields in order with collapsed identity sections, safe defaults and chooser cancellation', () => {
 		const tree = QuickStartGardenView({
 			values: input({ name: '' }),
 			onChange: vi.fn(),
 			onSubmit: vi.fn(),
 		});
+
 		const form = nodes(tree).find(({ type }) => type === 'form');
-		const sections = form.props.children.filter((child) => child && typeof child === 'object');
-		expect(sections.slice(0, 6).map((child) => visibleText(child).trim().split(/\s+/).slice(0, 2).join(' '))).toEqual([
-			'Garden Name', 'Subtitle (optional)', 'Icon (optional)', 'Color (optional)',
-			'Garden Image', 'Status Planned',
+		const sections = form.props.children.filter(
+			(child) => child && typeof child === 'object'
+		);
+
+		expect(sections.slice(0, 5).map((child) =>
+			visibleText(child).trim().split(/\s+/).slice(0, 2).join(' ')
+		)).toEqual([
+			'Garden Name',
+			'Subtitle (optional)',
+			'Icon (optional)',
+			'Garden Image',
+			'Status Planned',
 		]);
-		const thumbnail = nodes(form).find(({ props }) => props.id === 'garden-thumbnail');
-		expect(thumbnail.props).toMatchObject({ type: 'file', disabled: true });
-		expect(visibleText(form)).toContain('Garden image selection will be available');
-		const radios = nodes(form).filter(({ props }) => props.name === 'garden-status');
-		expect(radios.map(({ props }) => [props.value, props.checked])).toEqual([
-			['planned', true], ['active', false],
+
+		const identitySections = nodes(form).filter(
+			({ type }) => type === 'details'
+		);
+
+		expect(identitySections).toHaveLength(2);
+		expect(identitySections.map(({ props }) => props.open))
+			.toEqual([false, false]);
+
+		expect(identitySections.map((section) => {
+			const summary = nodes(section).find(
+				({ type }) => type === 'summary'
+			);
+			return visibleText(summary).trim().replace(/\s+/g, ' ');
+		})).toEqual([
+			'Icon (optional) Not set',
+			'Ring Color (optional) Not set',
 		]);
-		expect(nodes(form).find(({ type, props }) => type === 'a' && props.href === '/gardens/new')).toBeTruthy();
+
+		const thumbnail = nodes(form).find(
+			({ props }) => props.id === 'garden-thumbnail'
+		);
+		expect(thumbnail.props).toMatchObject({
+			type: 'file',
+			disabled: true,
+		});
+
+		expect(visibleText(form)).toContain(
+			'Garden image selection will be available'
+		);
+
+		const radios = nodes(form).filter(
+			({ props }) => props.name === 'garden-status'
+		);
+		expect(radios.map(({ props }) => [
+			props.value, props.checked
+		])).toEqual([
+			['planned', true],
+			['active', false],
+		]);
+
+		expect(nodes(form).find(({ type, props }) =>
+			type === 'a' && props.href === '/gardens/new'
+		)).toBeTruthy();
+
 		expect(visibleText(form)).not.toContain('Guided Wizard');
 		expect(visibleText(form)).not.toContain('Advanced Form');
 	});
