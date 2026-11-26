@@ -73,8 +73,12 @@ test('renders five organized steps, validates Continue, and supports Back and br
 
   await expect(page.getByRole('textbox', { name: 'Garden name' })).toHaveAttribute('required', '');
   await expect(page.getByRole('textbox', { name: 'Subtitle (optional)' })).toBeVisible();
-  await expect(page.getByRole('group', { name: 'Icon (optional)' })).toBeVisible();
-  await expect(page.getByRole('group', { name: 'Color (optional)' })).toBeVisible();
+  const iconDetails = page.locator('.garden-create__identity details').filter({ hasText: 'Icon (optional)' });
+  const colorDetails = page.locator('.garden-create__identity details').filter({ hasText: 'Ring Color (optional)' });
+  await expect(iconDetails.locator('summary')).toBeVisible();
+  await expect(colorDetails.locator('summary')).toBeVisible();
+  await expect(iconDetails).not.toHaveAttribute('open', '');
+  await expect(colorDetails).not.toHaveAttribute('open', '');
   await expect(page.getByLabel('Garden Image (optional)')).toBeDisabled();
 
   await page.getByRole('button', { name: 'Continue' }).click();
@@ -126,6 +130,12 @@ test('autosaves and restores Wizard fields, selections, and the current step aft
   await page.getByRole('textbox', { name: 'Garden name' }).fill('Recovered Wizard Garden');
   await waitForDraftEstablished(page);
   const draftId = new URL(page.url()).pathname.split('/').at(-1);
+  const iconDetails = page.locator('.garden-create__identity details').filter({ hasText: 'Icon (optional)' });
+  const colorDetails = page.locator('.garden-create__identity details').filter({ hasText: 'Ring Color (optional)' });
+  await iconDetails.locator('summary').click();
+  await colorDetails.locator('summary').click();
+  await expect(iconDetails).toHaveAttribute('open', '');
+  await expect(colorDetails).toHaveAttribute('open', '');
   await page.getByRole('button', { name: 'Use flower1 icon' }).click();
   await page.getByRole('button', { name: 'Forest, #287D46' }).click();
   await waitForDraftSaved(page);
@@ -154,6 +164,8 @@ test('autosaves and restores Wizard fields, selections, and the current step aft
   );
   await page.getByRole('button', { name: 'Back' }).click();
   await expect(page.getByRole('textbox', { name: 'Garden name' })).toHaveValue('Recovered Wizard Garden');
+  await expect(iconDetails).toHaveAttribute('open', '');
+  await expect(colorDetails).toHaveAttribute('open', '');
   await expect(page.getByRole('button', { name: 'Use flower1 icon' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('button', { name: 'Forest, #287D46' })).toHaveAttribute('aria-pressed', 'true');
 

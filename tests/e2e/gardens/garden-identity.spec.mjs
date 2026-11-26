@@ -61,7 +61,7 @@ async function openGardenEditor(page, targetGarden = garden, viewport = null) {
   await expect(page.getByRole('heading', { name: `Edit ${targetGarden.name}` })).toBeVisible();
 }
 
-async function openIdentityDialog(page, control = 'Choose Color') {
+async function openIdentityDialog(page, control = 'Choose Ring Color') {
   const dialog = page.locator('dialog.garden-identity-dialog');
   await dialog.evaluate(element => {
     element.__gardenIdentityShownForTest = false;
@@ -143,7 +143,7 @@ async function dismissIdentityDialog(dialog, action) {
 test('Color and Icon controls open the identity dialog on their matching tab', async ({ page }) => {
   await openGardenEditor(page);
 
-  let dialog = await openIdentityDialog(page, 'Choose Color');
+  let dialog = await openIdentityDialog(page, 'Choose Ring Color');
   await expect(dialog.locator('#garden-identity-color-tab')).toHaveClass(/\bactive\b/);
   await expect(dialog.locator('#garden-identity-color-panel')).toHaveClass(/\bactive\b/);
   await dismissIdentityDialog(dialog, () => dialog.getByRole('button', { name: 'Cancel', exact: true }).click());
@@ -204,7 +204,7 @@ test('Cancel from default values discards both selections and preserves null sto
   await dismissIdentityDialog(dialog, () => dialog.getByRole('button', { name: 'Cancel', exact: true }).click());
   await expectIdentity(page, { color: '#6B7280', icon: 'leaf-fill' });
 
-  dialog = await openIdentityDialog(page, 'Choose Color');
+  dialog = await openIdentityDialog(page, 'Choose Ring Color');
   await expectDialogPreview(dialog, { color: '#6B7280', icon: 'leaf-fill' });
   await expect(dialog.getByRole('button', { name: 'Gold, #C99A27' })).toHaveAttribute('aria-pressed', 'false');
   await selectTab(dialog, 'icon');
@@ -225,7 +225,7 @@ test('Cancel and X dismissal preserve existing customization', async ({ page }) 
   await dismissIdentityDialog(dialog, () => dialog.getByRole('button', { name: 'Cancel', exact: true }).click());
   await expectIdentity(page, { color: '#12AB34', icon: 'alarm' });
 
-  dialog = await openIdentityDialog(page, 'Choose Color');
+  dialog = await openIdentityDialog(page, 'Choose Ring Color');
   await dialog.getByRole('button', { name: 'Teal, #308F91' }).click();
   await dismissIdentityDialog(dialog, () => dialog.getByRole('button', { name: 'Cancel Garden identity changes' }).click());
 
@@ -288,20 +288,21 @@ test('Backdrop dismissal preserves the saved Garden Identity', async ({ page }, 
   await expect(await storedIdentity(page, customGarden)).toEqual({ color: '#12AB34', icon: 'alarm' });
 });
 
-test('Reset affects only the active pending field and Cancel commits neither reset nor selection', async ({ page }) => {
+test('Independent Reset Color and Reset Icon actions and Cancel discard pending selections', async ({ page }) => {
   await openGardenEditor(page);
   const dialog = await openIdentityDialog(page);
   await dialog.getByRole('button', { name: 'Gold, #C99A27' }).click();
   await selectTab(dialog, 'icon');
   await dialog.getByRole('button', { name: 'Use flower1 icon' }).click();
   await selectTab(dialog, 'color');
-  await dialog.getByRole('button', { name: 'Reset', exact: true }).click();
-  await expect(dialog.getByRole('button', { name: 'Reset', exact: true })).toBeEnabled();
+  await dialog.getByRole('button', { name: 'Reset Color', exact: true }).click();
+  await expect(dialog.getByRole('button', { name: 'Reset Color', exact: true })).toBeEnabled();
   await expect(dialog.getByRole('button', { name: 'Gold, #C99A27' })).toHaveAttribute('aria-pressed', 'false');
   await expectDialogPreview(dialog, { color: '#6B7280', icon: 'flower1' });
 
   await selectTab(dialog, 'icon');
-  await dialog.getByRole('button', { name: 'Reset', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Reset Icon', exact: true }).click();
+  await expect(dialog.getByRole('button', { name: 'Reset Icon', exact: true })).toBeEnabled();
   await expectDialogPreview(dialog, { color: '#6B7280', icon: 'leaf-fill' });
   await dismissIdentityDialog(dialog, () => dialog.getByRole('button', { name: 'Cancel', exact: true }).click());
 
@@ -310,7 +311,7 @@ test('Reset affects only the active pending field and Cancel commits neither res
   await expect(await storedIdentity(page, garden)).toEqual({ color: '#287D46', icon: 'tree-fill' });
 });
 
-test('Invalid custom icon and color prevent Save Identity', async ({ page }) => {
+test('Invalid custom icon validation and successful native custom color persistence', async ({ page }) => {
   await openGardenEditor(page);
   const dialog = await openIdentityDialog(page, 'Choose Icon');
   await dialog.locator('#garden-identity-icon-panel .garden-identity-custom').click();
@@ -323,11 +324,25 @@ test('Invalid custom icon and color prevent Save Identity', async ({ page }) => 
 
   await selectTab(dialog, 'color');
   await dialog.locator('#garden-identity-color-panel .garden-identity-custom').click();
-  const colorInput = dialog.locator('#garden-identity-custom-color');
-  await colorInput.fill('#12');
-  await expect(colorInput).toHaveClass(/is-invalid/);
-  await expect(dialog.getByText('Enter a six-digit hexadecimal color')).toBeVisible();
+  const colorInput = dialog.locator('#garden-custom-ring-color');
+  await expect(colorInput).toBeVisible();
+  await expect(colorInput).toHaveAttribute('type', 'color');
+  await expect(colorInput).toHaveValue('#287d46');
+  await colorInput.fill('#12ab34');
+  const previewBadge = dialog.locator('.garden-identity-preview .garden-identity-badge');
+  await expect.poll(() => previewBadge.evaluate(element => (
+    getComputedStyle(element).getPropertyValue('--garden-identity-color').trim()
+  ))).toBe('#12AB34');
   await expect(save).toBeDisabled();
+  await selectTab(dialog, 'icon');
+  await iconInput.fill('flower1');
+  await expect(iconInput).not.toHaveClass(/is-invalid/);
+  await expect(save).toBeEnabled();
+  await saveIdentity(dialog);
+  await expectIdentity(page, { color: '#12AB34', icon: 'flower1' });
+  await page.reload();
+  await expectIdentity(page, { color: '#12AB34', icon: 'flower1' });
+  await expect(await storedIdentity(page, garden)).toEqual({ color: '#12AB34', icon: 'flower1' });
 });
 
 test('Saving identity does not save unsaved Garden name or description edits', async ({ page }) => {

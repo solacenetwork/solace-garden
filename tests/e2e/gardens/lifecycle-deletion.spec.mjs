@@ -83,7 +83,7 @@ async function expandListsAccordion(page, kind) {
   await expect(details).toHaveJSProperty('open', true);
 }
 
-test('Garden status changes persist; Closed and Archived Gardens require explicit reopening', async ({ page }) => {
+test('Garden status changes persist; Locked and Archived Gardens require explicit unlocking', async ({ page }) => {
   const gardenId = gardens.find(({ name }) => name === 'Fruit trees')?.id;
   expect(gardenId).toBeTruthy();
   const gardenPath = `/gardens/${gardenId}`;
@@ -105,22 +105,22 @@ test('Garden status changes persist; Closed and Archived Gardens require explici
   await expect(page.locator('.garden-facts').getByText('Completed', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Edit Garden' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Close Garden' }).click();
-  const closeDialog = page.getByRole('dialog', { name: 'Close Garden?' });
+  await page.getByRole('button', { name: 'Lock Garden' }).click();
+  const closeDialog = page.getByRole('dialog', { name: 'Lock Garden?' });
   await expect(closeDialog).toBeVisible();
-  await closeDialog.getByRole('button', { name: 'Close Garden' }).click();
+  await closeDialog.getByRole('button', { name: 'Lock Garden' }).click();
   await expect(page.locator('.garden-facts').getByText('Yes', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Edit Garden' })).toHaveCount(0);
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(page.getByText('This Garden is closed and read-only. Reopening keeps its current status.')).toBeVisible();
+  await expect(page.getByText('This Garden is locked and read-only. Unlocking keeps its current status.')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Edit Garden' })).toHaveCount(0);
   await page.goto(`${gardenPath}/edit`);
-  await expect(page.getByRole('status').filter({ hasText: 'This Garden is read-only because it is closed.' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'This Garden is read-only because it is locked.' })).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Garden name' })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Save Changes' })).toHaveCount(0);
 
   await page.goto(gardenPath);
-  await page.getByRole('button', { name: 'Reopen Garden' }).click();
+  await page.getByRole('button', { name: 'Unlock Garden' }).click();
   await expect(page.locator('.garden-facts').getByText('No', { exact: true })).toBeVisible();
   await expect(page.locator('.garden-facts').getByText('Completed', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Edit Garden' })).toBeVisible();
@@ -138,7 +138,7 @@ test('Garden status changes persist; Closed and Archived Gardens require explici
   await expect(page.getByText('This Garden is archived and read-only.')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Edit Garden' })).toHaveCount(0);
   await page.goto(`${gardenPath}/edit`);
-  await expect(page.getByRole('status').filter({ hasText: 'This Garden is read-only because it is closed.' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'This Garden is read-only because it is locked.' })).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Garden name' })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Save Changes' })).toHaveCount(0);
 
