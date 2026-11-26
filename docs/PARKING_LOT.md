@@ -11,6 +11,14 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future improvement idea: Home dashboard Tasks and Wish List previews
+
+**Status (November 25, 2026):** Parked for future review; no assigned implementation milestone. The developer observed that the read-only Home dashboard Tasks and Wish List widgets display checkbox/radio-like indicators, checked states and strikethrough text, creating the impression that items can be operated directly. They are currently previews, not interactive editors.
+
+Near-term presentation alternatives to evaluate: (1) replace input-like indicators with ordinary list bullets so the preview does not imply an available toggle; (2) make each preview row a genuine accessible link to `/tasks` or `/wishlist`, respectively, so clicking/tapping the item opens its established workspace. These alternatives may be combined; preserve meaningful completion information (including strikethrough if useful), avoid nested interactive controls, and keep keyboard focus and link affordances clear. No specific item deep-link contract or immediate implementation is approved.
+
+**V2 candidate:** Explore genuinely interactive dashboard widgets allowing completion/reopening of Tasks and purchased/unpurchased Wish List items directly from Home. Reuse authoritative list services, validation, persistence and operation guards; refresh the preview consistently after successful changes and provide accessible feedback on failure. Do not create a second record type, duplicate list editor or widget framework for V1. Coordinate later with the separate configurable dashboard widget idea.
+
 ## Future improvement idea: Navigation on short landscape viewports
 
 **Status (November 25, 2026):** Parked; no assigned milestone and not a Step 10 or Step 9 blocker. During Step 10A manual acceptance, a phone in landscape orientation with Standard Mode manually selected displayed only one or two workspace destinations at a time in the left navigation drawer because its header and footer consumed much of the available height. Automatic/Simple Mode already provides an alternative for small screens; the developer explicitly chose not to change Standard Mode for this edge case now.
