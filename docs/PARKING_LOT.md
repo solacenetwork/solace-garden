@@ -21,9 +21,8 @@ After the current A–F implementation work, we could do a documentation cleanup
 
 ## Future improvement idea: Navigation on short landscape viewports
 
-**Status (November 25, 2026):** Parked; no assigned milestone and not a Step 10 or Step 9 blocker. During Step 10A manual acceptance, a phone in landscape orientation with Standard Mode manually selected displayed only one or two workspace destinations at a time in the left navigation drawer because its header and footer consumed much of the available height. Automatic/Simple Mode already provides an alternative for small screens; the developer explicitly chose not to change Standard Mode for this edge case now.
+Moved to [UI_ISSUES.md](UI_ISSUES.md), UI-014. Optional review only; no assigned implementation milestone or release blocker.
 
-Future option: investigate a height-sensitive fullscreen Bootstrap Dialog presentation (rather than orientation alone), possibly with a multi-column navigation layout and a single accessible close control. Reuse navigation definitions and focus/dismissal behavior; verify available viewport height, safe areas, scrolling, keyboard and touch access, and breakpoint transitions. Reference: https://getbootstrap.com/docs/6.0/components/dialog/#fullscreen-dialog. No threshold or implementation is approved. Preserve the current drawer until separately scoped.
 
 ## V2 candidate: Expanded and contextual list-item creation
 
@@ -391,7 +390,7 @@ This section is retained as rationale for the redesign, not as a second list of 
 
 ## Future UI Review (after 8F): Long Garden names and card layout
 
-**Status:** Browser-testing observation from 8E5 on November 7, 2026; deferred UX/data-contract decision, **not an 8E5 blocker or an approved implementation change**. All seven 8E5 manual acceptance checks were reported as passing. A deliberately verbose Garden name, including the opening of *A Tale of Two Cities* (“It was the best of times. It was the worst of times”), demonstrated how a long title expands a Garden card and makes the grid uneven. The record remains usable; the concern is presentation and future-proofing.
+**Status:** Presentation issue resolved by Step 10A.1 (see [UI_ISSUES.md](UI_ISSUES.md), UI-015). The historical optional name-length/data-contract proposal below remains unapproved and is not a V1 requirement. All seven 8E5 manual acceptance checks were reported as passing. A deliberately verbose Garden name, including the opening of *A Tale of Two Cities* (“It was the best of times. It was the worst of times”), demonstrated how a long title expands a Garden card and makes the grid uneven. The record remains usable; the concern is presentation and future-proofing.
 
 **Proposed approach to evaluate in the post-8F UI Review:**
 - Consider a **generous maximum Garden name length around 200 characters** (preferred over the earlier 120-character suggestion; final number not yet committed). Support descriptive or whimsical names rather than imposing an unnecessarily short limit.
@@ -400,7 +399,7 @@ This section is retained as rationale for the redesign, not as a second list of 
 - On the **Garden detail page**, allow the full wordy Garden name to wrap and remain visible; no display truncation required there.
 - Test long words, spaces, mobile widths, keyboard/screen-reader accessibility, and the availability of the full Garden name from a card (e.g., accessible label or detail page).
 
-**Do not implement during 8E5; review alongside the larger Gardens hub/card redesign after 8F.**
+**Historical proposal only.** Do not reopen the accepted visual clamp or introduce a name-length limit without a separate explicit decision.
 
 ## Future UI Tweaks pass (after 8F): Remaining Gardens hub alternatives
 
