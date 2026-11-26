@@ -24,6 +24,15 @@ Confirmed issues with an agreed correction.
 **Related:** UI-002; [redesign scroll/focus decision](UI_REDESIGN.md).  
 **Priority:** Nonblocking
 
+### UI-016 — Search feedback cannot be dismissed after whitespace-only submission
+
+**Target milestone:** 8M — Initial Search  
+**Location:** Header Search placeholder  
+**Observed:** Entering a nonempty query and pressing Go displays an X that clears the query and the “Search isn't available yet.” message. Submitting whitespace only displays the message without a clear control, leaving no apparent way to dismiss it.  
+**Expected:** During 8M, handle empty/whitespace-only input deliberately and ensure any displayed feedback has an appropriate dismissal or reset path. Verify keyboard interaction and nonempty query clearing. No particular implementation is approved.  
+**Related:** Step 10B manual acceptance, November 25, 2026.  
+**Priority:** Nonblocking; explicitly deferred to 8M.
+
 ## To Investigate	
 Reproducible issues where the cause or solution is unknown.
 
@@ -170,5 +179,5 @@ Completed corrections with commit references and verification results.
 **Location:** About and package author metadata  
 **Observed:** The previous URL pointed to solacenetwork.com, which the developer does not own.  
 **Expected:** Link to https://solace.network. The developer also owns solacenetwork.org.  
-**Related:** Resolved in [a08002b](https://github.com/solacenetwork/solace-garden/commit/a08002b87f42d71701127eb28d13518215f2e08e); About link, author metadata and corresponding Vitest expectation corrected. Package and lockfile bumped to 0.0.3-alpha. Source changes reviewed; post-change test execution not yet reported.  
-**Priority:** Resolved in code; verify during next acceptance run.
+**Related:** Resolved in [a08002b](https://github.com/solacenetwork/solace-garden/commit/a08002b87f42d71701127eb28d13518215f2e08e); About link, author metadata and corresponding Vitest expectation corrected. Package and lockfile bumped to 0.0.3-alpha. Source changes reviewed; developer confirmed manual About link acceptance; post-change automated results not separately reported.  
+**Priority:** Resolved; manual verification passed.
