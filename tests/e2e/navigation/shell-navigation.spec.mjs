@@ -91,6 +91,8 @@ test('Simple navigation cards remain usable on desktop and mobile; logo and brow
   await expect(keyboardPage).toHaveURL('/');
   await expect(keyboardPage.getByRole('heading', { name: 'Where would you like to go?', level: 1 })).toBeVisible();
   await keyboardPage.keyboard.press('Tab');
+  await expect(keyboardPage.getByRole('button', { name: 'Add New' })).toBeFocused();
+  await keyboardPage.keyboard.press('Tab');
   await expect(keyboardPage.getByRole('button', { name: 'Search' })).toBeFocused();
 });
 
@@ -233,7 +235,9 @@ test('Standard phone and medium navigation Drawer stays in the viewport and rest
       () => drawer.evaluate(element => getComputedStyle(element).transform),
       { message: 'Navigation Drawer should finish its opening transition' },
     ).toBe('none');
-    await expect(drawer.getByRole('button', { name: 'Close Navigation' })).toBeFocused();
+    await expect(
+      drawer.locator('.app-drawer__icon-close')
+    ).toBeFocused();
     const drawerBounds = await drawer.boundingBox();
     expect(drawerBounds).not.toBeNull();
     expect(drawerBounds.x).toBeGreaterThanOrEqual(0);
