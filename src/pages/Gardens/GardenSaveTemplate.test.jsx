@@ -113,6 +113,7 @@ describe('Save Garden as Template UI', () => {
 		});
 		const input = nodes(tree).find((node) => node.type === 'input');
 		expect(input.props.value).toBe('Keep this name');
+		expect(input.props.class).toContain('is-invalid');
 		expect(input.props['aria-invalid']).toBe('true');
 		expect(text(tree)).toContain('Enter a Template name.');
 		expect(text(tree)).toContain('Your name was kept');

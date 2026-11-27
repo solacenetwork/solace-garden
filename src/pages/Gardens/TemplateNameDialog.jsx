@@ -19,7 +19,7 @@ export function SaveTemplateDialog({
 					<p>{description ?? <>Create a reusable snapshot of <strong>{garden.name}</strong>. The Garden will not be changed.</>}</p>
 					<div class="form-field">
 						<label class="form-label" for="garden-template-name">Template name</label>
-						<input ref={inputRef} class="form-control" id="garden-template-name" type="text" autoComplete="off" value={name} disabled={busy} aria-invalid={nameError ? 'true' : undefined} aria-describedby={describedBy} onInput={(event) => onNameChange(event.currentTarget.value)} />
+						<input ref={inputRef} class={`form-control${nameError ? ' is-invalid' : ''}`} id="garden-template-name" type="text" autoComplete="off" value={name} disabled={busy} aria-invalid={nameError ? 'true' : undefined} aria-describedby={describedBy} onInput={(event) => onNameChange(event.currentTarget.value)} />
 						{nameError && <p class="garden-template-dialog__error" id="template-name-error" role="alert">{nameError}</p>}
 					</div>
 					{saveError && <p class="garden-template-dialog__error" id="template-save-error" role="alert">{saveError}</p>}

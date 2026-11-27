@@ -595,9 +595,9 @@
 .garden-create__error {
 	display: flex;
 	padding: 0.9rem 1rem;
-	color: #7a4c14;
-	background: #fff8e6;
-	border: 1px solid #ead8a5;
+	color: var(--bs-danger-fg);
+	background: var(--bs-danger-bg-subtle);
+	border: 1px solid var(--bs-danger-border);
 	border-radius: 0.75rem;
 	align-items: flex-start;
 	gap: 0.65rem;

@@ -29,8 +29,12 @@ describe('Garden lifecycle controls', () => {
 			closeOnComplete: false, onCloseOnCompleteChange: vi.fn(),
 		});
 		const select = nodes(tree).find((node) => node.type === 'select');
+		const checkbox = nodes(tree).find((node) => node.props?.id === 'garden-complete-and-close');
 		expect(nodes(select).filter((node) => node.type === 'option').map((node) => node.props.value))
 			.toEqual(['planned', 'active', 'completed', 'archived']);
+		expect(select.props.class).toBe('form-control');
+		expect(checkbox.props.class).toBe('check');
+		expect(nodes(tree).find((node) => node.props?.class === 'form-field')).toBeDefined();
 		expect(text(tree)).toContain('Lock Garden');
 		expect(text(tree)).toContain('Archive Garden');
 		expect(text(tree)).toContain('Lock Garden after marking it Completed');

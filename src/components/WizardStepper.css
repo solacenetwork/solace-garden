@@ -26,7 +26,7 @@
 .wizard-stepper__state {
 	font-size: 0.75rem;
 	font-weight: 500;
-	color: var(--sg-color-text-muted, var(--fg-muted));
+	color: var(--sg-color-text-muted, var(--bs-fg-3));
 }
 
 .wizard-stepper__item--active .wizard-stepper__state {
@@ -42,10 +42,10 @@
 .wizard-stepper__empty {
 	padding: 0.75rem;
 	margin: 0;
-	color: var(--sg-color-text-muted, var(--fg-muted));
+	color: var(--sg-color-text-muted, var(--bs-fg-3));
 	background: var(--sg-color-background);
-	border: 1px solid var(--sg-color-border, var(--border-color));
-	border-radius: var(--sg-radius-card, var(--radius-5));
+	border: 1px solid var(--sg-color-border, var(--bs-border-color));
+	border-radius: var(--sg-radius-card, var(--bs-radius-5));
 }
 
 @media (prefers-reduced-motion: reduce) {

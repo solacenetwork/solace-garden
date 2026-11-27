@@ -47,7 +47,7 @@ export function GardenLifecycleView({
 			<div class="garden-lifecycle__status">
 				<label for="garden-lifecycle-status">Status</label>
 				<select
-					class="form-select"
+					class="form-control"
 					id="garden-lifecycle-status"
 					value={selectedStatus}
 					disabled={busy}
@@ -66,16 +66,16 @@ export function GardenLifecycleView({
 				</button>
 			</div>
 			{selectedStatus === 'completed' && garden.status !== 'completed' && (
-				<div class="form-check">
+				<div class="form-field">
 					<input
-						class="form-check-input"
+						class="check"
 						type="checkbox"
 						id="garden-complete-and-close"
 						checked={closeOnComplete}
 						disabled={busy}
 						onChange={(event) => onCloseOnCompleteChange(event.currentTarget.checked)}
 					/>
-					<label class="form-check-label" for="garden-complete-and-close">Lock Garden after marking it Completed</label>
+					<label for="garden-complete-and-close">Lock Garden after marking it Completed</label>
 				</div>
 			)}
 			<div class="garden-lifecycle__actions">

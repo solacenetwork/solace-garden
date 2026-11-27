@@ -32,7 +32,7 @@ These focused conventions capture patterns demonstrated by the current shell. Th
 
 **Approved visual indicator convention:** On Garden cards, lists, and record summaries, **show a lock icon only when `isClosed === true`**; an unlocked Garden is the normal state and needs no icon. Do not fill every record with an unlocked icon. When a lock is shown, provide accessible text/label (e.g., “Locked” or “Read-only”) rather than relying on the icon alone. Apply this convention when those surfaces are next refined; it does not authorize immediate UI changes in 8A7-C.
 
-## Visual palette and link/button states (design baseline; Step 10 review pending)
+## Visual palette and link/button states
 
 **Revised execution and scope (approved November 25, 2026):** Execute Step 10 before Step 9, retaining both identifiers. The accepted 8B9 baseline is 722/722 Vitest, 57/57 Playwright, production build and desktop installed-PWA update/offline acceptance. Step 10 is practical visual standardization, not final theme design: prioritize a reusable `PageHeader` and stable shared alignment anchor (breadcrumbs, eyebrow, H1, description, optional actions) independent of form/card widths. Reserve most remaining Copilot capacity for this component and adoption; handle smaller CSS/wording corrections separately. Use the pinned Bootstrap 6 alpha.2 typography baseline (system fonts, heading hierarchy, spacing and line heights); align existing `--sg-*` and relevant `--bs-*` semantic roles only as needed for consistent buttons, links, focus, invalid, warning and disabled states. Preserve approved small UI corrections, accessible focus, responsive behavior and existing data contracts. Defer custom font/CDN trials, Original Garden/Natural Earth palette comparisons, comprehensive stylesheet reorganization and broader theme readiness to **8T**; actual selectable themes/dark mode remain V2. Step 9 is the final integrated responsive/regression gate after Step 10, then 8G–8S, 8T final integration/polish, and 8U final readiness. Focused tests and builds still accompany implementation slices. Do not expand scope into new features or chase visual perfection.
 
@@ -40,7 +40,9 @@ These focused conventions capture patterns demonstrated by the current shell. Th
 
 **Historical research below:** Earlier candidate-palette and typography trial plans are retained for 8T, not required in Step 10.
 
-The current implementation's baseline tokens are defined in `src/style.css`: warm background `--sg-color-background: #f7f5ee`, white surface `#ffffff`, botanical primary `--sg-color-primary: #486747`, stronger green `--sg-color-primary-strong: #365235`, soft green `#e5ede2`, dark text `#29342b`, muted text `#647066`, border `#d7ddd3`, and focus `#8eab78`. **The stylesheet is authoritative for implemented values**, not this list.
+The current implementation's baseline tokens are defined in `src/style.css`: warm background `--sg-color-background: #f7f5ee`, white surface `#ffffff`, botanical primary `--sg-color-primary: #486747`, stronger green `--sg-color-primary-strong: #365235`, soft green `#e5ede2`, dark text `#29342b`, muted text `#647066`, border `#d7ddd3`, focus `#8eab78`, danger `#842029`, and the retained warning roles. **The stylesheet is authoritative for implemented values**, not this list.
+
+**Implemented shared convention (November 26, 2026):** `src/style.css` bridges the existing Garden roles into the pinned Bootstrap 6 alpha.2 background, foreground, border, primary, success, danger, warning, information, link, focus, and default `--bs-theme-*` variables. Use Bootstrap's `btn-solid`, `btn-outline`, and `btn-text` variants for primary, alternative, and low-emphasis actions; add `theme-danger` for destructive actions and `theme-primary` where an explicit primary theme improves markup clarity. Unthemed outline/text controls inherit the Garden primary theme. Preserve native disabled/busy behavior and Bootstrap's derived hover/active states rather than creating page-specific button palettes.
 
 ### Preserved palette candidates (not yet selected for V1)
 
@@ -71,7 +73,7 @@ These are the **recorded candidate swatches**, not a complete mapping of semanti
 
 **Deferred 8T selection process:** Show each candidate in representative live UI contexts, particularly primary/secondary/destructive buttons, links and breadcrumb hover, sidebar active/hover states, headings, cards, and forms. Test contrast, focus visibility, disabled states, and both mobile and desktop layouts. Compare those results with the currently implemented CSS palette. Make the final decision **after visual review in the browser**; then update semantic tokens and document the chosen convention.
 
-**Shared interaction convention to validate in Step 10:** Text links, breadcrumb links, navigation links, and button-like links should draw from a coherent, accessible set of semantic colors and states (default, hover, focus-visible, active/current, disabled). Breadcrumb parent links must have a clearly perceptible hover state; the current very pale gray hover is a usability issue. An inactive/current breadcrumb item is not an interactive link. Preserve meaningful distinction between navigation links and action buttons, and do not require every control to use identical styling. Audit contrast in ordinary and hover states, and use more than color alone for state. Prefer shared semantic tokens/global rules over page-specific hardcoded hover colors after visual approval.
+**Shared interaction convention:** Text links, breadcrumb links, navigation links, and button-like links draw from the shared Garden semantic roles for default, hover, focus-visible, active/current, and disabled states. Breadcrumb parent links use a perceptible soft-green hover surface; the current breadcrumb remains noninteractive text. Keyboard focus retains a visible outline, so interaction state does not rely on color alone. Preserve meaningful distinction between navigation links and action buttons, and do not require every control to use identical styling.
 
 **Layout alignment to validate in Step 10:** Page-level breadcrumbs, eyebrow, title, and description should share a stable horizontal alignment anchor while forms and card grids may use different widths. A reusable page-header pattern can help, but must be placed in a shared page layout rather than inside differently centered content containers. See `docs/UI_REDESIGN.md` Step 10 for the observed Create Garden/Quick Start jump.
 
@@ -79,7 +81,7 @@ These are the **recorded candidate swatches**, not a complete mapping of semanti
 
 **Status:** No final application-wide typography design has been selected. Prioritize functional development; use Bootstrap baseline in Step 10; evaluate custom font treatment in 8T.
 
-**Current implementation:** `src/style.css` declares `font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`, with root `line-height: 1.5` and `font-weight: 400`. This is a font *preference stack*, not evidence that Inter is bundled or loaded; the visible face may fall back to the user's system sans-serif. The CSS remains authoritative for implemented typography. Bootstrap 6 typography conventions and utilities are the preferred baseline for semantic headings, text sizing, weights, and spacing: [Bootstrap 6 typography](https://getbootstrap.com/docs/6.0/content/typography/).
+**Current implementation:** `src/style.css` uses the pinned Bootstrap distribution's `--bs-body-font-family` system stack, with root `line-height: 1.5` and `font-weight: 400`. No custom application font is bundled or remotely loaded. Bootstrap 6 typography conventions and utilities are the baseline for semantic headings, text sizing, weights, and spacing: [Bootstrap 6 typography](https://getbootstrap.com/docs/6.0/content/typography/).
 
 **Branding reference:** The existing SOLACE Garden SVG wordmark has an organic, serif-like visual character. Its letterforms are embedded as SVG paths, so it does not establish an application font family or require a matching font to be installed. Consider whether a complementary serif for selected headings would create a warmer gardening/journal feel while leaving body text, controls, and dense forms in a highly legible sans-serif. This is an **option to test**, not an approved font pairing.
 
@@ -138,6 +140,7 @@ These are the **recorded candidate swatches**, not a complete mapping of semanti
 - Use native links for navigation and native buttons for actions. Do not add `tabindex` to elements that are already interactive.
 - Icon-only controls need an accessible name through `aria-label` or visually hidden text. The shared `.icon-control` convention provides a 48 × 48 CSS-pixel target; the visible icon remains `aria-hidden="true"`.
 - All custom interactive controls use a visible `:focus-visible` outline based on `--sg-color-focus`. Do not remove native focus behavior unless an equivalent visible treatment replaces it.
+- Invalid Bootstrap form controls retain a visible danger-colored border and focus ring. Page-level focus rules must exclude `.is-invalid` controls rather than overriding that semantic error state. Keep feedback associated with its control and separated beneath it.
 - Bootstrap Icons are the application icon set. State and meaning must also be communicated through text or accessible naming rather than color or icon shape alone.
 
 ## Dialogs and fullscreen editors
@@ -158,6 +161,7 @@ These are the **recorded candidate swatches**, not a complete mapping of semanti
 - Empty states explain what is absent and offer the next meaningful action when one exists.
 - Loading states identify the content being loaded and use `aria-live="polite"` only when an announcement is helpful; avoid indefinite spinners without text.
 - Recoverable errors keep the user's input, state what failed in plain language, and provide a retry action where meaningful. Validation errors are associated with their fields.
+- Contextual recovery information uses a restrained semantic surface plus a text explanation and non-color icon cue; a successful recovery is not presented as a destructive error.
 - Create a shared feedback component only after a real data-backed page demonstrates repeated empty, loading, or error markup.
 
 ## Contextual Drawer

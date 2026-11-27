@@ -95,7 +95,7 @@
 .settings-storage-warning {
 	display: flex;
 	margin-block: 1rem 0;
-	color: #7a4c14;
+	color: var(--sg-color-warning);
 	align-items: flex-start;
 	gap: 0.6rem;
 }

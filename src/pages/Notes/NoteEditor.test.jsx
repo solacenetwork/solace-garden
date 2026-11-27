@@ -174,7 +174,11 @@ describe('Note editor draft lifecycle', () => {
 		};
 		const view = editor({ draft, gardens: [] });
 		const tree = view.render();
+		const recovery = nodes(tree).find((node) => node.props?.class?.includes('note-editor__association-recovery'));
 		expect(nodes(tree).find((node) => node.type === GardenAssociationSelector).props.value).toBeNull();
+		expect(recovery.props.role).toBe('status');
+		expect(recovery.props.class).toContain('notes-message--info');
+		expect(nodes(recovery).some((node) => node.type === 'i' && node.props.class === 'bi bi-info-circle')).toBe(true);
 		expect(nodeText(tree)).toContain('The Garden previously associated with this draft no longer exists. You can select another Garden or leave this Note unlinked.');
 
 		await runEffects();

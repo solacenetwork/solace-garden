@@ -48,6 +48,10 @@
 	overflow-wrap: anywhere;
 }
 
+.lists-quick-add > .invalid-feedback {
+	margin-block-start: 0.5rem;
+}
+
 .lists-message {
 	display: flex;
 	padding: 0.85rem 1rem;
@@ -230,8 +234,8 @@
 
 .lists-page button:focus-visible,
 .lists-page a:focus-visible,
-.lists-page input:focus-visible,
-.lists-page textarea:focus-visible {
+.lists-page input:not(.is-invalid):focus-visible,
+.lists-page textarea:not(.is-invalid):focus-visible {
 	outline: 3px solid var(--sg-color-focus);
 	outline-offset: 2px;
 }
