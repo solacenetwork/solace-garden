@@ -190,6 +190,15 @@ Optional UI-specific improvements to otherwise functional UI. Non-UI stuff belon
 **Related:** [TESTING_NOTES.md](TESTING_NOTES.md), 10C.  
 **Priority:** Nonblocking enhancement
 
+### UI-020 — PageHeader action grouping and responsive layout
+
+**Target milestone:** 8T  
+**Location:** Shared PageHeader; observed on Gardens Hub desktop during 10D review  
+**Observed:** Locations, Templates and Create Garden stack vertically at the right of the heading despite ample apparent horizontal space. The action cluster increases header height and pushes content down. The developer accepted the new button/form visual treatment; action grouping is a nonblocking refinement.  
+**Expected:** Reassess shared PageHeader action allocation, grouping and responsive wrapping across workspaces before final polish. Prefer compact, coherent grouping where space permits, with intentional stacking on narrow screens. Preserve primary/secondary hierarchy, long-title wrapping, the shared alignment anchor, accessible focus/order and touch targets; do not force a single row or assume a specific CSS fix before inspection.  
+**Related:** [UI_REDESIGN.md](UI_REDESIGN.md), 10A/10A.1 and 10D; developer desktop screenshot November 26, 2026.  
+**Priority:** Nonblocking enhancement; no implementation approved in 10D or Step 9.
+
 ## Resolved	
 Completed corrections with commit references and verification results.
 
