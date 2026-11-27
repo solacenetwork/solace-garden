@@ -11,6 +11,20 @@ After the current A–F implementation work, we could do a documentation cleanup
 4. Avoid treating tentative version numbers as commitments.
 
 
+## Future prototype: On-demand Simple Mode workspace launcher drawer
+
+**Status (November 26, 2026):** Developer approved parking this idea after discussing an independent Grok design review. Prototype candidate only; no assigned implementation milestone or approved production change.
+
+**Problem to explore:** Simple Mode's large Home navigation cards are no longer visible after entering a workspace. An on-demand launcher could make workspace discovery and switching easier without requiring a return to Home or permanently occupying scarce vertical screen space.
+
+- On narrow screens, explore an accessible workspace-launcher trigger in the Simple Mode header that opens a bottom drawer containing the existing Simple Mode navigation cards. The Calendar information button and its bottom drawer are an existing interaction reference.
+- Reuse `AppDrawer`, shared route metadata and the existing card presentation where practical; retain all seven current destinations and the featured Gardens card rather than arbitrarily reducing the set. Preserve the Home launcher and Standard Mode navigation.
+- On wider screens with manually selected Simple Mode, consider a side drawer instead of a bottom drawer. Exact trigger icon, placement, responsive breakpoint and drawer layout remain open.
+- Prototype before committing to production; compare discoverability, touch targets, available viewport height, safe areas, virtual keyboard, existing bottom-drawer interactions, focus restoration, Escape/backdrop dismissal, reduced motion, and navigation with recoverable drafts. Avoid stacked overlays and preserve existing navigation and data integrity.
+- A persistent bottom tab bar was considered in the external review, but is not the preferred direction for this experiment because it consumes vertical space and requires additional navigation prioritization and overlay coordination.
+
+**Scope boundary:** No change to Step 10D, Step 9, current Simple/Standard behavior, route contracts, or storage. Revisit after current feature work or when a separate prototype is explicitly authorized.
+
 ## Future improvement idea: Home dashboard Tasks and Wish List previews
 
 **Status (November 25, 2026):** V1 read-only presentation correction promoted to Step 10B; genuine interactive widgets remain a parked V2 candidate. The developer observed that the read-only Home dashboard Tasks and Wish List widgets display checkbox/radio-like indicators, checked states and strikethrough text, creating the impression that items can be operated directly. They are currently previews, not interactive editors.
