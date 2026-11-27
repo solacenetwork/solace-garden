@@ -225,9 +225,12 @@ describe('Quick Start Garden creation', () => {
 			);
 			return visibleText(summary).trim().replace(/\s+/g, ' ');
 		})).toEqual([
-			'Icon (optional) Not set',
-			'Ring Color (optional) Not set',
+			'Icon (optional) Choose icon',
+			'Ring Color (optional) Choose color',
 		]);
+		expect(identitySections.every((section) => nodes(section).some(
+			({ props }) => props.class === 'accordion-icon bi bi-chevron-down' && props['aria-hidden'] === 'true'
+		))).toBe(true);
 
 		const thumbnail = nodes(form).find(
 			({ props }) => props.id === 'garden-thumbnail'
@@ -257,6 +260,26 @@ describe('Quick Start Garden creation', () => {
 
 		expect(visibleText(form)).not.toContain('Guided Wizard');
 		expect(visibleText(form)).not.toContain('Advanced Form');
+	});
+
+	it('summarizes selected identity values without exposing raw color values', () => {
+		const curated = QuickStartGardenView({
+			values: input({ icon: 'tree-fill', color: '#287D46' }),
+			onChange: vi.fn(),
+			onSubmit: vi.fn(),
+		});
+		const curatedSummaries = nodes(curated).filter(({ type }) => type === 'summary');
+		expect(curatedSummaries.map(visibleText).join(' ')).toContain('Tree');
+		expect(curatedSummaries.map(visibleText).join(' ')).toContain('Forest');
+		expect(curatedSummaries.map(visibleText).join(' ')).not.toContain('#287D46');
+
+		const custom = QuickStartGardenView({
+			values: input({ color: '#123456' }),
+			onChange: vi.fn(),
+			onSubmit: vi.fn(),
+		});
+		expect(nodes(custom).filter(({ type }) => type === 'summary').map(visibleText).join(' '))
+			.toContain('Custom color');
 	});
 
 	it('creates, persists, and navigates to the exact Quick Start record', async () => {

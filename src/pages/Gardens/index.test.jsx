@@ -317,7 +317,8 @@ describe('Garden read-only views', () => {
 		);
 		expect(nodes(resume).some((node) => node.type === 'button')).toBe(false);
 		const discard = nodes(tree).find((node) => node.type === 'button');
-		expect(text(discard)).toContain('Discard Draft');
+		expect(text(discard)).toContain('Discard');
+		expect(discard.props['aria-label']).toBe('Discard draft: Untitled Garden');
 		discard.props.onClick();
 		expect(onDiscard).toHaveBeenCalledWith(draft);
 	});
@@ -333,7 +334,8 @@ describe('Garden read-only views', () => {
 		});
 		const discard = nodes(tree).find((node) => node.type === 'button');
 		expect(discard.props.disabled).toBe(true);
-		expect(text(discard)).toContain('Discarding…');
+		expect(text(discard)).toContain('Discard');
+		expect(discard.props['aria-label']).toBe('Discarding draft: Draft title');
 		expect(nodes(tree).find((node) => node.props?.href === draft.href)).toBeTruthy();
 	});
 
@@ -344,7 +346,11 @@ describe('Garden read-only views', () => {
 		];
 		const tree = GardenDraftsView({ state: { status: 'ready', drafts } });
 		expect(text(tree)).toContain('Draft Gardens');
-		expect(nodes(tree).find((node) => node.props?.href === '/gardens')).toBeTruthy();
+		const gardenLink = nodes(tree).find((node) => node.props?.href === '/gardens');
+		expect(gardenLink).toBeTruthy();
+		expect(text(gardenLink)).toBe('Gardens');
+		expect(text(tree)).not.toContain('All Gardens');
+		expect(nodes(tree).find((node) => node.props?.['aria-current'] === 'page').props.children).toBe('Drafts');
 		expect(nodes(tree).some((node) => node.type === CardCarousel)).toBe(false);
 		expect(nodes(tree).find((node) => node.props?.class === 'gardens-grid garden-drafts__grid')).toBeTruthy();
 		expect(nodes(tree).filter((node) => node.props?.class === 'garden-draft-card__resume').map(({ props }) => props.href)).toEqual(drafts.map(({ href }) => href));

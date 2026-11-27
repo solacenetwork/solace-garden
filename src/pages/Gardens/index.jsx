@@ -111,9 +111,15 @@ export function GardenDraftCard({ draft, onDiscard, discardingId = null }) {
 				/>
 				<GardenCardContent title={draft.label} subtitle={draft.subtitle} />
 			</a>
-			<button class="btn-text theme-danger garden-draft-card__discard" type="button" disabled={discardingId === draft.id} onClick={() => onDiscard(draft)}>
+			<button
+				class="btn-text theme-danger garden-draft-card__discard"
+				type="button"
+				disabled={discardingId === draft.id}
+				aria-label={`${discardingId === draft.id ? 'Discarding' : 'Discard'} draft: ${draft.label}`}
+				onClick={() => onDiscard(draft)}
+			>
 				<i class="bi bi-trash3" aria-hidden="true"></i>
-				{discardingId === draft.id ? 'Discarding…' : 'Discard Draft'}
+				Discard
 			</button>
 			<div class="garden-draft-card__ribbon">{draft.creationMethodLabel}</div>
 		</article>
@@ -249,10 +255,18 @@ export function GardenDraftsView({ state, onRetry, onDiscard = () => {}, discard
 	return (
 		<section class="workspace-page gardens-page garden-drafts-page" aria-labelledby="garden-drafts-page-title">
 			<PageHeader
+				breadcrumbs={(
+					<nav class="garden-creation-breadcrumb" aria-label="Draft Gardens breadcrumb">
+						<ol class="breadcrumb">
+							<li class="breadcrumb-item"><a class="breadcrumb-link" href="/gardens">Gardens</a></li>
+							<li class="breadcrumb-divider" aria-hidden="true"></li>
+							<li class="breadcrumb-item"><span class="breadcrumb-link active" aria-current="page">Drafts</span></li>
+						</ol>
+					</nav>
+				)}
 				title="Draft Gardens"
 				titleId="garden-drafts-page-title"
 				description="Select a draft to continue working on your Garden, or discard one you no longer need."
-				actions={<a class="btn-outline gardens-back" href="/gardens"><i class="bi bi-arrow-left" aria-hidden="true"></i> All Gardens</a>}
 			/>
 			<div class="page-content">
 				{state.status !== 'ready' ? <ReadState state={state} onRetry={onRetry} /> : (

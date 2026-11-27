@@ -170,7 +170,7 @@ test('classifies Gardens and keeps Drafts in their own ordered section', async (
 
   await expect(sections.drafts.locator('.card-carousel')).toHaveCount(1);
   await expect(sections.drafts.getByRole('link', { name: 'View All' })).toHaveAttribute('href', '/gardens/drafts');
-  await expect(sections.drafts.getByRole('button', { name: 'Discard Draft' })).toHaveCount(1);
+  await expect(sections.drafts.getByRole('button', { name: /Discard draft:/ })).toHaveCount(1);
 
   const currentLink = sections.current.getByRole('link', { name: gardens[0].name });
   await expect(currentLink.locator('.garden-card__identity .bi-tree-fill')).toHaveCount(1);

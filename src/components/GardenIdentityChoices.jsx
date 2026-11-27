@@ -117,6 +117,14 @@ export function GardenColorChoices({
 	);
 }
 
+function readableIconLabel(name) {
+	return name
+		.replace(/-fill$/, '')
+		.replace(/([a-z])([0-9])/g, '$1 $2')
+		.replaceAll('-', ' ')
+		.replace(/^./, (character) => character.toUpperCase());
+}
+
 export function GardenCreationIdentitySections({
 	fields,
 	errors = {},
@@ -138,8 +146,8 @@ export function GardenCreationIdentitySections({
 	}
 
 	const iconPreview = fields.icon
-		? <><i class={`bi bi-${fields.icon}`} aria-hidden="true"></i> {fields.icon}</>
-		: 'Not set';
+		? <><i class={`bi bi-${fields.icon}`} aria-hidden="true"></i> {readableIconLabel(fields.icon)}</>
+		: 'Choose icon';
 	const normalizedColor = normalizeGardenColor(fields.color);
 	const paletteColor = GARDEN_COLOR_PALETTE.find(({ value }) => value === normalizedColor);
 	const colorPreview = normalizedColor
@@ -152,14 +160,15 @@ export function GardenCreationIdentitySections({
 			></span>
 			{paletteColor ? paletteColor.name : 'Custom color'}
 		</>
-		: 'Not set';
+		: 'Choose color';
 
 	return (
-		<div class="garden-create__identity accordion" aria-label="Optional Garden identity">
+		<div class="garden-create__identity accordion accordion-gap" aria-label="Optional Garden identity">
 			<details class="accordion-item" open={preference.icon} onToggle={(event) => toggle('icon', event.currentTarget.open)}>
 				<summary class="accordion-header">
-					<span>Icon (optional)</span>
+					<span class="garden-create__accordion-title">Icon (optional)</span>
 					<span class="garden-create__accordion-preview">{iconPreview}</span>
+					<i class="accordion-icon bi bi-chevron-down" aria-hidden="true"></i>
 				</summary>
 				<div class="accordion-body">
 					<GardenIconChoices
@@ -181,8 +190,9 @@ export function GardenCreationIdentitySections({
 			</details>
 			<details class="accordion-item" open={preference.color} onToggle={(event) => toggle('color', event.currentTarget.open)}>
 				<summary class="accordion-header">
-					<span>Ring Color (optional)</span>
+					<span class="garden-create__accordion-title">Ring Color (optional)</span>
 					<span class="garden-create__accordion-preview">{colorPreview}</span>
+					<i class="accordion-icon bi bi-chevron-down" aria-hidden="true"></i>
 				</summary>
 				<div class="accordion-body">
 					<GardenColorChoices
