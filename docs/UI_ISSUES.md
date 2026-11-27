@@ -34,6 +34,16 @@ Confirmed issues with an agreed correction.
 **Priority:** Nonblocking; explicitly deferred to 8M.
 
 
+### UI-019 — Edit Garden identity action overflow on narrow screens
+
+**Target milestone:** 8T  
+**Location:** Saved Garden Edit page, Galaxy S22 portrait  
+**Observed:** Choose Ring Color and Choose Icon actions extend outside their containing panel on narrow screens; reported during 10C manual acceptance.  
+**Expected:** Keep both actions within the usable panel using responsive wrapping/stacking and appropriate touch targets; preserve modal behavior and keyboard focus.  
+**Related:** [TESTING_NOTES.md](TESTING_NOTES.md), 10C.  
+**Priority:** Nonblocking; explicitly deferred to 8T.
+
+
 ## To Investigate	
 Reproducible issues where the cause or solution is unknown.
 
@@ -161,6 +171,24 @@ Optional UI-specific improvements to otherwise functional UI. Non-UI stuff belon
 **Expected:** Optional review of height-sensitive fullscreen dialog, possibly multi-column with single close control. Preserve existing navigation and focus semantics; no threshold or implementation approved. Explicitly not a V1 blocker; may remain deferred beyond 8U.  
 **Related:** [PARKING_LOT.md](PARKING_LOT.md), former short-landscape entry; https://getbootstrap.com/docs/6.0/components/dialog/#fullscreen-dialog  
 **Priority:** Optional; not a release blocker
+
+### UI-017 — Custom icon selection consistency
+
+**Target milestone:** 8T  
+**Location:** Garden creation identity disclosures and saved Garden identity modal  
+**Observed:** Saved Garden modal accepts custom Bootstrap icon names; Quick Start, Guided Wizard and Advanced Form offer curated icons only.  
+**Expected:** Evaluate consistent custom icon selection across identity surfaces, preserving validation and draft persistence; implementation not yet approved.  
+**Related:** [TESTING_NOTES.md](TESTING_NOTES.md), 10C.  
+**Priority:** Nonblocking enhancement
+
+### UI-018 — Advanced creation breadcrumb wrapping
+
+**Target milestone:** 8T  
+**Location:** Advanced Garden creation, narrow mobile portrait  
+**Observed:** Breadcrumb wraps onto a second line. Navigation remains functional.  
+**Expected:** Review compact breadcrumb presentation without clipping or removing navigation semantics. Wrapping is acceptable if needed for accessibility.  
+**Related:** [TESTING_NOTES.md](TESTING_NOTES.md), 10C.  
+**Priority:** Nonblocking enhancement
 
 ## Resolved	
 Completed corrections with commit references and verification results.
