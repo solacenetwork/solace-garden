@@ -208,8 +208,10 @@ describe('Garden read-only views', () => {
 			state: { status: 'ready', drafts: [], current: [identified], planned: [], previous: [] },
 		});
 		const cardBadge = nodes(overview).find((node) => node.props?.class?.includes('garden-card__identity'));
+		const cardVisual = nodes(overview).find((node) => node.props?.class === 'garden-card__visual');
 		expect(cardBadge.props.style['--garden-identity-color']).toBe('#287D46');
 		expect(nodes(cardBadge).find((node) => node.type === 'i').props.class).toBe('bi bi-tree-fill');
+		expect(nodes(cardVisual).some((node) => node.props?.class?.includes('garden-card__identity'))).toBe(false);
 		expect(nodes(overview).some((node) => node.type === 'img')).toBe(true);
 		expect(text(overview)).toContain(identified.name);
 

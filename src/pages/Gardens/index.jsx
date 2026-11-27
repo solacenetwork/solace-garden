@@ -59,15 +59,17 @@ function ReadState({ state, onRetry }) {
 
 function GardenCardVisual({ src, garden = null }) {
 	return (
-		<span class="garden-card__visual">
-			<img src={src} alt="" loading="lazy" decoding="async" />
+		<>
+			<span class="garden-card__visual">
+				<img src={src} alt="" loading="lazy" decoding="async" />
+				{garden?.isClosed && (
+					<span class="garden-card__lock" role="img" aria-label="Locked">
+						<i class="bi bi-lock-fill" aria-hidden="true"></i>
+					</span>
+				)}
+			</span>
 			{garden && <GardenIdentityBadge icon={garden.icon} color={garden.color} className="garden-card__identity" />}
-			{garden?.isClosed && (
-				<span class="garden-card__lock" role="img" aria-label="Locked">
-					<i class="bi bi-lock-fill" aria-hidden="true"></i>
-				</span>
-			)}
-		</span>
+		</>
 	);
 }
 

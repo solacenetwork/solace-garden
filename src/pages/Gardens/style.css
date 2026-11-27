@@ -141,6 +141,7 @@
 }
 
 .garden-card {
+	position: relative;
 	display: flex;
 	box-sizing: border-box;
 	min-width: 0;
