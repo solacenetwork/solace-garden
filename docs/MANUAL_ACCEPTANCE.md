@@ -79,6 +79,21 @@ Extend the scenarios as subsequent features are implemented. Step 9 establishes 
 
 During alpha, use isolated, disposable Garden test data and the current intended data contract. Do not introduce migrations or legacy compatibility solely to preserve obsolete alpha test records. Operational data integrity, including valid draft recovery and atomic operations, remains required. QA evidence is not disposable Garden test data. After public release, preserve real user data through deliberately planned migrations and recovery mechanisms.
 
+### Periodic Dataset and Scenario Review Policy
+
+Review the manual testing scenarios and standardized datasets at meaningful development milestones, particularly after substantial changes to persisted fields, data contracts or application workflows.
+
+- Review existing records and scenarios before adding new ones.
+- Revise, replace or remove obsolete and redundant sample data when it no longer represents the intended application.
+- Represent newly implemented features and meaningful boundary cases without duplicating scenarios that already provide the needed coverage.
+- Keep automated fixtures and manual testing datasets aligned with current intended contracts while allowing them to serve different testing purposes.
+- Preserve stable scenario identifiers and historical testing results as scenarios evolve. Do not rewrite prior execution history.
+- During alpha development, rebuild fixtures when appropriate rather than adding backward compatibility solely to preserve obsolete test records.
+
+Record the dataset revision used for each acceptance run. A dataset review does not itself authorize changing historical results, production data contracts or the automated fixture consumed by existing tests.
+
+The standardized reference dataset will be captured as `tests/fixtures/sample-data.json` after the Manual Testing Scenarios have been executed in the dedicated fixture-authoring Chromium profile. The existing `tests/fixtures/sample-garden.json` remains the automated-test fixture until a separate review and migration is approved. Do not create or replace the new dataset as part of the fixture-utility modernization task.
+
 ## 6. Manual Testing Scenarios
 
 To be developed for Step 9. Prescribed datasets, scenario identifiers, requirements mappings and checkpoints will be added after review of the current implementation and existing fixtures.
