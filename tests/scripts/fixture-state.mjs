@@ -11,6 +11,12 @@ import {
 	MAIN_CONFIG_ID,
 } from '../../src/storage/dexie/constants.js';
 import { isGardenDatabaseName } from '../../src/storage/dexie/databaseNames.js';
+import { validateGardenTypeCatalog } from '../../src/storage/gardenTypeValidation.js';
+import {
+	DEFAULT_LOCATION_ID,
+	validateNewLocation,
+} from '../../src/storage/locationValidation.js';
+import { validateRecordId } from '../../src/storage/validation.js';
 
 export const APP_ORIGIN = 'http://localhost:5173';
 export const DEFAULT_FIXTURE_FILENAME = 'sample-garden.json';
@@ -22,6 +28,26 @@ const FILENAME_PATTERN = /^[a-z0-9][a-z0-9._-]*\.json$/i;
 const PROFILE_PATTERN = /^[a-z0-9][a-z0-9_-]*$/i;
 const GARDEN_STATUSES = new Set(['planned', 'active', 'completed', 'archived']);
 const DRAFT_EDITORS = new Set(['quickstart', 'wizard', 'advanced']);
+// The repository's draft validators are intentionally private. Keep this
+// fixture-side contract limited to persisted field presence and value types;
+// unfinished draft content does not need to satisfy final Garden validation.
+const GARDEN_DRAFT_FIELD_TYPES = Object.freeze({
+	name: 'string',
+	subtitle: 'string',
+	icon: 'nullable-string',
+	color: 'nullable-string',
+	description: 'string',
+	locationId: 'string',
+	typeIds: 'string-array',
+	startDate: 'string',
+	endDate: 'string',
+	status: 'string',
+	isClosed: 'boolean',
+	saveAsTemplate: 'boolean',
+});
+const COMMON_DRAFT_FIELDS = Object.freeze([
+	'id', 'kind', 'subjectId', 'isNew', 'createdAt', 'updatedAt',
+]);
 
 export function parseArguments(argv, { allowProfile = false } = {}) {
 	let fixtureFilename;
@@ -89,13 +115,16 @@ export async function readAndValidateFixture(fixturePath) {
 export function validateStorageState(state, { capture = false } = {}) {
 	const errors = [];
 	const warnings = [];
-	const cookies = Array.isArray(state?.cookies) ? state.cookies : [];
+	validatePlaywrightStorageStructure(state, errors);
+	if (errors.length > 0) throwValidationErrors(errors);
+
+	const cookies = state.cookies;
 	if (cookies.length > 0) {
 		(capture ? warnings : errors).push(
 			`Storage state contains ${cookies.length} cookie(s)${capture ? '; they will be excluded' : ''}.`,
 		);
 	}
-	const origins = Array.isArray(state?.origins) ? state.origins : [];
+	const origins = state.origins;
 	const matchingOrigins = origins.filter(({ origin }) => origin === APP_ORIGIN);
 	if (matchingOrigins.length !== 1) {
 		errors.push(`Expected exactly one ${APP_ORIGIN} storage origin; found ${matchingOrigins.length}.`);
@@ -106,7 +135,12 @@ export function validateStorageState(state, { capture = false } = {}) {
 		);
 	}
 	const origin = matchingOrigins[0];
-	const databases = Array.isArray(origin?.indexedDB) ? origin.indexedDB : [];
+	if (origin && !Array.isArray(origin.indexedDB)) {
+		errors.push(`Origin "${APP_ORIGIN}" must contain an IndexedDB array.`);
+	}
+	if (errors.length > 0) throwValidationErrors(errors);
+
+	const databases = origin.indexedDB;
 	const databaseNames = databases.map(({ name }) => name);
 	if (new Set(databaseNames).size !== databaseNames.length) {
 		errors.push('Storage state contains duplicate IndexedDB database names.');
@@ -163,10 +197,12 @@ export function validateStorageState(state, { capture = false } = {}) {
 		storeName,
 		records(findStore(activeDatabase, storeName), errors, storeName),
 	]));
+	validateCatalogs(data, errors);
+	validateDraftStructures(data.drafts, errors);
 	validateRelationships(data, errors, warnings);
 
 	if (errors.length > 0) {
-		throw new Error(`Fixture validation failed:\n- ${errors.join('\n- ')}`);
+		throwValidationErrors(errors);
 	}
 
 	return {
@@ -175,13 +211,147 @@ export function validateStorageState(state, { capture = false } = {}) {
 			cookies: [],
 			origins: [{
 				origin: APP_ORIGIN,
-				localStorage: Array.isArray(origin.localStorage) ? origin.localStorage : [],
+				localStorage: origin.localStorage,
 				indexedDB: databases,
 			}],
 		},
 		summary: buildSummary(origin, activeDatabase, data),
 		warnings,
 	};
+}
+
+function throwValidationErrors(errors) {
+	throw new Error(`Fixture validation failed:\n- ${errors.join('\n- ')}`);
+}
+
+function validatePlaywrightStorageStructure(state, errors) {
+	if (!isPlainObject(state)) {
+		errors.push('Storage state must be a plain object.');
+		return;
+	}
+	if (!Array.isArray(state.cookies)) {
+		errors.push('Storage state cookies must be an array.');
+	} else {
+		state.cookies.forEach((cookie, index) => {
+			if (
+				!isPlainObject(cookie) ||
+				!['name', 'value', 'domain', 'path'].every((field) => typeof cookie[field] === 'string') ||
+				typeof cookie.expires !== 'number' ||
+				typeof cookie.httpOnly !== 'boolean' ||
+				typeof cookie.secure !== 'boolean' ||
+				!['Strict', 'Lax', 'None'].includes(cookie.sameSite)
+			) {
+				errors.push(`Storage state cookie ${index + 1} is malformed.`);
+			}
+		});
+	}
+	if (!Array.isArray(state.origins)) {
+		errors.push('Storage state origins must be an array.');
+		return;
+	}
+
+	state.origins.forEach((origin, originIndex) => {
+		const label = `Storage origin ${originIndex + 1}`;
+		if (!isPlainObject(origin) || typeof origin.origin !== 'string') {
+			errors.push(`${label} must be an object with an origin string.`);
+			return;
+		}
+		validateNameValueArray(origin.localStorage, `${label} localStorage`, errors);
+		if (origin.indexedDB !== undefined) {
+			if (!Array.isArray(origin.indexedDB)) {
+				errors.push(`${label} IndexedDB must be an array when present.`);
+			} else {
+				origin.indexedDB.forEach((database, databaseIndex) => {
+					validateIndexedDBDatabase(database, `${label} IndexedDB database ${databaseIndex + 1}`, errors);
+				});
+			}
+		}
+	});
+}
+
+function validateNameValueArray(value, label, errors) {
+	if (!Array.isArray(value)) {
+		errors.push(`${label} must be an array.`);
+		return;
+	}
+	for (const [index, entry] of value.entries()) {
+		if (!isPlainObject(entry) || typeof entry.name !== 'string' || typeof entry.value !== 'string') {
+			errors.push(`${label} entry ${index + 1} must contain string name and value fields.`);
+		}
+	}
+}
+
+function validateIndexedDBDatabase(database, label, errors) {
+	if (
+		!isPlainObject(database) ||
+		typeof database.name !== 'string' ||
+		!Number.isSafeInteger(database.version) ||
+		database.version < 1
+	) {
+		errors.push(`${label} must have a name string and positive integer version.`);
+		return;
+	}
+	if (!Array.isArray(database.stores)) {
+		errors.push(`${label} stores must be an array.`);
+		return;
+	}
+	for (const [storeIndex, store] of database.stores.entries()) {
+		validateIndexedDBStore(store, `${label} store ${storeIndex + 1}`, errors);
+	}
+}
+
+function validateIndexedDBStore(store, label, errors) {
+	if (!isPlainObject(store) || typeof store.name !== 'string') {
+		errors.push(`${label} must be an object with a name string.`);
+		return;
+	}
+	if (typeof store.autoIncrement !== 'boolean') {
+		errors.push(`${label} autoIncrement must be a boolean.`);
+	}
+	if (!validKeyPath(store, { allowMissing: true })) {
+		errors.push(`${label} keyPath metadata is malformed.`);
+	}
+	if (!Array.isArray(store.records)) {
+		errors.push(`${label} records must be an array.`);
+	} else {
+		for (const [recordIndex, record] of store.records.entries()) {
+			if (
+				!isPlainObject(record) ||
+				(!Object.hasOwn(record, 'value') && !Object.hasOwn(record, 'valueEncoded'))
+			) {
+				errors.push(`${label} record ${recordIndex + 1} has no Playwright value payload.`);
+			}
+		}
+	}
+	if (!Array.isArray(store.indexes)) {
+		errors.push(`${label} indexes must be an array.`);
+	} else {
+		for (const [indexPosition, index] of store.indexes.entries()) {
+			if (
+				!isPlainObject(index) ||
+				typeof index.name !== 'string' ||
+				!validKeyPath(index) ||
+				typeof index.multiEntry !== 'boolean' ||
+				typeof index.unique !== 'boolean'
+			) {
+				errors.push(`${label} index ${indexPosition + 1} is malformed.`);
+			}
+		}
+	}
+}
+
+function validKeyPath(value, { allowMissing = false } = {}) {
+	const missing = value?.keyPath === undefined && value?.keyPathArray === undefined;
+	return (allowMissing && missing) || typeof value?.keyPath === 'string' || (
+		Array.isArray(value?.keyPathArray) &&
+		value.keyPathArray.length > 0 &&
+		value.keyPathArray.every((part) => typeof part === 'string')
+	);
+}
+
+function isPlainObject(value) {
+	return value !== null && typeof value === 'object' && !Array.isArray(value) &&
+		Object.getPrototypeOf(value) === Object.prototype;
 }
 
 function validateDatabaseSchema(database, expected, errors) {
@@ -233,12 +403,16 @@ function findStore(database, storeName) {
 }
 
 function records(store, errors, label) {
-	if (!store || !Array.isArray(store.records)) return [];
+	if (!store) return [];
+	if (!Array.isArray(store.records)) {
+		errors.push(`Store "${label}" records must be an array.`);
+		return [];
+	}
 	const values = [];
 	for (const [index, record] of store.records.entries()) {
 		const value = record?.value;
-		if (!value || typeof value !== 'object' || Array.isArray(value)) {
-			errors.push(`Store "${label}" record ${index + 1} has no object value.`);
+		if (!isPlainObject(value)) {
+			errors.push(`Store "${label}" record ${index + 1} must contain a plain object value for the SOLACE Garden contract.`);
 			continue;
 		}
 		values.push(value);
@@ -251,6 +425,131 @@ function records(store, errors, label) {
 		errors.push(`Store "${label}" contains duplicate record ids.`);
 	}
 	return values;
+}
+
+function validateCatalogs(data, errors) {
+	try {
+		validateGardenTypeCatalog(data.gardenTypes);
+	} catch (error) {
+		errors.push(`Garden Type catalog is invalid: ${error.message}`);
+	}
+
+	for (const location of data.locations) {
+		try {
+			validateNewLocation(location);
+		} catch (error) {
+			errors.push(`Location ${location.id ?? '(missing id)'} is invalid: ${error.message}`);
+		}
+	}
+	if (!data.locations.some(({ id }) => id === DEFAULT_LOCATION_ID)) {
+		errors.push(`The protected Default Location "${DEFAULT_LOCATION_ID}" is missing.`);
+	}
+}
+
+function validateDraftStructures(drafts, errors) {
+	for (const draft of drafts) {
+		const label = `Draft ${draft.id ?? '(missing id)'}`;
+		const kindFields = draft.kind === 'garden'
+			? ['fields', 'sourceTemplateId', 'preferredEditor', 'currentStepId']
+			: ['text', 'gardenId'];
+		const allowedFields = new Set([...COMMON_DRAFT_FIELDS, ...kindFields]);
+		const unsupportedField = Object.keys(draft).find((field) => !allowedFields.has(field));
+		if (unsupportedField) {
+			errors.push(`${label} contains unsupported field ${unsupportedField}.`);
+		}
+		for (const field of [...COMMON_DRAFT_FIELDS, ...kindFields]) {
+			if (!Object.hasOwn(draft, field)) errors.push(`${label} is missing required field ${field}.`);
+		}
+
+		validateDraftRecordId(draft.id, `${label} id`, errors);
+		if (!['note', 'garden'].includes(draft.kind)) {
+			errors.push(`${label} has invalid kind ${draft.kind}.`);
+			continue;
+		}
+		if (draft.subjectId !== null) {
+			validateDraftRecordId(draft.subjectId, `${label} subjectId`, errors);
+		}
+		if (typeof draft.isNew !== 'boolean' || draft.isNew !== (draft.subjectId === null)) {
+			errors.push(`${label} has an inconsistent draft identity.`);
+		}
+		for (const field of ['createdAt', 'updatedAt']) {
+			if (typeof draft[field] !== 'string' || draft[field].length === 0) {
+				errors.push(`${label} ${field} must be a non-empty string.`);
+			}
+		}
+
+		if (draft.kind === 'note') {
+			validateNoteDraftStructure(draft, label, errors);
+		} else {
+			validateGardenDraftStructure(draft, label, errors);
+		}
+	}
+}
+
+function validateNoteDraftStructure(draft, label, errors) {
+	if (typeof draft.text !== 'string') {
+		errors.push(`${label} text must be a string.`);
+	}
+	if (Object.hasOwn(draft, 'gardenId') && draft.gardenId !== null) {
+		validateDraftRecordId(draft.gardenId, `${label} gardenId`, errors);
+	}
+}
+
+function validateGardenDraftStructure(draft, label, errors) {
+	if (draft.subjectId !== null || draft.isNew !== true) {
+		errors.push(`${label} must describe a new Garden.`);
+	}
+	if (!isPlainObject(draft.fields)) {
+		errors.push(`${label} fields must be a plain object.`);
+	} else {
+		const expectedFields = Object.keys(GARDEN_DRAFT_FIELD_TYPES);
+		const unsupportedField = Object.keys(draft.fields).find((field) => !expectedFields.includes(field));
+		const missingField = expectedFields.find((field) => !Object.hasOwn(draft.fields, field));
+		if (unsupportedField || missingField) {
+			errors.push(`${label} fields do not match the current Garden draft contract${unsupportedField ? `; unsupported field ${unsupportedField}` : `; missing field ${missingField}`}.`);
+		}
+		for (const [field, expectedType] of Object.entries(GARDEN_DRAFT_FIELD_TYPES)) {
+			if (Object.hasOwn(draft.fields, field) && !draftFieldTypeMatches(draft.fields[field], expectedType)) {
+				errors.push(`${label} field ${field} must be ${draftFieldTypeDescription(expectedType)}.`);
+			}
+		}
+	}
+	if (Object.hasOwn(draft, 'sourceTemplateId') && draft.sourceTemplateId !== null) {
+		validateDraftRecordId(draft.sourceTemplateId, `${label} sourceTemplateId`, errors);
+	}
+	if (Object.hasOwn(draft, 'preferredEditor') && !DRAFT_EDITORS.has(draft.preferredEditor)) {
+		errors.push(`${label} has an invalid preferred editor.`);
+	}
+	if (
+		Object.hasOwn(draft, 'currentStepId') &&
+		(draft.preferredEditor === 'wizard'
+			? typeof draft.currentStepId !== 'string' || draft.currentStepId.trim() === ''
+			: draft.currentStepId !== null)
+	) {
+		errors.push(`${label} has invalid Wizard step metadata.`);
+	}
+}
+
+function validateDraftRecordId(value, label, errors) {
+	try {
+		validateRecordId(value, label);
+	} catch {
+		errors.push(`${label} must be a valid UUID.`);
+	}
+}
+
+function draftFieldTypeMatches(value, expectedType) {
+	if (expectedType === 'nullable-string') return value === null || typeof value === 'string';
+	if (expectedType === 'string-array') {
+		return Array.isArray(value) && value.every((entry) => typeof entry === 'string');
+	}
+	return typeof value === expectedType;
+}
+
+function draftFieldTypeDescription(expectedType) {
+	if (expectedType === 'nullable-string') return 'a string or null';
+	if (expectedType === 'string-array') return 'an array of strings';
+	return `a ${expectedType}`;
 }
 
 function validateRelationships(data, errors, warnings) {
@@ -295,12 +594,6 @@ function validateRelationships(data, errors, warnings) {
 
 	for (const draft of data.drafts) {
 		if (draft.kind === 'note') {
-			if (!Object.hasOwn(draft, 'gardenId')) {
-				errors.push(`Note draft ${draft.id} has no Garden association field.`);
-			}
-			if (draft.isNew !== (draft.subjectId === null)) {
-				errors.push(`Note draft ${draft.id} has an inconsistent draft identity.`);
-			}
 			if (draft.subjectId !== null && !ids.notes.has(draft.subjectId)) {
 				errors.push(`Note draft ${draft.id} references missing Note ${draft.subjectId}.`);
 			}
@@ -308,26 +601,6 @@ function validateRelationships(data, errors, warnings) {
 				warnings.push(`Note draft ${draft.id} references a Garden that is no longer available and requires the supported recovery flow.`);
 			}
 		} else if (draft.kind === 'garden') {
-			if (draft.subjectId !== null || draft.isNew !== true || !draft.fields || typeof draft.fields !== 'object') {
-				errors.push(`Garden draft ${draft.id} has an invalid draft identity or fields.`);
-			}
-			if (!Array.isArray(draft.fields?.typeIds)) {
-				errors.push(`Garden draft ${draft.id} does not have a Garden Type array.`);
-			}
-			if (!DRAFT_EDITORS.has(draft.preferredEditor)) {
-				errors.push(`Garden draft ${draft.id} has an invalid preferred editor.`);
-			}
-			if (!Object.hasOwn(draft, 'sourceTemplateId')) {
-				errors.push(`Garden draft ${draft.id} has no source Template field.`);
-			}
-			if (
-				!Object.hasOwn(draft, 'currentStepId') ||
-				(draft.preferredEditor === 'wizard'
-					? typeof draft.currentStepId !== 'string' || draft.currentStepId.trim() === ''
-					: draft.currentStepId !== null)
-			) {
-				errors.push(`Garden draft ${draft.id} has invalid Wizard step metadata.`);
-			}
 			if (Object.hasOwn(draft, 'sourceTemplateId') && draft.sourceTemplateId !== null && !ids.gardenTemplates.has(draft.sourceTemplateId)) {
 				warnings.push(`Garden draft ${draft.id} references a Template that is no longer available.`);
 			}
@@ -336,11 +609,9 @@ function validateRelationships(data, errors, warnings) {
 			}
 			for (const typeId of Array.isArray(draft.fields?.typeIds) ? draft.fields.typeIds : []) {
 				if (!ids.gardenTypes.has(typeId)) {
-					errors.push(`Garden draft ${draft.id} references missing Garden Type ${typeId}.`);
+					warnings.push(`Garden draft ${draft.id} references unavailable Garden Type ${typeId}; the creation editor can remove the stale selection.`);
 				}
 			}
-		} else {
-			errors.push(`Draft ${draft.id} has invalid kind ${draft.kind}.`);
 		}
 	}
 

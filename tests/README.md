@@ -79,9 +79,13 @@ main configuration, exact active Garden database pointer, current native
 database versions, stores, indexes, records needed for summary calculations,
 and important relationships. Structural errors abort without replacing the
 destination. Recoverable states, such as a Template whose custom Location was
-deleted, are printed as informational warnings and do not block capture. The
-write uses a temporary sibling file followed by replacement, so a failed write
-does not truncate an existing fixture.
+deleted or an unfinished Garden draft containing an unavailable Garden Type,
+are printed as informational warnings and do not block capture. Malformed draft
+fields and incomplete or conflicting seeded catalogs remain blocking errors.
+Draft validation covers the current persisted structure and value types, not
+whether unfinished form content is ready to be finalized.
+The write uses a temporary sibling file followed by replacement, so a failed
+write does not truncate an existing fixture.
 
 Both capture and restore print record counts; Garden lifecycle and open/closed
 counts; Garden and Note draft counts; Task and Wish List completion and Garden
