@@ -35,5 +35,5 @@ tests/.chrome-fixture-profiles/
 /playwright-report/
 /test-results/
 
-
+tests/fixtures/review.json
 /docs/historical/
