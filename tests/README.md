@@ -42,12 +42,67 @@ Every populated test loads `tests/fixtures/sample-garden.json` into a new
 non-persistent browser context. Tests may edit or delete records there without
 changing the committed JSON file or the fixture-authoring browser profile.
 
-- `node tests/scripts/capture-fixture.mjs`: launch the dedicated persistent
-  Chromium profile to add sample data; press Enter in the terminal to save it.
-- `node tests/scripts/restore-fixture.mjs`: open the saved snapshot in an
-  isolated, temporary Chromium session for manual inspection.
+The developer utilities accept a fixture filename relative to `tests/fixtures/`.
+With no filename they continue to use `sample-garden.json`:
+
+```bash
+node tests/scripts/capture-fixture.mjs
+node tests/scripts/restore-fixture.mjs
+node tests/scripts/capture-fixture.mjs sample-data.json
+node tests/scripts/restore-fixture.mjs sample-data.json
+```
+
+Capture uses the existing `tests/.chrome-fixture-profile/` authoring profile by
+default. Select a separate, named test-only profile with `--profile`:
+
+```bash
+node tests/scripts/capture-fixture.mjs sample-data.json --profile sample-data
+```
+
+Named profiles live below `tests/.chrome-fixture-profiles/` and are ignored by
+Git. Profile names may contain letters, numbers, hyphens, and underscores. The
+utility does not accept an arbitrary profile path, so it cannot be pointed at a
+personal browser profile. It also never clears a profile. To start clean, close
+Chromium and choose a new, unused profile name. A developer may manually remove
+an obsolete test profile while Chromium is closed if it is no longer needed.
+
+Start Vite at `http://localhost:5173` before running either utility. Capture
+waits until the application shell confirms successful storage initialization,
+then leaves Chromium open for fixture authoring. Before pressing Enter in the
+terminal, finish the active edit and navigate away from a draft editor or
+confirm that its saved status is visible. Draft autosaves are asynchronous and
+the application has no public pending-save signal for the utility to await.
+Capture therefore does not guess with a fixed delay.
+
+Before writing, capture validates the application origin, control database and
+main configuration, exact active Garden database pointer, current native
+database versions, stores, indexes, records needed for summary calculations,
+and important relationships. Structural errors abort without replacing the
+destination. Recoverable states, such as a Template whose custom Location was
+deleted, are printed as informational warnings and do not block capture. The
+write uses a temporary sibling file followed by replacement, so a failed write
+does not truncate an existing fixture.
+
+Both capture and restore print record counts; Garden lifecycle and open/closed
+counts; Garden and Note draft counts; Task and Wish List completion and Garden
+association counts; Note association counts; catalog counts; and the number of
+localStorage entries. Note bodies and other record payloads are not printed.
+
+Restore validates the source JSON before launching Chromium, restores it into a
+new non-persistent context, follows the configured active database rather than
+choosing a name by prefix, waits for successful application initialization,
+and compares restored store counts with the snapshot. Interactive changes in
+that context disappear when the utility closes and never change the source
+fixture or an authoring profile.
 
 The fixture contains only `http://localhost:5173` storage and no cookies.
+Playwright storage state preserves IndexedDB records without per-field
+serialization and preserves origin localStorage preferences, including
+interface mode and accordion state.
+
+Keep `sample-garden.json` unchanged while authoring and reviewing the new
+standardized `sample-data.json`. Automated tests remain on the existing fixture
+until a separate, approved migration task.
 
 ## Viewport cleanup and Step 6.5 Garden Identity
 

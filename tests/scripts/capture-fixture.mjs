@@ -1,51 +1,50 @@
-import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from '@playwright/test';
+import {
+	APP_ORIGIN,
+	displayPath,
+	parseArguments,
+	printSummary,
+	safeWriteFixture,
+	validateStorageState,
+} from './fixture-state.mjs';
 
-const appOrigin = 'http://localhost:5173';
-const fixturePath = 'tests/fixtures/sample-garden.json';
+const { fixturePath, profilePath } = parseArguments(process.argv.slice(2), {
+	allowProfile: true,
+});
 
 // Dedicated fixture-authoring profile. Never use a personal browser profile here.
 const context = await chromium.launchPersistentContext(
-  './tests/.chrome-fixture-profile',
-  { 
-    headless: false, 
-    timeout: 90_000,
-    viewport: null 
-  }
+	profilePath,
+	{
+		headless: false,
+		timeout: 90_000,
+		viewport: null,
+	},
 );
 
 try {
-  const page = context.pages()[0] ?? await context.newPage();
-  await page.goto(appOrigin);
+	const page = context.pages()[0] ?? await context.newPage();
+	await page.goto(APP_ORIGIN);
+	const readiness = await Promise.race([
+		page.locator('.app-shell').waitFor({ state: 'visible' }).then(() => 'ready'),
+		page.locator('.storage-recovery').waitFor({ state: 'visible' }).then(() => 'recovery'),
+	]);
+	if (readiness !== 'ready') {
+		throw new Error('Application storage initialization did not complete successfully.');
+	}
 
-  // Build or update your sample records, then press Enter in this terminal.
-  console.log('Press Enter after creating your sample data.');
-  await new Promise(resolve => process.stdin.once('data', resolve));
+	console.log(`Fixture authoring profile: ${displayPath(profilePath)}`);
+	console.log('Application storage is ready. Build or update the fixture records in Chromium.');
+	console.log('Before capture, finish editing, leave draft editors or confirm their saved status, then press Enter here.');
+	await new Promise((resolve) => process.stdin.once('data', resolve));
 
-  const state = await context.storageState({ indexedDB: true });
-  const gardenOrigin = state.origins.find(origin => origin.origin === appOrigin);
-  const databases = gardenOrigin?.indexedDB ?? [];
+	const state = await context.storageState({ indexedDB: true });
+	const validation = validateStorageState(state, { capture: true });
+	printSummary(validation.summary, validation.warnings);
+	await safeWriteFixture(fixturePath, validation.fixture);
 
-  // Avoid silently replacing a populated fixture with an empty or wrong-origin snapshot.
-  if (
-    !databases.some(db => db.name === 'solace-config') ||
-    !databases.some(db => db.name.startsWith('solace-garden-data-'))
-  ) {
-    throw new Error(
-      'SOLACE Garden IndexedDB databases were not found. Fixture not overwritten.'
-    );
-  }
-
-  const fixture = {
-    cookies: [],
-    origins: [gardenOrigin],
-  };
-
-  await mkdir('tests/fixtures', { recursive: true });
-  await writeFile(fixturePath, JSON.stringify(fixture, null, 2) + '\n');
-
-  console.log('Fixture saved:', fixturePath);
-  console.log('Cookies: 0; origins:', fixture.origins.map(origin => origin.origin));
+	console.log(`Fixture saved safely: ${displayPath(fixturePath)}`);
+	console.log('Cookies: 0; captured origins: 1');
 } finally {
-  await context.close();
+	await context.close();
 }
